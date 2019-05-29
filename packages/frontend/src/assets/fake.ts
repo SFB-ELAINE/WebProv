@@ -1,11 +1,11 @@
-type NodeType =
+export type NodeType =
   'model' |
   'wet-lab data' |
   'simulation data' |
   'model-building-activity' |
   'model exploration activity';
 
-interface Node {
+export interface Node {
   type: NodeType;
   id: string;
   text: string;

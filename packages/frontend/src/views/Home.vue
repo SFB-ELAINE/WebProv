@@ -8,7 +8,22 @@
 import Vue from 'vue';
 import * as d3 from 'd3';
 import data from '@/assets/fake';
+import * as fake from '@/assets/fake';
 import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+
+const rightToLeftForce = <Node extends d3.SimulationNodeDatum>() => {
+  let nodes: fake.Node[] = [];
+
+  const doWork = (alpha: number) => {
+    //
+  };
+
+  doWork.initialize = (n: fake.Node[]) => {
+    nodes = n;
+  };
+
+  return doWork;
+};
 
 export default Vue.extend({
   name: 'home',
@@ -29,25 +44,27 @@ export default Vue.extend({
 
     const simulation = d3.forceSimulation(nodes)
       // @ts-ignore
-      .force('link', d3.forceLink(links).id((d) => d.id))
-      .force('charge', d3.forceManyBody().strength(-4000))
+      .force('link', d3.forceLink(links).id((d) => d.id).strength(0.3))
+      .velocityDecay(0.5)
+      .force('charge', d3.forceManyBody().strength(-1000))
+      .force('another', rightToLeftForce())
       .force('center', d3.forceCenter(this.width / 2, this.height / 2));
 
     const svg = d3.select(this.$refs.svg as Element);
     // svg.style
 
     svg.append('svg:defs').selectAll('marker')
-        .data(['end'])  // Different link/path types can be defined here
-        .enter().append('svg:marker')  // This section adds in the arrows
-        .attr('id', String)
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 10)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('svg:path')
-        .attr('d', 'M0,-5L10,0L0,5');
+      .data(['end'])  // Different link/path types can be defined here
+      .enter().append('svg:marker')  // This section adds in the arrows
+      .attr('id', String)
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 10)
+      .attr('refY', 0)
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('svg:path')
+      .attr('d', 'M0,-5L10,0L0,5');
 
     const link = svg.append('g')
       .attr('stroke', '#999')
