@@ -120,6 +120,14 @@ const links: Link[] = [
     source: 'M12\'',
     target: 'MBA_2',
   },
+  {
+    source: 'S12_2',
+    target: 'MBA_2',
+  },
+  {
+    source: 'MBA_1',
+    target: 'W12_1',
+  },
 ];
 
 

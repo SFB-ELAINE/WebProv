@@ -16,8 +16,8 @@ export default Vue.extend({
     HelloWorld,
   },
   data: () => ({
-    height: 600,
-    width: 600,
+    height: window.innerHeight,
+    width: window.innerWidth,
     size: 40,
   }),
   mounted() {
@@ -30,7 +30,7 @@ export default Vue.extend({
     const simulation = d3.forceSimulation(nodes)
       // @ts-ignore
       .force('link', d3.forceLink(links).id((d) => d.id))
-      .force('charge', d3.forceManyBody())
+      .force('charge', d3.forceManyBody().strength(-4000))
       .force('center', d3.forceCenter(this.width / 2, this.height / 2));
 
     const svg = d3.select(this.$refs.svg as Element);
@@ -56,7 +56,7 @@ export default Vue.extend({
       .data(links)
       .join('line')
       .attr('stroke-width', (d) => Math.sqrt(3))
-      .attr('marker-end', 'url(#end)');
+      .attr('marker-end', 'url(#end)'); // This, along with the defs above, adds the arrows
 
     const drag = () => {
 
@@ -96,15 +96,18 @@ export default Vue.extend({
 
     const node = g
       .append('rect')
-      .attr('width', (d) => d.text.length * 8 + 10) // 14 just kinda works well
+      .attr('width', (d) => d.text.length * 8 + 10) // 8 just kinda works well (10 is the padding)
       .attr('height', this.size)
-      .attr('fill', (d) => scale(1 + ''));
+      .attr('fill', (d) => 'white')
+      .style('stroke-width', 3)
+      .attr('rx', (d) => d.type === 'wet-lab data' || d.type === 'simulation data' ? 5 : 0)
+      .style('stroke', 'rgb(22, 89, 136)');
 
     g.append('text')
       // @ts-ignore
       .attr('x', (d) => d.text.length * 4 + 5) // duplicate from above
-      .attr('y', () => this.size / 2)
-      .attr('stroke', 'white')
+      .attr('y', () => this.size / 2 + 5) // the extra 5 is just random
+      .style('stroke-width', 0)
       .style('', '')
       .style('font-family', 'monospace')
       .style('user-select', 'none')
