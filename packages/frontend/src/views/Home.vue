@@ -10,6 +10,8 @@ import * as d3 from 'd3';
 import data from '@/assets/fake';
 import * as fake from '@/assets/fake';
 import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import forceLink from '@/link';
+import forceManyBody from '@/manyBody';
 
 const rightToLeftForce = <Node extends d3.SimulationNodeDatum>() => {
   let nodes: fake.Node[] = [];
@@ -44,15 +46,17 @@ export default Vue.extend({
   mounted() {
     const nodes = data.nodes.map((n) => ({
       ...n,
+      width: this.calcWidth(n),
+      height: this.size,
       index: 0, // this is useless but it gets rid of a type error
     }));
     const links = data.links.map((l) => ({ ...l }));
 
     const simulation = d3.forceSimulation(nodes)
       // @ts-ignore
-      .force('link', d3.forceLink(links).id((d) => d.id).strength(0.3))
+      .force('link', forceLink(links).id((d) => d.id).strength(0.3))
       .velocityDecay(0.5)
-      .force('charge', d3.forceManyBody().strength(-1000))
+      .force('charge', forceManyBody().strength(-1000))
       .force('another', rightToLeftForce())
       .force('center', d3.forceCenter(this.width / 2, this.height / 2));
 
