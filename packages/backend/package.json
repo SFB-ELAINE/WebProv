@@ -1,0 +1,24 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "prod": "tsc && node ./dist/index.js"
+  },
+  "devDependencies": {
+    "typescript": "^3.4.5",
+    "ts-node-dev": "^1.0.0-pre.32"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.5",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "graphql": "^14.3.1",
+    "graphql-yoga": "^1.17.4",
+    "reflect-metadata": "^0.1.13",
+    "restyped-express-async": "^0.6.1",
+    "specification": "^0.1.0",
+    "type-graphql": "^0.17.4"
+  }
+}

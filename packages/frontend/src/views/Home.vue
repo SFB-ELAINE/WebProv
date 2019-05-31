@@ -35,6 +35,12 @@ export default Vue.extend({
     width: window.innerWidth,
     size: 40,
   }),
+  methods: {
+    calcWidth(d: fake.Node) {
+      // 8 just kinda works well (10 is the padding)
+      return d.text.length * 8 + 10;
+    },
+  },
   mounted() {
     const nodes = data.nodes.map((n) => ({
       ...n,
@@ -51,7 +57,6 @@ export default Vue.extend({
       .force('center', d3.forceCenter(this.width / 2, this.height / 2));
 
     const svg = d3.select(this.$refs.svg as Element);
-    // svg.style
 
     svg.append('svg:defs').selectAll('marker')
       .data(['end'])  // Different link/path types can be defined here
@@ -113,7 +118,7 @@ export default Vue.extend({
 
     const node = g
       .append('rect')
-      .attr('width', (d) => d.text.length * 8 + 10) // 8 just kinda works well (10 is the padding)
+      .attr('width', (d) => this.calcWidth(d))
       .attr('height', this.size)
       .attr('fill', (d) => 'white')
       .style('stroke-width', 3)
@@ -133,14 +138,22 @@ export default Vue.extend({
 
     simulation.on('tick', () => {
       link
-        // @ts-ignore
-        .attr('x1', (d) => d.source.x)
-        // @ts-ignore
-        .attr('y1', (d) => d.source.y)
-        // @ts-ignore
-        .attr('x2', (d) => d.target.x)
-        // @ts-ignore
-        .attr('y2', (d) => d.target.y);
+        .attr('x1', (d) => {
+          // @ts-ignore
+          return d.source.x;
+        })
+        .attr('y1', (d) => {
+          // @ts-ignore
+          return d.source.y + this.size / 2;
+        })
+        .attr('x2', (d) => {
+          // @ts-ignore
+          return d.target.x + this.calcWidth(d.target);
+        })
+        .attr('y2', (d) => {
+          // @ts-ignore
+          return d.target.y + this.size / 2;
+        });
 
       g
         // @ts-ignore

@@ -82,10 +82,6 @@ const nodes: Node[] = [
 const links: Link[] = [
   {
     source: 'MBA_1',
-    target: 'M12',
-  },
-  {
-    source: 'MBA_1',
     target: 'Wx_2',
   },
   {
