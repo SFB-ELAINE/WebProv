@@ -10,14 +10,24 @@ export interface ModelBuildingActivity {
   type: 'model-building-activity';
   
   /**
-   * The wet lab data that is used for validation.
+   * The wet labs used for validation.
    */
-  usedForValidation: WetLabData[];
+  wetLabsUsedForValidation: WetLabData[];
   
   /**
-   * The wet lab data used for calibration.
+   * The wet labs used are calibration.
    */
-  usedForCalibration: WetLabData[];
+  wetLabsUsedForCalibration: WetLabData[];
+
+  /**
+   * The simulations used for validation.
+   */
+  simulationsUsedForValidation: SimulationData[];
+  
+  /**
+   * The simulations used for calibration.
+   */
+  simulationsUsedForCalibration: SimulationData[];
   
   /**
    * The models used.
@@ -39,7 +49,7 @@ export interface ModelExplorationActivity {
   /**
    * The model that the exploration activity was based on. It can only be based on one model.
    */
-  dependency: Model;
+  used: Model;
 }
 
 export interface ModelInformation {
@@ -81,7 +91,7 @@ export interface Model {
   version: number;
 
   /**
-   * The model building activity that was used to build this model.
+   * The model building activity that was used to build this model. A model is always based on one model building activity.
    */
   used: ModelBuildingActivity;
 }
@@ -106,6 +116,11 @@ export interface WetLabData {
    * The name of the wet lab experiment. This might be broken up into more specific information.
    */
   name: string;
+
+  /**
+   * Just extra information about the wet lab data. For example, this might contain cell line information.
+   */
+  information: { [k: string]: string }
 }
 
 export interface SimulationData {
@@ -118,10 +133,24 @@ export interface SimulationData {
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'simulation data';
-  text: string;
-  buildingActivity: ModelBuildingActivity | ModelExplorationActivity;
+
+  /**
+   * The name of the simulation.
+   */
+  name: string;
+
+  /**
+   * The model building activity the simulation data was based on. 
+   */
+  usedModelBuildingActivity: ModelBuildingActivity | null;
+
+  /**
+   * The model exploration activity the simulation data was based on. 
+   */
+  usedModelExplorationActivity: ModelExplorationActivity | null;
 }
 
+export type NodeTypes = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
 export type NodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
 
 export interface ProvenanceAPI {

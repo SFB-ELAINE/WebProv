@@ -7,29 +7,48 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as d3 from 'd3';
-import data from '@/assets/fake';
-import * as fake from '@/assets/fake';
+import * as data from '@/assets/test';
 import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
+import { NodeTypes, NodeType } from 'specification';
+
+function assertUnreachable(x: never): never {
+  throw new Error('Didn\'t expect to get here');
+}
+
+interface Node {
+  type: data.NodeType;
+  id: string;
+  text: string;
+}
+
+interface Link {
+  source: string;
+  target: string;
+}
+
+const notNull = <T>(v: T | null): v is T => {
+  return v !== null;
+};
 
 // Here is some relevant information that will help you understand the following schemas:
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
 
-const rightToLeftForce = <Node extends d3.SimulationNodeDatum>() => {
-  let nodes: fake.Node[] = [];
+// const rightToLeftForce = <Node extends d3.SimulationNodeDatum>() => {
+//   let nodes: Node[] = [];
 
-  const doWork = (alpha: number) => {
-    //
-  };
+//   const doWork = (alpha: number) => {
+//     //
+//   };
 
-  doWork.initialize = (n: fake.Node[]) => {
-    nodes = n;
-  };
+//   doWork.initialize = (n: Node[]) => {
+//     nodes = n;
+//   };
 
-  return doWork;
-};
+//   return doWork;
+// };
 
 export default Vue.extend({
   name: 'home',
@@ -42,26 +61,97 @@ export default Vue.extend({
     size: 40,
   }),
   methods: {
-    calcWidth(d: fake.Node) {
+    calcWidth(d: Node) {
       // 8 just kinda works well (10 is the padding)
       return d.text.length * 8 + 10;
     },
+    getText(n: NodeTypes): string {
+      switch (n.type) {
+        case 'wet-lab data':
+          return n.name;
+        case 'model-building-activity':
+          return 'MBA';
+        case 'simulation data':
+          return n.name;
+        case 'model exploration activity':
+          return 'MEA';
+        case 'model':
+          if (n.version < 1) {
+            throw Error(`Bad model version number: ${n.version}. Expected value >= 1`);
+          }
+
+          let text = `M${n.modelInformation.modelNumber}`;
+
+          // Do nothing is the version is 1
+          if (n.version === 2) {
+            // Just add an apostrophe if the version is 2
+            text += `'`;
+          } else {
+            // Add an explicit version number if > 2
+            text += `v${n.version}`;
+          }
+
+          return text;
+      }
+    },
   },
   mounted() {
-    const nodes = data.nodes.map((n) => ({
-      ...n,
-      width: this.calcWidth(n),
-      height: this.size,
-      index: 0, // this is useless but it gets rid of a type error
-    }));
-    const links = data.links.map((l) => ({ ...l }));
+    const links: Link[] = [];
+
+    // TODO RENAME
+    const nodes = data.nodes.map((n) => {
+      const source = n.type + n.id;
+
+      let nodesToConnect: NodeTypes[] = [];
+      switch (n.type) {
+        case 'wet-lab data':
+          break;
+        case 'model-building-activity':
+          nodesToConnect = [
+            ...n.wetLabsUsedForValidation,
+            ...n.wetLabsUsedForCalibration,
+            ...n.simulationsUsedForValidation,
+            ...n.simulationsUsedForCalibration,
+          ];
+          break;
+        case 'simulation data':
+          nodesToConnect = [n.usedModelBuildingActivity, n.usedModelBuildingActivity].filter(notNull);
+          break;
+        case 'model exploration activity':
+          nodesToConnect = [n.used];
+          break;
+        case 'model':
+          nodesToConnect = [n.used];
+      }
+
+      // haha change this name
+      nodesToConnect.forEach((nooooode) => {
+        links.push({
+          source,
+          target: nooooode.type + nooooode.id,
+        });
+      });
+
+      const newNode = {
+        id: source,
+        text: this.getText(n),
+        type: n.type,
+      };
+
+      return {
+        ...newNode,
+        width: this.calcWidth(newNode),
+        height: this.size,
+        index: 0, // this is useless but it gets rid of a type error
+      };
+    });
 
     const simulation = d3.forceSimulation(nodes)
       // @ts-ignore
       .force('link', forceLink(links).id((d) => d.id).strength(0.3))
       .velocityDecay(0.5)
       .force('charge', forceManyBody().strength(-1000))
-      .force('another', rightToLeftForce())
+      // .force('another', rightToLeftForce())
       .force('center', d3.forceCenter(this.width / 2, this.height / 2));
 
     const svg = d3.select(this.$refs.svg as Element);
