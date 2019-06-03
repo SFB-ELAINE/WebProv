@@ -13,6 +13,10 @@ import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 
+// Here is some relevant information that will help you understand the following schemas:
+// 1. The wet lab data that does not come from a specific publication should appear in all of
+// the models that use that data.
+
 const rightToLeftForce = <Node extends d3.SimulationNodeDatum>() => {
   let nodes: fake.Node[] = [];
 
