@@ -9,12 +9,13 @@
   },
   "dependencies": {
     "@types/d3": "^5.7.2",
+    "buefy": "^0.7.7",
     "core-js": "^2.6.5",
     "d3": "^5.9.2",
+    "specification": "^0.1.0",
     "vue": "^2.6.10",
     "vue-router": "^3.0.3",
-    "vuex": "^3.0.1",
-    "specification": "^0.1.0"
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",

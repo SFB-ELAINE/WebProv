@@ -1,6 +1,37 @@
 <template>
   <div class="home">
     <svg ref="svg" :height="height" :width="width"></svg>
+    <b-collapse class="card" aria-id="contentIdForA11y3">
+        <div
+          slot="trigger" 
+          slot-scope="props"
+          class="card-header"
+          role="button"
+          aria-controls="contentIdForA11y3"
+        >
+          <p class="card-header-title">
+            Node Information
+          </p>
+          <a class="card-header-icon">
+            <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
+          </a>
+        </div>
+        <div class="card-content">
+          <div class="content information">
+            <div v-for="(value, key) in informationFields" :key="key">
+              <div class="field-title">{{ key }}</div>
+              <div class="field-text">{{ value }}</div>
+            </div>
+            <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
+            <a>#buefy</a>. -->
+          </div>
+        </div>
+        <footer class="card-footer">
+            <!-- <a class="card-footer-item">Save</a> -->
+            <a class="card-footer-item">Edit</a>
+            <a class="card-footer-item">Delete</a>
+        </footer>
+    </b-collapse>
   </div>
 </template>
 
@@ -11,14 +42,14 @@ import * as data from '@/assets/test';
 import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { NodeTypes, NodeType } from 'specification';
+import { NodeType, Nodes } from 'specification';
 
 function assertUnreachable(x: never): never {
   throw new Error('Didn\'t expect to get here');
 }
 
 interface Node {
-  type: data.NodeType;
+  type: NodeType;
   id: string;
   text: string;
 }
@@ -32,40 +63,72 @@ const notNull = <T>(v: T | null): v is T => {
   return v !== null;
 };
 
+interface Data {
+  height: number;
+  width: number;
+  size: number;
+  selectedNode: null | Node;
+  nodeOutline: string;
+  selectedOutline: string;
+  nodesSelection: null | d3.Selection<SVGRectElement, any, SVGElement, {}>;
+}
+
 // Here is some relevant information that will help you understand the following schemas:
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
-
-// const rightToLeftForce = <Node extends d3.SimulationNodeDatum>() => {
-//   let nodes: Node[] = [];
-
-//   const doWork = (alpha: number) => {
-//     //
-//   };
-
-//   doWork.initialize = (n: Node[]) => {
-//     nodes = n;
-//   };
-
-//   return doWork;
-// };
 
 export default Vue.extend({
   name: 'home',
   components: {
     HelloWorld,
   },
-  data: () => ({
-    height: window.innerHeight,
-    width: window.innerWidth,
-    size: 40,
-  }),
+  data: (): Data => {
+    return {
+      height: window.innerHeight,
+      width: window.innerWidth,
+      size: 40,
+      selectedNode: null,
+      nodeOutline: 'rgb(22, 89, 136)',
+      selectedOutline: 'rgb(211, 215, 82)',
+      nodesSelection: null,
+    };
+  },
+  computed: {
+    informationFields(): { [name: string]: string } {
+      if (!this.selectedNode) {
+        return {};
+      }
+
+      switch (this.selectedNode.type) {
+        case 'model-building-activity':
+          return {
+            Title: this.selectedNode.text,
+          };
+        case 'model exploration activity':
+          return {
+            Title: this.selectedNode.text,
+          };
+        case 'model':
+          return {
+            Title: this.selectedNode.text,
+          };
+        case 'wet-lab data':
+          return {
+            Title: this.selectedNode.text,
+          };
+        case 'simulation data':
+          return {
+            Title: this.selectedNode.text,
+          };
+      }
+    },
+  },
   methods: {
     calcWidth(d: Node) {
       // 8 just kinda works well (10 is the padding)
       return d.text.length * 8 + 10;
     },
-    getText(n: NodeTypes): string {
+    getText(n: Nodes): string {
       switch (n.type) {
         case 'wet-lab data':
           return n.name;
@@ -82,8 +145,9 @@ export default Vue.extend({
 
           let text = `M${n.modelInformation.modelNumber}`;
 
-          // Do nothing is the version is 1
-          if (n.version === 2) {
+          if (n.version === 1) {
+            // Do nothing is the version is 1
+          } else if (n.version === 2) {
             // Just add an apostrophe if the version is 2
             text += `'`;
           } else {
@@ -91,7 +155,7 @@ export default Vue.extend({
             text += `v${n.version}`;
           }
 
-          return text;
+          return text + ` (${n.modelInformation.bibInformation})`;
       }
     },
   },
@@ -102,7 +166,7 @@ export default Vue.extend({
     const nodes = data.nodes.map((n) => {
       const source = n.type + n.id;
 
-      let nodesToConnect: NodeTypes[] = [];
+      let nodesToConnect: Nodes[] = [];
       switch (n.type) {
         case 'wet-lab data':
           break;
@@ -112,6 +176,7 @@ export default Vue.extend({
             ...n.wetLabsUsedForCalibration,
             ...n.simulationsUsedForValidation,
             ...n.simulationsUsedForCalibration,
+            ...n.used,
           ];
           break;
         case 'simulation data':
@@ -214,14 +279,17 @@ export default Vue.extend({
       // @ts-ignore
       .call(drag());
 
-    const node = g
+    this.nodesSelection = g
       .append('rect')
       .attr('width', (d) => this.calcWidth(d))
       .attr('height', this.size)
       .attr('fill', (d) => 'white')
       .style('stroke-width', 3)
       .attr('rx', (d) => d.type === 'wet-lab data' || d.type === 'simulation data' ? 5 : 0)
-      .style('stroke', 'rgb(22, 89, 136)');
+      .style('stroke', this.nodeOutline)
+      .on('click', (d) => {
+        this.selectedNode = d;
+      });
 
     g.append('text')
       // @ts-ignore
@@ -230,11 +298,14 @@ export default Vue.extend({
       .style('stroke-width', 0)
       .style('', '')
       .style('font-family', 'monospace')
-      .style('user-select', 'none')
+      .style('pointer-events', 'none')
       .style('text-anchor', 'middle')
       .text((d) => d.text);
 
     simulation.on('tick', () => {
+
+      // Unfortunently, it seems like I need to add the ts-ignore statements here
+      // The following code is perfectly fine so the d3 typings must be wrong
       link
         .attr('x1', (d) => {
           // @ts-ignore
@@ -258,5 +329,33 @@ export default Vue.extend({
         .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
     });
   },
+  watch: {
+    selectedNode() {
+      if (!this.nodesSelection ||  !this.selectedNode) {
+        return;
+      }
+
+      this.nodesSelection
+        .style('stroke', this.nodeOutline)
+        .filter((d) => d === this.selectedNode)
+        .style('stroke', this.selectedOutline);
+    },
+  },
 });
 </script>
+
+<style lang="scss" scoped>
+.card {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.information {
+  text-align: left;
+}
+
+.field-title {
+  font-weight: bold;
+}
+</style>

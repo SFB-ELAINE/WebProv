@@ -120,7 +120,7 @@ export interface WetLabData {
   /**
    * Just extra information about the wet lab data. For example, this might contain cell line information.
    */
-  information: { [k: string]: string }
+  information?: { [k: string]: string }
 }
 
 export interface SimulationData {
@@ -150,7 +150,7 @@ export interface SimulationData {
   usedModelExplorationActivity: ModelExplorationActivity | null;
 }
 
-export type NodeTypes = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
+export type Nodes = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
 export type NodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
 
 export interface ProvenanceAPI {

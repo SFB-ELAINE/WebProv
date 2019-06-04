@@ -4,15 +4,8 @@ import {
   SimulationData,
   Model,
   ModelInformation,
-  NodeTypes,
+  Nodes,
 } from 'specification';
-
-export type NodeType =
-  'model' |
-  'wet-lab data' |
-  'simulation data' |
-  'model-building-activity' |
-  'model exploration activity';
 
 const modelInformation: ModelInformation = {
   id: 1,
@@ -108,14 +101,14 @@ const S12_2: SimulationData = {
 };
 
 const model2: Model = {
-  id: 1,
+  id: 2,
   type: 'model',
   modelInformation,
   version: 2,
   used: MBA_2,
 };
 
-export const nodes: NodeTypes[] = [
+export const nodes: Nodes[] = [
   W12_1,
   WX_1,
   WX_2,
