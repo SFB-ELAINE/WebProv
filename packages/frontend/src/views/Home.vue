@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <svg ref="svg" :height="height" :width="width"></svg>
-    <b-collapse class="card" aria-id="contentIdForA11y3">
+    <b-collapse v-if="selectedNode" class="card" aria-id="contentIdForA11y3">
         <div
           slot="trigger" 
           slot-scope="props"

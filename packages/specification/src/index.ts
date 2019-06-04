@@ -5,6 +5,11 @@ export interface ModelBuildingActivity {
   id: number;
 
   /**
+   * The group id. This information is what links nodes together.
+   */
+  groupId: number;
+
+  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'model-building-activity';
@@ -42,6 +47,11 @@ export interface ModelExplorationActivity {
   id: number;
 
   /**
+   * The group id. This information is what links nodes together.
+   */
+  groupId: number;
+
+  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'model exploration activity';
@@ -76,6 +86,11 @@ export interface Model {
   id: number;
 
   /**
+   * The group id. This information is what links nodes together.
+   */
+  groupId: number;
+
+  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'model';
@@ -103,6 +118,11 @@ export interface WetLabData {
   id: number;
 
   /**
+   * The group id. This information is what links nodes together.
+   */
+  groupId: number;
+
+  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'wet-lab data';
@@ -128,6 +148,11 @@ export interface SimulationData {
    * The unique id.
    */ 
   id: number;
+
+  /**
+   * The group id. This information is what links nodes together.
+   */
+  groupId: number;
 
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
