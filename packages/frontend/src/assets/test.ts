@@ -17,24 +17,36 @@ const W12_1: WetLabData = {
   id: 1,
   name: 'W12_1',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs',
+  },
 };
 
 const WX_1: WetLabData = {
   id: 2,
   name: 'Wx_1',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'HEK293T',
+  },
 };
 
 const WX_2: WetLabData = {
   id: 3,
   name: 'Wx_2',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
+  },
 };
 
 const WX_5: WetLabData = {
   id: 7,
   name: 'Wx_5',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'L-Cells',
+  },
 };
 
 // TODO Leaving out simulationsUsedForCalibration from M1
@@ -68,18 +80,27 @@ const W12_2: WetLabData = {
   id: 4,
   name: 'W12_2',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs',
+  },
 };
 
 const W12_3: WetLabData = {
   id: 5,
   name: 'W12_3',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
+  },
 };
 
 const WX_3: WetLabData = {
   id: 6,
   name: 'Wx_3',
   type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs',
+  },
 };
 
 const MBA_2: ModelBuildingActivity = {

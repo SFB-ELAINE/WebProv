@@ -18,9 +18,10 @@
         </div>
         <div class="card-content">
           <div class="content information">
-            <div v-for="(value, key) in informationFields" :key="key">
+            <div v-for="([key, value], index) in informationFields" :key="key">
               <div class="field-title">{{ key }}</div>
               <div class="field-text">{{ value }}</div>
+              <div v-if="index !== informationFields.length - 1" class="field-spacer"></div>
             </div>
             <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
             <a>#buefy</a>. -->
@@ -59,6 +60,8 @@ interface Link {
   target: string;
 }
 
+interface Lookup<T> { [k: string]: T; }
+
 const notNull = <T>(v: T | null): v is T => {
   return v !== null;
 };
@@ -71,6 +74,7 @@ interface Data {
   nodeOutline: string;
   selectedOutline: string;
   nodesSelection: null | d3.Selection<SVGRectElement, any, SVGElement, {}>;
+  nodeLookup: Lookup<Nodes>;
 }
 
 // Here is some relevant information that will help you understand the following schemas:
@@ -91,36 +95,43 @@ export default Vue.extend({
       nodeOutline: 'rgb(22, 89, 136)',
       selectedOutline: 'rgb(211, 215, 82)',
       nodesSelection: null,
+      nodeLookup: {}, // TODO REMOVE THIS
     };
   },
   computed: {
-    informationFields(): { [name: string]: string } {
+    informationFields(): Array<[string, string]> {
       if (!this.selectedNode) {
-        return {};
+        return [];
       }
 
-      switch (this.selectedNode.type) {
-        case 'model-building-activity':
-          return {
-            Title: this.selectedNode.text,
-          };
-        case 'model exploration activity':
-          return {
-            Title: this.selectedNode.text,
-          };
-        case 'model':
-          return {
-            Title: this.selectedNode.text,
-          };
-        case 'wet-lab data':
-          return {
-            Title: this.selectedNode.text,
-          };
-        case 'simulation data':
-          return {
-            Title: this.selectedNode.text,
-          };
+      const toReturn: Array<[string, string]> = [['Title', this.selectedNode.text]];
+
+      const node = this.nodeLookup[this.selectedNode.id];
+      if (!node) {
+        throw Error(`Unable to find node with ID: ${this.selectedNode.id}. This should not happen.`);
       }
+
+      switch (node.type) {
+        case 'model-building-activity':
+          break;
+        case 'model exploration activity':
+          break;
+        case 'model':
+          toReturn.push(['Source', node.modelInformation.bibInformation]);
+          toReturn.push(['ModelNumber', '' + node.modelInformation.modelNumber]);
+          toReturn.push(['Version', '' + node.version]);
+          break;
+        case 'wet-lab data':
+          const information = node.information ? node.information : {};
+          Object.keys(information).forEach((key) => {
+            toReturn.push([key, information[key]]);
+          });
+          break;
+        case 'simulation data':
+          break;
+      }
+
+      return toReturn;
     },
   },
   methods: {
@@ -165,6 +176,9 @@ export default Vue.extend({
     // TODO RENAME
     const nodes = data.nodes.map((n) => {
       const source = n.type + n.id;
+
+      // Save for later use
+      this.nodeLookup[source] = n;
 
       let nodesToConnect: Nodes[] = [];
       switch (n.type) {
@@ -288,7 +302,16 @@ export default Vue.extend({
       .attr('rx', (d) => d.type === 'wet-lab data' || d.type === 'simulation data' ? 5 : 0)
       .style('stroke', this.nodeOutline)
       .on('click', (d) => {
-        this.selectedNode = d;
+        if (this.selectedNode === null) {
+          this.selectedNode = d;
+        } else if (this.selectedNode === d) {
+          this.selectedNode = null;
+        } else {
+          this.selectedNode = d;
+        }
+      })
+      .on('dblclick', () => {
+        console.log('dblclick');
       });
 
     g.append('text')
@@ -300,6 +323,7 @@ export default Vue.extend({
       .style('font-family', 'monospace')
       .style('pointer-events', 'none')
       .style('text-anchor', 'middle')
+      .style('font-size', '12px')
       .text((d) => d.text);
 
     simulation.on('tick', () => {
@@ -331,7 +355,14 @@ export default Vue.extend({
   },
   watch: {
     selectedNode() {
-      if (!this.nodesSelection ||  !this.selectedNode) {
+      if (!this.nodesSelection) {
+        return;
+      }
+
+      this.nodesSelection
+        .style('stroke', this.nodeOutline);
+
+      if (!this.selectedNode) {
         return;
       }
 
@@ -349,6 +380,7 @@ export default Vue.extend({
   position: absolute;
   right: 20px;
   top: 20px;
+  width: 350px;
 }
 
 .information {
@@ -357,5 +389,9 @@ export default Vue.extend({
 
 .field-title {
   font-weight: bold;
+}
+
+.field-spacer {
+  margin: 5px 0;
 }
 </style>
