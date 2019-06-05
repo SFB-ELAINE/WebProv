@@ -15,6 +15,7 @@ const modelInformation: ModelInformation = {
 
 const W12_1: WetLabData = {
   id: 1,
+  groupId: 12,
   name: 'W12_1',
   type: 'wet-lab data',
   information: {
@@ -24,6 +25,7 @@ const W12_1: WetLabData = {
 
 const WX_1: WetLabData = {
   id: 2,
+  groupId: 12,
   name: 'Wx_1',
   type: 'wet-lab data',
   information: {
@@ -33,6 +35,7 @@ const WX_1: WetLabData = {
 
 const WX_2: WetLabData = {
   id: 3,
+  groupId: 12,
   name: 'Wx_2',
   type: 'wet-lab data',
   information: {
@@ -42,6 +45,7 @@ const WX_2: WetLabData = {
 
 const WX_5: WetLabData = {
   id: 7,
+  groupId: 12,
   name: 'Wx_5',
   type: 'wet-lab data',
   information: {
@@ -52,6 +56,7 @@ const WX_5: WetLabData = {
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
   id: 1,
+  groupId: 12,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [W12_1, WX_2, WX_1],
   wetLabsUsedForValidation: [WX_5],
@@ -62,6 +67,7 @@ const MBA_1: ModelBuildingActivity = {
 
 const S12_1: SimulationData = {
   id: 1,
+  groupId: 12,
   type: 'simulation data',
   name: 'S12_1',
   usedModelBuildingActivity: MBA_1,
@@ -70,6 +76,7 @@ const S12_1: SimulationData = {
 
 const model1: Model = {
   id: 1,
+  groupId: 12,
   type: 'model',
   modelInformation,
   version: 1,
@@ -78,6 +85,7 @@ const model1: Model = {
 
 const W12_2: WetLabData = {
   id: 4,
+  groupId: 12,
   name: 'W12_2',
   type: 'wet-lab data',
   information: {
@@ -87,6 +95,7 @@ const W12_2: WetLabData = {
 
 const W12_3: WetLabData = {
   id: 5,
+  groupId: 12,
   name: 'W12_3',
   type: 'wet-lab data',
   information: {
@@ -96,6 +105,7 @@ const W12_3: WetLabData = {
 
 const WX_3: WetLabData = {
   id: 6,
+  groupId: 12,
   name: 'Wx_3',
   type: 'wet-lab data',
   information: {
@@ -105,6 +115,7 @@ const WX_3: WetLabData = {
 
 const MBA_2: ModelBuildingActivity = {
   id: 2,
+  groupId: 12,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [WX_3],
   wetLabsUsedForValidation: [W12_2, W12_3],
@@ -115,6 +126,7 @@ const MBA_2: ModelBuildingActivity = {
 
 const S12_2: SimulationData = {
   id: 2,
+  groupId: 12,
   type: 'simulation data',
   name: 'S12_2',
   usedModelBuildingActivity: MBA_2,
@@ -123,6 +135,7 @@ const S12_2: SimulationData = {
 
 const model2: Model = {
   id: 2,
+  groupId: 12,
   type: 'model',
   modelInformation,
   version: 2,

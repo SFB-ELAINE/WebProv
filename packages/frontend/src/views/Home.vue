@@ -53,6 +53,9 @@ interface Node {
   type: NodeType;
   id: string;
   text: string;
+  groupId: number;
+  x: number;
+  y: number;
 }
 
 interface Link {
@@ -75,7 +78,12 @@ interface Data {
   selectedOutline: string;
   nodesSelection: null | d3.Selection<SVGRectElement, any, SVGElement, {}>;
   nodeLookup: Lookup<Nodes>;
+  hullOffset: number;
+  expandedModels: { [model: string]: boolean | undefined };
+  curve: d3.Line<[number, number]>;
 }
+
+const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Here is some relevant information that will help you understand the following schemas:
 // 1. The wet lab data that does not come from a specific publication should appear in all of
@@ -96,6 +104,9 @@ export default Vue.extend({
       selectedOutline: 'rgb(211, 215, 82)',
       nodesSelection: null,
       nodeLookup: {}, // TODO REMOVE THIS
+      hullOffset: 15,
+      expandedModels: {},
+      curve: d3.line().curve(d3.curveCardinalClosed.tension(0.85)),
     };
   },
   computed: {
@@ -139,6 +150,9 @@ export default Vue.extend({
       // 8 just kinda works well (10 is the padding)
       return d.text.length * 8 + 10;
     },
+    fill(d: { group: string }) {
+      return ordinalScale(d.group);
+    },
     getText(n: Nodes): string {
       switch (n.type) {
         case 'wet-lab data':
@@ -168,6 +182,35 @@ export default Vue.extend({
 
           return text + ` (${n.modelInformation.bibInformation})`;
       }
+    },
+    convexHulls(nodes: Node[]) {
+      const hulls: { [group: string]: Array<[number, number]> } = {};
+      const offset = this.hullOffset;
+      // create point sets
+      nodes.forEach((n) => {
+        // eslint-disable-next-line
+        const i = n.groupId;
+        const l = hulls[i] || (hulls[i] = []);
+
+        l.push([n.x - offset, n.y - offset]);
+        l.push([n.x - offset, n.y + offset]);
+        l.push([n.x + offset, n.y - offset]);
+        l.push([n.x + offset, n.y + offset]);
+      });
+      // create convex hulls
+      const hullset = [];
+      for (const i of Object.keys(hulls)) {
+        const path = d3.polygonHull(hulls[i]);
+        if (!path) {
+          continue;
+        }
+
+        hullset.push({
+          group: i,
+          path,
+        });
+      }
+      return hullset;
     },
   },
   mounted() {
@@ -215,13 +258,15 @@ export default Vue.extend({
         id: source,
         text: this.getText(n),
         type: n.type,
+        groupId: n.groupId,
+        x: 0,
+        y: 0,
       };
 
       return {
         ...newNode,
         width: this.calcWidth(newNode),
         height: this.size,
-        index: 0, // this is useless but it gets rid of a type error
       };
     });
 
@@ -248,6 +293,19 @@ export default Vue.extend({
       .append('svg:path')
       .attr('d', 'M0,-5L10,0L0,5');
 
+    const hull = svg.append('g')
+        .attr('class', 'hulls')
+        .selectAll('path')
+        .data(this.convexHulls(nodes))
+        .enter().append('path')
+        .attr('class', 'hull')
+        .attr('d', (d) => this.curve(d.path))
+        .style('fill', this.fill)
+        .on('click', (d) => {
+          this.expandedModels[d.group] = false;
+          // this.renderGroups(); TODO
+        });
+
     const link = svg.append('g')
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6)
@@ -258,7 +316,6 @@ export default Vue.extend({
       .attr('marker-end', 'url(#end)'); // This, along with the defs above, adds the arrows
 
     const drag = () => {
-
       function dragstarted(d: d3.SimulationNodeDatum) {
         if (!d3.event.active) { simulation.alphaTarget(0.3).restart(); }
         d.fx = d.x;
@@ -327,6 +384,11 @@ export default Vue.extend({
       .text((d) => d.text);
 
     simulation.on('tick', () => {
+      if (!hull.empty()) {
+          hull
+            .data(this.convexHulls(nodes))
+            .attr('d', (d) => this.curve(d.path));
+        }
 
       // Unfortunently, it seems like I need to add the ts-ignore statements here
       // The following code is perfectly fine so the d3 typings must be wrong
