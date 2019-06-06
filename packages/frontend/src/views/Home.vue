@@ -160,7 +160,7 @@ export default Vue.extend({
           break;
         case 'model':
           toReturn.push(['Source', node.modelInformation.bibInformation]);
-          toReturn.push(['ModelNumber', '' + node.modelInformation.modelNumber]);
+          toReturn.push(['Model Number', '' + node.modelInformation.modelNumber]);
           toReturn.push(['Version', '' + node.version]);
           break;
         case 'wet-lab data':
@@ -237,25 +237,22 @@ export default Vue.extend({
 
         pushPoints(n);
 
-        // TODO What about groups??
         // TODO the points could be optimzed if neccessary
         // We only need to check two points for each corner, not four
-        if (!n.isGroup) {
-          pushPoints({
-            x: n.x + n.width,
-            y: n.y,
-          });
+        pushPoints({
+          x: n.x + n.width,
+          y: n.y,
+        });
 
-          pushPoints({
-            x: n.x + n.width,
-            y: n.y + n.height,
-          });
+        pushPoints({
+          x: n.x + n.width,
+          y: n.y + n.height,
+        });
 
-          pushPoints({
-            x: n.x,
-            y: n.y + n.height,
-          });
-        }
+        pushPoints({
+          x: n.x,
+          y: n.y + n.height,
+        });
       });
       // create convex hulls
       const hullset = [];
@@ -288,8 +285,8 @@ export default Vue.extend({
               y: 0,
               count: 0,
               text: `M${n.groupId}`,
-              width: 20,
-              height: 20,
+              width: 50,
+              height: this.size,
             };
 
             groups[n.groupId] = node;
@@ -385,9 +382,11 @@ export default Vue.extend({
           .attr('class', 'hull')
           .attr('d', (d) => this.curve(d.path))
           .style('fill', this.fill)
-          .on('click', (d) => {
-            this.expanded[d.group] = false;
-            this.doRender();
+          .on('dblclick', (d) => {
+            if (this.expanded[d.group]) {
+              this.expanded[d.group] = false;
+              this.doRender();
+            }
           });
 
       const link = svg.append('g')
@@ -436,18 +435,14 @@ export default Vue.extend({
 
       this.nodesSelection = g
         .append('rect')
-        .attr('width', (d) => d.isGroup ? 20 : this.calcWidth(d.text))
+        .attr('width', (d) => d.isGroup ? d.width : this.calcWidth(d.text))
         .attr('height', this.size)
         .attr('fill', (d) => 'white')
         .style('stroke-width', 3)
         .attr('rx', (d) => !d.isGroup && (d.type === 'wet-lab data' || d.type === 'simulation data') ? 5 : 0)
         .style('stroke', this.nodeOutline)
         .on('click', (d) => {
-          console.log('CLICK');
-
           if (d.isGroup) {
-            this.expanded[d.group] = true;
-            this.doRender();
             return;
           }
 
@@ -459,9 +454,12 @@ export default Vue.extend({
             this.selectedNode = d;
           }
         })
-        .on('dblclick', () => {
-          // tslint:disable-next-line:no-console
-          console.log('dblclick');
+        .on('dblclick', (d) => {
+          if (d.isGroup) {
+            this.expanded[d.group] = true;
+            this.doRender();
+            return;
+          }
         });
 
       g.append('text')
