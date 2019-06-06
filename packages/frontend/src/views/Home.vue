@@ -240,213 +240,216 @@ export default Vue.extend({
       }
       return hullset;
     },
+    doRender() {
+      const links: Link[] = [];
+
+      // TODO RENAME
+      const nodes: Node[] = [];
+      data.nodes.forEach((n) => {
+        const source = n.type + n.id;
+
+        // Save for later use
+        this.nodeLookup[source] = n;
+
+        let nodesToConnect: Nodes[] = [];
+        switch (n.type) {
+          case 'wet-lab data':
+            break;
+          case 'model-building-activity':
+            nodesToConnect = [
+              ...n.wetLabsUsedForValidation,
+              ...n.wetLabsUsedForCalibration,
+              ...n.simulationsUsedForValidation,
+              ...n.simulationsUsedForCalibration,
+              ...n.used,
+            ];
+            break;
+          case 'simulation data':
+            nodesToConnect = [n.usedModelBuildingActivity, n.usedModelBuildingActivity].filter(notNull);
+            break;
+          case 'model exploration activity':
+            nodesToConnect = [n.used];
+            break;
+          case 'model':
+            nodesToConnect = [n.used];
+        }
+
+        // haha change this name
+        nodesToConnect.forEach((nooooode) => {
+          links.push({
+            source,
+            target: nooooode.type + nooooode.id,
+          });
+        });
+
+        const text = this.getText(n);
+        nodes.push({
+          isGroup: false as false, // TODO
+          id: source,
+          text,
+          type: n.type,
+          group: n.groupId,
+          x: 0,
+          y: 0,
+          // width and height are essential
+          // TODO add requirement to type file
+          // they are used in the other js files
+          width: this.calcWidth(text),
+          height: this.size,
+        });
+      });
+
+      const simulation = d3.forceSimulation(nodes)
+        .force('link', forceLink<Node, Link>(links).id((d) => d.id).strength(0.3))
+        .velocityDecay(0.5)
+        .force('charge', forceManyBody().strength(-1000))
+        // .force('another', rightToLeftForce())
+        .force('center', d3.forceCenter(this.width / 2, this.height / 2));
+
+      const svg = d3.select(this.$refs.svg as Element);
+
+      svg.append('svg:defs').selectAll('marker')
+        .data(['end'])  // Different link/path types can be defined here
+        .enter().append('svg:marker')  // This section adds in the arrows
+        .attr('id', String)
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 10)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('svg:path')
+        .attr('d', 'M0,-5L10,0L0,5');
+
+      const hull = svg.append('g')
+          .attr('class', 'hulls')
+          .selectAll('path')
+          .data(this.convexHulls(nodes))
+          .enter().append('path')
+          .attr('class', 'hull')
+          .attr('d', (d) => this.curve(d.path))
+          .style('fill', this.fill)
+          .on('click', (d) => {
+            this.expandedModels[d.group] = false;
+            // this.renderGroups(); TODO
+          });
+
+      const link = svg.append('g')
+        .attr('stroke', '#999')
+        .attr('stroke-opacity', 0.6)
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke-width', (d) => Math.sqrt(3))
+        .attr('marker-end', 'url(#end)'); // This, along with the defs above, adds the arrows
+
+      const drag = () => {
+        function dragstarted(d: d3.SimulationNodeDatum) {
+          if (!d3.event.active) { simulation.alphaTarget(0.3).restart(); }
+          d.fx = d.x;
+          d.fy = d.y;
+        }
+
+        function dragged(d: d3.SimulationNodeDatum) {
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
+        }
+
+        function dragended(d: d3.SimulationNodeDatum) {
+          if (!d3.event.active) { simulation.alphaTarget(0); }
+          d.fx = null;
+          d.fy = null;
+        }
+
+        return d3.drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended);
+      };
+
+      const scale = d3.scaleOrdinal(d3.schemeCategory10);
+      const g = svg.append('g')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 1.5)
+        .selectAll('.node')
+        .data(nodes)
+        .join('g')
+        .attr('class', 'node')
+        // @ts-ignore
+        .call(drag());
+
+      this.nodesSelection = g
+        .append('rect')
+        .attr('width', (d) => d.isGroup ? 20 : this.calcWidth(d.text))
+        .attr('height', this.size)
+        .attr('fill', (d) => 'white')
+        .style('stroke-width', 3)
+        .attr('rx', (d) => !d.isGroup && (d.type === 'wet-lab data' || d.type === 'simulation data') ? 5 : 0)
+        .style('stroke', this.nodeOutline)
+        .on('click', (d) => {
+          if (d.isGroup) {
+            return;
+          }
+
+          if (this.selectedNode === null) {
+            this.selectedNode = d;
+          } else if (this.selectedNode === d) {
+            this.selectedNode = null;
+          } else {
+            this.selectedNode = d;
+          }
+        })
+        .on('dblclick', () => {
+          console.log('dblclick');
+        });
+
+      g.append('text')
+        // @ts-ignore
+        .attr('x', (d) => d.text.length * 4 + 5) // duplicate from above
+        .attr('y', () => this.size / 2 + 5) // the extra 5 is just random
+        .style('stroke-width', 0)
+        .style('', '')
+        .style('font-family', 'monospace')
+        .style('pointer-events', 'none')
+        .style('text-anchor', 'middle')
+        .style('font-size', '12px')
+        .text((d) => d.text);
+
+      simulation.on('tick', () => {
+        if (!hull.empty()) {
+            hull
+              .data(this.convexHulls(nodes))
+              .attr('d', (d) => this.curve(d.path));
+          }
+
+        // Unfortunently, it seems like I need to add the ts-ignore statements here
+        // The following code is perfectly fine so the d3 typings must be wrong
+        link
+          .attr('x1', (d) => {
+            const source = d.source as any as Node;
+            return source.x;
+          })
+          .attr('y1', (d) => {
+            const source = d.source as any as Node;
+            return source.y + this.size / 2;
+          })
+          .attr('x2', (d) => {
+            const target = d.target as any as Node;
+            return target.x + this.calcWidth(target.text);
+          })
+          .attr('y2', (d) => {
+            const target = d.target as any as Node;
+            return target.y + this.size / 2;
+          });
+
+        g
+          // @ts-ignore
+          .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+      });
+    },
   },
   mounted() {
-    const links: Link[] = [];
-
-    // TODO RENAME
-    const nodes: Node[] = [];
-    data.nodes.forEach((n) => {
-      const source = n.type + n.id;
-
-      // Save for later use
-      this.nodeLookup[source] = n;
-
-      let nodesToConnect: Nodes[] = [];
-      switch (n.type) {
-        case 'wet-lab data':
-          break;
-        case 'model-building-activity':
-          nodesToConnect = [
-            ...n.wetLabsUsedForValidation,
-            ...n.wetLabsUsedForCalibration,
-            ...n.simulationsUsedForValidation,
-            ...n.simulationsUsedForCalibration,
-            ...n.used,
-          ];
-          break;
-        case 'simulation data':
-          nodesToConnect = [n.usedModelBuildingActivity, n.usedModelBuildingActivity].filter(notNull);
-          break;
-        case 'model exploration activity':
-          nodesToConnect = [n.used];
-          break;
-        case 'model':
-          nodesToConnect = [n.used];
-      }
-
-      // haha change this name
-      nodesToConnect.forEach((nooooode) => {
-        links.push({
-          source,
-          target: nooooode.type + nooooode.id,
-        });
-      });
-
-      const text = this.getText(n);
-      nodes.push({
-        isGroup: false as false, // TODO
-        id: source,
-        text,
-        type: n.type,
-        group: n.groupId,
-        x: 0,
-        y: 0,
-        // width and height are essential
-        // TODO add requirement to type file
-        // they are used in the other js files
-        width: this.calcWidth(text),
-        height: this.size,
-      });
-    });
-
-    const simulation = d3.forceSimulation(nodes)
-      .force('link', forceLink<Node, Link>(links).id((d) => d.id).strength(0.3))
-      .velocityDecay(0.5)
-      .force('charge', forceManyBody().strength(-1000))
-      // .force('another', rightToLeftForce())
-      .force('center', d3.forceCenter(this.width / 2, this.height / 2));
-
-    const svg = d3.select(this.$refs.svg as Element);
-
-    svg.append('svg:defs').selectAll('marker')
-      .data(['end'])  // Different link/path types can be defined here
-      .enter().append('svg:marker')  // This section adds in the arrows
-      .attr('id', String)
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 10)
-      .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .attr('orient', 'auto')
-      .append('svg:path')
-      .attr('d', 'M0,-5L10,0L0,5');
-
-    const hull = svg.append('g')
-        .attr('class', 'hulls')
-        .selectAll('path')
-        .data(this.convexHulls(nodes))
-        .enter().append('path')
-        .attr('class', 'hull')
-        .attr('d', (d) => this.curve(d.path))
-        .style('fill', this.fill)
-        .on('click', (d) => {
-          this.expandedModels[d.group] = false;
-          // this.renderGroups(); TODO
-        });
-
-    const link = svg.append('g')
-      .attr('stroke', '#999')
-      .attr('stroke-opacity', 0.6)
-      .selectAll('line')
-      .data(links)
-      .join('line')
-      .attr('stroke-width', (d) => Math.sqrt(3))
-      .attr('marker-end', 'url(#end)'); // This, along with the defs above, adds the arrows
-
-    const drag = () => {
-      function dragstarted(d: d3.SimulationNodeDatum) {
-        if (!d3.event.active) { simulation.alphaTarget(0.3).restart(); }
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-
-      function dragged(d: d3.SimulationNodeDatum) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
-      }
-
-      function dragended(d: d3.SimulationNodeDatum) {
-        if (!d3.event.active) { simulation.alphaTarget(0); }
-        d.fx = null;
-        d.fy = null;
-      }
-
-      return d3.drag()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended);
-    };
-
-    const scale = d3.scaleOrdinal(d3.schemeCategory10);
-    const g = svg.append('g')
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 1.5)
-      .selectAll('.node')
-      .data(nodes)
-      .join('g')
-      .attr('class', 'node')
-      // @ts-ignore
-      .call(drag());
-
-    this.nodesSelection = g
-      .append('rect')
-      .attr('width', (d) => d.isGroup ? 20 : this.calcWidth(d.text))
-      .attr('height', this.size)
-      .attr('fill', (d) => 'white')
-      .style('stroke-width', 3)
-      .attr('rx', (d) => !d.isGroup && (d.type === 'wet-lab data' || d.type === 'simulation data') ? 5 : 0)
-      .style('stroke', this.nodeOutline)
-      .on('click', (d) => {
-        if (d.isGroup) {
-          return;
-        }
-
-        if (this.selectedNode === null) {
-          this.selectedNode = d;
-        } else if (this.selectedNode === d) {
-          this.selectedNode = null;
-        } else {
-          this.selectedNode = d;
-        }
-      })
-      .on('dblclick', () => {
-        console.log('dblclick');
-      });
-
-    g.append('text')
-      // @ts-ignore
-      .attr('x', (d) => d.text.length * 4 + 5) // duplicate from above
-      .attr('y', () => this.size / 2 + 5) // the extra 5 is just random
-      .style('stroke-width', 0)
-      .style('', '')
-      .style('font-family', 'monospace')
-      .style('pointer-events', 'none')
-      .style('text-anchor', 'middle')
-      .style('font-size', '12px')
-      .text((d) => d.text);
-
-    simulation.on('tick', () => {
-      if (!hull.empty()) {
-          hull
-            .data(this.convexHulls(nodes))
-            .attr('d', (d) => this.curve(d.path));
-        }
-
-      // Unfortunently, it seems like I need to add the ts-ignore statements here
-      // The following code is perfectly fine so the d3 typings must be wrong
-      link
-        .attr('x1', (d) => {
-          const source = d.source as any as Node;
-          return source.x;
-        })
-        .attr('y1', (d) => {
-          const source = d.source as any as Node;
-          return source.y + this.size / 2;
-        })
-        .attr('x2', (d) => {
-          const target = d.target as any as Node;
-          return target.x + this.calcWidth(target.text);
-        })
-        .attr('y2', (d) => {
-          const target = d.target as any as Node;
-          return target.y + this.size / 2;
-        });
-
-      g
-        // @ts-ignore
-        .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
-    });
+    this.doRender();
   },
   watch: {
     selectedNode() {
