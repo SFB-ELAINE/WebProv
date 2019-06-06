@@ -59,10 +59,15 @@ interface BaseNode {
 interface GroupNode extends BaseNode {
   isGroup: true;
   id: string;
-  size: number;
-  nodes: Node[]; // TODO WRONG
+
+  // TODO REMOVE
+  width: number;
+  height: number;
+
+  /**
+   * The amount of nodes in the group.
+   */
   count: number;
-  linkCount: number;
 }
 
 interface SingleNode extends BaseNode {
@@ -96,7 +101,6 @@ interface Data {
   nodesSelection: null | d3.Selection<SVGRectElement, any, SVGElement, {}>;
   nodeLookup: Lookup<Nodes>;
   hullOffset: number;
-  expandedModels: { [model: string]: boolean | undefined };
   curve: d3.Line<[number, number]>;
   expanded: Lookup<boolean | undefined>;
 }
@@ -132,7 +136,6 @@ export default Vue.extend({
       nodesSelection: null,
       nodeLookup: {}, // TODO REMOVE THIS
       hullOffset: 15,
-      expandedModels: {},
       curve: d3.line().curve(d3.curveCardinalClosed.tension(0.85)),
       expanded: {},
     };
@@ -220,10 +223,39 @@ export default Vue.extend({
         const i = n.group;
         const l = hulls[i] || (hulls[i] = []);
 
-        l.push([n.x - offset, n.y - offset]);
-        l.push([n.x - offset, n.y + offset]);
-        l.push([n.x + offset, n.y - offset]);
-        l.push([n.x + offset, n.y + offset]);
+        interface Point {
+          x: number;
+          y: number;
+        }
+
+        const pushPoints = (point: Point) => {
+          l.push([point.x - offset, point.y - offset]);
+          l.push([point.x - offset, point.y + offset]);
+          l.push([point.x + offset, point.y - offset]);
+          l.push([point.x + offset, point.y + offset]);
+        };
+
+        pushPoints(n);
+
+        // TODO What about groups??
+        // TODO the points could be optimzed if neccessary
+        // We only need to check two points for each corner, not four
+        if (!n.isGroup) {
+          pushPoints({
+            x: n.x + n.width,
+            y: n.y,
+          });
+
+          pushPoints({
+            x: n.x + n.width,
+            y: n.y + n.height,
+          });
+
+          pushPoints({
+            x: n.x,
+            y: n.y + n.height,
+          });
+        }
       });
       // create convex hulls
       const hullset = [];
@@ -242,10 +274,32 @@ export default Vue.extend({
     },
     doRender() {
       const links: Link[] = [];
-
-      // TODO RENAME
       const nodes: Node[] = [];
+      const groups: Lookup<GroupNode> = {};
+
       data.nodes.forEach((n) => {
+        if (!this.expanded[n.groupId]) {
+          if (!groups.hasOwnProperty(n.groupId)) {
+            const node: GroupNode = {
+              isGroup: true,
+              group: n.groupId,
+              id: '' + n.groupId,
+              x: 0,
+              y: 0,
+              count: 0,
+              text: `M${n.groupId}`,
+              width: 20,
+              height: 20,
+            };
+
+            groups[n.groupId] = node;
+            nodes.push(node);
+          }
+
+          // do nothing if not expanded
+          return;
+        }
+
         const source = n.type + n.id;
 
         // Save for later use
@@ -308,6 +362,8 @@ export default Vue.extend({
 
       const svg = d3.select(this.$refs.svg as Element);
 
+      svg.selectAll('*').remove();
+
       svg.append('svg:defs').selectAll('marker')
         .data(['end'])  // Different link/path types can be defined here
         .enter().append('svg:marker')  // This section adds in the arrows
@@ -330,8 +386,8 @@ export default Vue.extend({
           .attr('d', (d) => this.curve(d.path))
           .style('fill', this.fill)
           .on('click', (d) => {
-            this.expandedModels[d.group] = false;
-            // this.renderGroups(); TODO
+            this.expanded[d.group] = false;
+            this.doRender();
           });
 
       const link = svg.append('g')
@@ -387,7 +443,11 @@ export default Vue.extend({
         .attr('rx', (d) => !d.isGroup && (d.type === 'wet-lab data' || d.type === 'simulation data') ? 5 : 0)
         .style('stroke', this.nodeOutline)
         .on('click', (d) => {
+          console.log('CLICK');
+
           if (d.isGroup) {
+            this.expanded[d.group] = true;
+            this.doRender();
             return;
           }
 
@@ -400,6 +460,7 @@ export default Vue.extend({
           }
         })
         .on('dblclick', () => {
+          // tslint:disable-next-line:no-console
           console.log('dblclick');
         });
 
