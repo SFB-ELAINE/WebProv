@@ -5,9 +5,12 @@ import {
   Model,
   ModelInformation,
   Nodes,
+  ModelExplorationActivity,
 } from 'specification';
 
-const modelInformation: ModelInformation = {
+// TODO Make sure all of the variable names are correct (specially, the relatinoships)
+
+const modelInformation12: ModelInformation = {
   id: 1,
   modelNumber: 12,
   bibInformation: 'Haack et al., PLoS comp. bio. 2015',
@@ -78,7 +81,7 @@ const model1: Model = {
   id: 1,
   groupId: 12,
   type: 'model',
-  modelInformation,
+  modelInformation: modelInformation12,
   version: 1,
   used: MBA_1,
 };
@@ -137,12 +140,94 @@ const model2: Model = {
   id: 2,
   groupId: 12,
   type: 'model',
-  modelInformation,
+  modelInformation: modelInformation12,
   version: 2,
   used: MBA_2,
 };
 
+const WX_7: WetLabData = {
+  id: 7,
+  groupId: 1,
+  name: 'Wx_7',
+  type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs', // TODO FIX
+  },
+};
+
+const W1_1: WetLabData = {
+  id: 8,
+  groupId: 1,
+  name: 'W1_1',
+  type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs', // TODO FIX
+  },
+};
+
+const W1_2: WetLabData = {
+  id: 9,
+  groupId: 1,
+  name: 'W1_2',
+  type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs', // TODO FIX
+  },
+};
+
+const MBA_3: ModelBuildingActivity = {
+  id: 3,
+  groupId: 1,
+  type: 'model-building-activity',
+  wetLabsUsedForCalibration: [WX_7, W1_1],
+  wetLabsUsedForValidation: [W12_2],
+  simulationsUsedForCalibration: [],
+  simulationsUsedForValidation: [],
+  used: [],
+};
+
+const S1_1: SimulationData = {
+  id: 3,
+  groupId: 1,
+  type: 'simulation data',
+  name: 'S1_1',
+  usedModelBuildingActivity: MBA_3,
+  usedModelExplorationActivity: null,
+};
+
+const modelInformation1: ModelInformation = {
+  id: 2,
+  modelNumber: 1,
+  bibInformation: 'Lee et al., PLoS bio. 2003',
+};
+
+const model3: Model = {
+  id: 3,
+  groupId: 1,
+  type: 'model',
+  modelInformation: modelInformation1,
+  version: 2,
+  used: MBA_3,
+};
+
+const MEA: ModelExplorationActivity = {
+  id: 1,
+  groupId: 1,
+  type: 'model exploration activity',
+  used: model3,
+};
+
+const S1_2: SimulationData = {
+  id: 4,
+  groupId: 1,
+  type: 'simulation data',
+  name: 'S1_2',
+  usedModelBuildingActivity: null,
+  usedModelExplorationActivity: MEA,
+};
+
 export const nodes: Nodes[] = [
+  // MODEL 12
   W12_1,
   WX_1,
   WX_2,
@@ -156,4 +241,23 @@ export const nodes: Nodes[] = [
   MBA_2,
   S12_2,
   model2,
+
+  // MODEL 1
+  WX_7,
+  W1_1,
+  W1_2,
+  MBA_3,
+  S1_1,
+  model3,
+  MEA,
+  S1_2,
 ];
+
+
+
+
+
+
+
+
+

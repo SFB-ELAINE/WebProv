@@ -40,7 +40,6 @@
 import Vue from 'vue';
 import * as d3 from 'd3';
 import * as data from '@/assets/test';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { NodeType, Nodes } from 'specification';
@@ -121,10 +120,7 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 // the models that use that data.
 
 export default Vue.extend({
-  name: 'home',
-  components: {
-    HelloWorld,
-  },
+  name: 'Home',
   data: (): Data => {
     return {
       height: window.innerHeight,
@@ -481,7 +477,7 @@ export default Vue.extend({
               .attr('d', (d) => this.curve(d.path));
           }
 
-        // Unfortunently, it seems like I need to add the ts-ignore statements here
+        // Unfortunently, it seems like I need to add these weird type –cast statements here
         // The following code is perfectly fine so the d3 typings must be wrong
         link
           .attr('x1', (d) => {
