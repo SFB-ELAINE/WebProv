@@ -49,14 +49,31 @@ function assertUnreachable(x: never): never {
   throw new Error('Didn\'t expect to get here');
 }
 
-interface Node {
-  type: NodeType;
-  id: string;
-  text: string;
-  groupId: number;
+interface BaseNode {
   x: number;
   y: number;
+  group: number;
+  text: string;
 }
+
+interface GroupNode extends BaseNode {
+  isGroup: true;
+  id: string;
+  size: number;
+  nodes: Node[]; // TODO WRONG
+  count: number;
+  linkCount: number;
+}
+
+interface SingleNode extends BaseNode {
+  isGroup: false;
+  type: NodeType;
+  id: string;
+  width: number;
+  height: number;
+}
+
+type Node = SingleNode | GroupNode;
 
 interface Link {
   source: string;
@@ -73,7 +90,7 @@ interface Data {
   height: number;
   width: number;
   size: number;
-  selectedNode: null | Node;
+  selectedNode: null | SingleNode;
   nodeOutline: string;
   selectedOutline: string;
   nodesSelection: null | d3.Selection<SVGRectElement, any, SVGElement, {}>;
@@ -81,7 +98,17 @@ interface Data {
   hullOffset: number;
   expandedModels: { [model: string]: boolean | undefined };
   curve: d3.Line<[number, number]>;
+  expanded: Lookup<boolean | undefined>;
 }
+
+
+const isGroup = (n: GroupNode | Node): n is GroupNode => {
+  return n.isGroup;
+};
+
+const isNode = (n: GroupNode | Node): n is Node => {
+  return !n.isGroup;
+};
 
 const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -107,6 +134,7 @@ export default Vue.extend({
       hullOffset: 15,
       expandedModels: {},
       curve: d3.line().curve(d3.curveCardinalClosed.tension(0.85)),
+      expanded: {},
     };
   },
   computed: {
@@ -146,9 +174,9 @@ export default Vue.extend({
     },
   },
   methods: {
-    calcWidth(d: Node) {
+    calcWidth(text: string) {
       // 8 just kinda works well (10 is the padding)
-      return d.text.length * 8 + 10;
+      return text.length * 8 + 10;
     },
     fill(d: { group: string }) {
       return ordinalScale(d.group);
@@ -189,7 +217,7 @@ export default Vue.extend({
       // create point sets
       nodes.forEach((n) => {
         // eslint-disable-next-line
-        const i = n.groupId;
+        const i = n.group;
         const l = hulls[i] || (hulls[i] = []);
 
         l.push([n.x - offset, n.y - offset]);
@@ -217,7 +245,8 @@ export default Vue.extend({
     const links: Link[] = [];
 
     // TODO RENAME
-    const nodes = data.nodes.map((n) => {
+    const nodes: Node[] = [];
+    data.nodes.forEach((n) => {
       const source = n.type + n.id;
 
       // Save for later use
@@ -254,25 +283,25 @@ export default Vue.extend({
         });
       });
 
-      const newNode = {
+      const text = this.getText(n);
+      nodes.push({
+        isGroup: false as false, // TODO
         id: source,
-        text: this.getText(n),
+        text,
         type: n.type,
-        groupId: n.groupId,
+        group: n.groupId,
         x: 0,
         y: 0,
-      };
-
-      return {
-        ...newNode,
-        width: this.calcWidth(newNode),
+        // width and height are essential
+        // TODO add requirement to type file
+        // they are used in the other js files
+        width: this.calcWidth(text),
         height: this.size,
-      };
+      });
     });
 
     const simulation = d3.forceSimulation(nodes)
-      // @ts-ignore
-      .force('link', forceLink(links).id((d) => d.id).strength(0.3))
+      .force('link', forceLink<Node, Link>(links).id((d) => d.id).strength(0.3))
       .velocityDecay(0.5)
       .force('charge', forceManyBody().strength(-1000))
       // .force('another', rightToLeftForce())
@@ -352,13 +381,17 @@ export default Vue.extend({
 
     this.nodesSelection = g
       .append('rect')
-      .attr('width', (d) => this.calcWidth(d))
+      .attr('width', (d) => d.isGroup ? 20 : this.calcWidth(d.text))
       .attr('height', this.size)
       .attr('fill', (d) => 'white')
       .style('stroke-width', 3)
-      .attr('rx', (d) => d.type === 'wet-lab data' || d.type === 'simulation data' ? 5 : 0)
+      .attr('rx', (d) => !d.isGroup && (d.type === 'wet-lab data' || d.type === 'simulation data') ? 5 : 0)
       .style('stroke', this.nodeOutline)
       .on('click', (d) => {
+        if (d.isGroup) {
+          return;
+        }
+
         if (this.selectedNode === null) {
           this.selectedNode = d;
         } else if (this.selectedNode === d) {
@@ -394,20 +427,20 @@ export default Vue.extend({
       // The following code is perfectly fine so the d3 typings must be wrong
       link
         .attr('x1', (d) => {
-          // @ts-ignore
-          return d.source.x;
+          const source = d.source as any as Node;
+          return source.x;
         })
         .attr('y1', (d) => {
-          // @ts-ignore
-          return d.source.y + this.size / 2;
+          const source = d.source as any as Node;
+          return source.y + this.size / 2;
         })
         .attr('x2', (d) => {
-          // @ts-ignore
-          return d.target.x + this.calcWidth(d.target);
+          const target = d.target as any as Node;
+          return target.x + this.calcWidth(target.text);
         })
         .attr('y2', (d) => {
-          // @ts-ignore
-          return d.target.y + this.size / 2;
+          const target = d.target as any as Node;
+          return target.y + this.size / 2;
         });
 
       g
