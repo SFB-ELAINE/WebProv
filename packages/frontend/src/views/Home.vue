@@ -42,6 +42,7 @@ import * as d3 from 'd3';
 import * as data from '@/assets/test';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
+import { Relationship, relationshipColors } from '@/constants';
 import { NodeType, Nodes } from 'specification';
 
 function assertUnreachable(x: never): never {
@@ -62,11 +63,6 @@ interface GroupNode extends BaseNode {
   // TODO REMOVE
   width: number;
   height: number;
-
-  /**
-   * The amount of nodes in the group.
-   */
-  count: number;
 }
 
 interface SingleNode extends BaseNode {
@@ -82,6 +78,7 @@ type Node = SingleNode | GroupNode;
 interface Link {
   source: string;
   target: string;
+  color: string;
 }
 
 interface Lookup<T> { [k: string]: T; }
@@ -102,6 +99,7 @@ interface Data {
   hullOffset: number;
   curve: d3.Line<[number, number]>;
   expanded: Lookup<boolean | undefined>;
+  previousNodes: Node[];
 }
 
 
@@ -134,6 +132,7 @@ export default Vue.extend({
       hullOffset: 15,
       curve: d3.line().curve(d3.curveCardinalClosed.tension(0.85)),
       expanded: {},
+      previousNodes: [],
     };
   },
   computed: {
@@ -170,6 +169,13 @@ export default Vue.extend({
       }
 
       return toReturn;
+    },
+    previousNodeLookup() {
+      const lookup: Lookup<Node> = {};
+      this.previousNodes.forEach((n) => {
+        lookup[n.id] =  n;
+      });
+      return lookup;
     },
   },
   methods: {
@@ -276,14 +282,18 @@ export default Vue.extend({
       const groups: Lookup<GroupNode> = {};
 
       data.nodes.forEach((n) => {
+        const previousNode: Node | undefined = this.previousNodeLookup[n.id];
+
+        // This tries to get the previous x, y location of a node for reuse
+        const { x, y } = previousNode ? previousNode : { x: 0, y: 0 };
+
         if (!this.expanded[n.groupId] && !groups.hasOwnProperty(n.groupId)) {
           const node: GroupNode = {
             isGroup: true,
             group: n.groupId,
             id: '' + n.groupId,
-            x: 0,
-            y: 0,
-            count: 0,
+            x,
+            y,
             text: `M${n.groupId}`,
             width: 50,
             height: this.size,
@@ -293,51 +303,67 @@ export default Vue.extend({
           nodes.push(node);
         }
 
-        const source = n.type + n.id;
-
         // Save for later use
-        this.nodeLookup[source] = n;
+        this.nodeLookup[n.type + n.id] = n;
 
-        let nodesToConnect: Nodes[] = [];
+        const addColors = <V>(ns: Nodes[], color: V) => {
+          return ns.map((nn) => [nn, color] as [Nodes, V]);
+        };
+
+        let nodesToConnect: Array<[Nodes[] | Nodes | null, Relationship]> = [];
         switch (n.type) {
           case 'wet-lab data':
             break;
           case 'model-building-activity':
             nodesToConnect = [
-              ...n.wetLabsUsedForValidation,
-              ...n.wetLabsUsedForCalibration,
-              ...n.simulationsUsedForValidation,
-              ...n.simulationsUsedForCalibration,
-              ...n.used,
+              [n.wetLabsUsedForValidation, 'used for validation'],
+              [n.wetLabsUsedForCalibration, 'used for validation'],
+              [n.simulationsUsedForValidation, 'used for validation'],
+              [n.simulationsUsedForCalibration, 'used for validation'],
+              [n.used, 'used for validation'],
             ];
             break;
           case 'simulation data':
-            nodesToConnect = [n.usedModelBuildingActivity, n.usedModelExplorationActivity].filter(notNull);
+            nodesToConnect = [
+              [n.usedModelBuildingActivity, 'used'],
+              [n.usedModelExplorationActivity, 'used'],
+            ];
             break;
           case 'model exploration activity':
-            nodesToConnect = [n.used];
+            nodesToConnect = [[n.used, 'used']];
             break;
           case 'model':
-            nodesToConnect = [n.used];
+            nodesToConnect = [[n.used, 'used']];
         }
 
         // haha change this name
-        nodesToConnect.forEach((nooooode) => {
-          const target = this.expanded[nooooode.groupId] ?
-            nooooode.type + nooooode.id :
-            '' + nooooode.groupId;
-
-          const source = this.expanded[n.groupId] ?
-            n.type + n.id :
-            '' + n.groupId;
-
-          if (target === source) {
+        nodesToConnect.forEach(([nooooode, relationship]) => {
+          if (nooooode === null) {
             return;
           }
 
-          links.push({
-            source,
-            target,
+          if (!Array.isArray(nooooode)) {
+            nooooode = [nooooode];
+          }
+
+          nooooode.forEach((nooooode) => {
+            const target = this.expanded[nooooode.groupId] ?
+              nooooode.type + nooooode.id :
+              '' + nooooode.groupId;
+
+            const source = this.expanded[n.groupId] ?
+              n.type + n.id :
+              '' + n.groupId;
+
+            if (target === source) {
+              return;
+            }
+
+            links.push({
+              source,
+              target,
+              color: relationshipColors[relationship],
+            });
           });
         });
 
@@ -349,12 +375,12 @@ export default Vue.extend({
         const text = this.getText(n);
         nodes.push({
           isGroup: false as false, // TODO
-          id: source,
+          id: n.type + n.id,
           text,
           type: n.type,
           group: n.groupId,
-          x: 0,
-          y: 0,
+          x,
+          y,
           // width and height are essential
           // TODO add requirement to type file
           // they are used in the other js files
@@ -363,7 +389,11 @@ export default Vue.extend({
         });
       });
 
+      this.previousNodes = nodes;
+
+      // tslint:disable-next-line:no-console
       console.log(nodes.map((n) => n.id).join(', '));
+      // tslint:disable-next-line:no-console
       console.log(links.map((l) => `${l.source} -> ${l.target}`).join('\n'));
 
       const simulation = d3.forceSimulation(nodes)
@@ -398,6 +428,7 @@ export default Vue.extend({
           .attr('class', 'hull')
           .attr('d', (d) => this.curve(d.path))
           .style('fill', this.fill)
+          .style('opacity', 0.5)
           .on('dblclick', (d) => {
             if (this.expanded[d.group]) {
               this.expanded[d.group] = false;
@@ -411,7 +442,8 @@ export default Vue.extend({
         .selectAll('line')
         .data(links)
         .join('line')
-        .attr('stroke-width', (d) => Math.sqrt(3))
+        .attr('stroke-width', (d) => 3)
+        .attr('stroke', (d) => d.color)
         .attr('marker-end', 'url(#end)'); // This, along with the defs above, adds the arrows
 
       const drag = () => {
