@@ -10,6 +10,89 @@ import {
 
 // TODO Make sure all of the variable names are correct (specially, the relatinoships)
 
+// M1
+const WX_7: WetLabData = {
+  id: 7,
+  groupId: 1,
+  name: 'Wx_7',
+  type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs', // TODO FIX
+  },
+};
+
+const W1_1: WetLabData = {
+  id: 8,
+  groupId: 1,
+  name: 'W1_1',
+  type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs', // TODO FIX
+  },
+};
+
+const W1_2: WetLabData = {
+  id: 9,
+  groupId: 1,
+  name: 'W1_2',
+  type: 'wet-lab data',
+  information: {
+    'Cell line': 'hNPCs', // TODO FIX
+  },
+};
+
+const MBA_3: ModelBuildingActivity = {
+  id: 3,
+  groupId: 1,
+  type: 'model-building-activity',
+  wetLabsUsedForCalibration: [WX_7, W1_1],
+  wetLabsUsedForValidation: [W1_2],
+  simulationsUsedForCalibration: [],
+  simulationsUsedForValidation: [],
+  used: [],
+};
+
+const S1_1: SimulationData = {
+  id: 3,
+  groupId: 1,
+  type: 'simulation data',
+  name: 'S1_1',
+  usedModelBuildingActivity: MBA_3,
+  usedModelExplorationActivity: null,
+};
+
+const modelInformation1: ModelInformation = {
+  id: 2,
+  modelNumber: 1,
+  bibInformation: 'Lee et al., PLoS bio. 2003',
+};
+
+const model3: Model = {
+  id: 3,
+  groupId: 1,
+  type: 'model',
+  modelInformation: modelInformation1,
+  version: 2,
+  used: MBA_3,
+};
+
+const MEA: ModelExplorationActivity = {
+  id: 1,
+  groupId: 1,
+  type: 'model exploration activity',
+  used: model3,
+};
+
+const S1_2: SimulationData = {
+  id: 4,
+  groupId: 1,
+  type: 'simulation data',
+  name: 'S1_2',
+  usedModelBuildingActivity: null,
+  usedModelExplorationActivity: MEA,
+};
+
+// M12
 const modelInformation12: ModelInformation = {
   id: 1,
   modelNumber: 12,
@@ -46,25 +129,15 @@ const WX_2: WetLabData = {
   },
 };
 
-const WX_5: WetLabData = {
-  id: 7,
-  groupId: 12,
-  name: 'Wx_5',
-  type: 'wet-lab data',
-  information: {
-    'Cell line': 'L-Cells',
-  },
-};
-
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
   id: 1,
   groupId: 12,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [W12_1, WX_2, WX_1],
-  wetLabsUsedForValidation: [WX_5],
+  wetLabsUsedForValidation: [],
   simulationsUsedForCalibration: [],
-  simulationsUsedForValidation: [],
+  simulationsUsedForValidation: [S1_2],
   used: [],
 };
 
@@ -145,93 +218,11 @@ const model2: Model = {
   used: MBA_2,
 };
 
-const WX_7: WetLabData = {
-  id: 7,
-  groupId: 1,
-  name: 'Wx_7',
-  type: 'wet-lab data',
-  information: {
-    'Cell line': 'hNPCs', // TODO FIX
-  },
-};
-
-const W1_1: WetLabData = {
-  id: 8,
-  groupId: 1,
-  name: 'W1_1',
-  type: 'wet-lab data',
-  information: {
-    'Cell line': 'hNPCs', // TODO FIX
-  },
-};
-
-const W1_2: WetLabData = {
-  id: 9,
-  groupId: 1,
-  name: 'W1_2',
-  type: 'wet-lab data',
-  information: {
-    'Cell line': 'hNPCs', // TODO FIX
-  },
-};
-
-const MBA_3: ModelBuildingActivity = {
-  id: 3,
-  groupId: 1,
-  type: 'model-building-activity',
-  wetLabsUsedForCalibration: [WX_7, W1_1],
-  wetLabsUsedForValidation: [W12_2],
-  simulationsUsedForCalibration: [],
-  simulationsUsedForValidation: [],
-  used: [],
-};
-
-const S1_1: SimulationData = {
-  id: 3,
-  groupId: 1,
-  type: 'simulation data',
-  name: 'S1_1',
-  usedModelBuildingActivity: MBA_3,
-  usedModelExplorationActivity: null,
-};
-
-const modelInformation1: ModelInformation = {
-  id: 2,
-  modelNumber: 1,
-  bibInformation: 'Lee et al., PLoS bio. 2003',
-};
-
-const model3: Model = {
-  id: 3,
-  groupId: 1,
-  type: 'model',
-  modelInformation: modelInformation1,
-  version: 2,
-  used: MBA_3,
-};
-
-const MEA: ModelExplorationActivity = {
-  id: 1,
-  groupId: 1,
-  type: 'model exploration activity',
-  used: model3,
-};
-
-const S1_2: SimulationData = {
-  id: 4,
-  groupId: 1,
-  type: 'simulation data',
-  name: 'S1_2',
-  usedModelBuildingActivity: null,
-  usedModelExplorationActivity: MEA,
-};
-
 export const nodes: Nodes[] = [
   // MODEL 12
   W12_1,
   WX_1,
   WX_2,
-  WX_5,
   MBA_1,
   S12_1,
   model1,

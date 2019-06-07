@@ -215,6 +215,11 @@ export default Vue.extend({
       const offset = this.hullOffset;
       // create point sets
       nodes.forEach((n) => {
+        if (n.isGroup) {
+          // Skip nodes that are just groups
+          return;
+        }
+
         // eslint-disable-next-line
         const i = n.group;
         const l = hulls[i] || (hulls[i] = []);
@@ -271,26 +276,21 @@ export default Vue.extend({
       const groups: Lookup<GroupNode> = {};
 
       data.nodes.forEach((n) => {
-        if (!this.expanded[n.groupId]) {
-          if (!groups.hasOwnProperty(n.groupId)) {
-            const node: GroupNode = {
-              isGroup: true,
-              group: n.groupId,
-              id: '' + n.groupId,
-              x: 0,
-              y: 0,
-              count: 0,
-              text: `M${n.groupId}`,
-              width: 50,
-              height: this.size,
-            };
+        if (!this.expanded[n.groupId] && !groups.hasOwnProperty(n.groupId)) {
+          const node: GroupNode = {
+            isGroup: true,
+            group: n.groupId,
+            id: '' + n.groupId,
+            x: 0,
+            y: 0,
+            count: 0,
+            text: `M${n.groupId}`,
+            width: 50,
+            height: this.size,
+          };
 
-            groups[n.groupId] = node;
-            nodes.push(node);
-          }
-
-          // do nothing if not expanded
-          return;
+          groups[n.groupId] = node;
+          nodes.push(node);
         }
 
         const source = n.type + n.id;
@@ -312,7 +312,7 @@ export default Vue.extend({
             ];
             break;
           case 'simulation data':
-            nodesToConnect = [n.usedModelBuildingActivity, n.usedModelBuildingActivity].filter(notNull);
+            nodesToConnect = [n.usedModelBuildingActivity, n.usedModelExplorationActivity].filter(notNull);
             break;
           case 'model exploration activity':
             nodesToConnect = [n.used];
@@ -323,11 +323,28 @@ export default Vue.extend({
 
         // haha change this name
         nodesToConnect.forEach((nooooode) => {
+          const target = this.expanded[nooooode.groupId] ?
+            nooooode.type + nooooode.id :
+            '' + nooooode.groupId;
+
+          const source = this.expanded[n.groupId] ?
+            n.type + n.id :
+            '' + n.groupId;
+
+          if (target === source) {
+            return;
+          }
+
           links.push({
             source,
-            target: nooooode.type + nooooode.id,
+            target,
           });
         });
+
+        // don't add nodes that are a group that isn't expanded
+        if (!this.expanded[n.groupId]) {
+          return;
+        }
 
         const text = this.getText(n);
         nodes.push({
@@ -345,6 +362,9 @@ export default Vue.extend({
           height: this.size,
         });
       });
+
+      console.log(nodes.map((n) => n.id).join(', '));
+      console.log(links.map((l) => `${l.source} -> ${l.target}`).join('\n'));
 
       const simulation = d3.forceSimulation(nodes)
         .force('link', forceLink<Node, Link>(links).id((d) => d.id).strength(0.3))
