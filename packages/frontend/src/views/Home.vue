@@ -1,37 +1,61 @@
 <template>
   <div class="home">
     <svg ref="svg" :height="height" :width="width"></svg>
-    <b-collapse v-if="selectedNode" class="card" aria-id="contentIdForA11y3">
-        <div
-          slot="trigger" 
-          slot-scope="props"
-          class="card-header"
-          role="button"
-          aria-controls="contentIdForA11y3"
-        >
-          <p class="card-header-title">
-            Node Information
-          </p>
-          <a class="card-header-icon">
-            <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
-          </a>
-        </div>
-        <div class="card-content">
-          <div class="content information">
-            <div v-for="([key, value], index) in informationFields" :key="key">
-              <div class="field-title">{{ key }}</div>
-              <div class="field-text">{{ value }}</div>
-              <div v-if="index !== informationFields.length - 1" class="field-spacer"></div>
+    <b-collapse class="card">
+      <div
+        slot="trigger" 
+        slot-scope="props"
+        class="card-header"
+        role="button"
+      >
+        <p class="card-header-title">
+          Prov DM
+        </p>
+        <a class="card-header-icon">
+          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
+        </a>
+      </div>
+      <div class="card-content">
+        <div class="content information">
+          <div class="legend">
+            <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
+              <div class="legend--block" :style="`background-color: ${item.color}`"></div>
+              <div class="legend--text">{{ item.relationship }}</div>
             </div>
-            <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
-            <a>#buefy</a>. -->
           </div>
         </div>
-        <footer class="card-footer">
-            <!-- <a class="card-footer-item">Save</a> -->
-            <a class="card-footer-item">Edit</a>
-            <a class="card-footer-item">Delete</a>
-        </footer>
+      </div>
+    </b-collapse>
+    <b-collapse v-if="selectedNode" class="card">
+      <div
+        slot="trigger" 
+        slot-scope="props"
+        class="card-header"
+        role="button"
+      >
+        <p class="card-header-title">
+          Node Information
+        </p>
+        <a class="card-header-icon">
+          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
+        </a>
+      </div>
+      <div class="card-content">
+        <div class="content information">
+          <div v-for="([key, value], index) in informationFields" :key="key">
+            <div class="field-title">{{ key }}</div>
+            <div class="field-text">{{ value }}</div>
+            <div v-if="index !== informationFields.length - 1" class="field-spacer"></div>
+          </div>
+          <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
+          <a>#buefy</a>. -->
+        </div>
+      </div>
+      <footer class="card-footer">
+          <!-- <a class="card-footer-item">Save</a> -->
+          <a class="card-footer-item">Edit</a>
+          <a class="card-footer-item">Delete</a>
+      </footer>
     </b-collapse>
   </div>
 </template>
@@ -177,6 +201,14 @@ export default Vue.extend({
       });
       return lookup;
     },
+    relationshipLegend() {
+      return Object.entries(relationshipColors).map(([relationship, color]) => {
+        return {
+          color,
+          relationship,
+        };
+      });
+    },
   },
   methods: {
     calcWidth(text: string) {
@@ -316,24 +348,24 @@ export default Vue.extend({
             break;
           case 'model-building-activity':
             nodesToConnect = [
-              [n.wetLabsUsedForValidation, 'used for validation'],
-              [n.wetLabsUsedForCalibration, 'used for validation'],
-              [n.simulationsUsedForValidation, 'used for validation'],
-              [n.simulationsUsedForCalibration, 'used for validation'],
-              [n.used, 'used for validation'],
+              [n.wetLabsUsedForValidation, 'Used for validation'],
+              [n.wetLabsUsedForCalibration, 'Used for validation'],
+              [n.simulationsUsedForValidation, 'Used for validation'],
+              [n.simulationsUsedForCalibration, 'Used for validation'],
+              [n.used, 'Used for validation'],
             ];
             break;
           case 'simulation data':
             nodesToConnect = [
-              [n.usedModelBuildingActivity, 'used'],
-              [n.usedModelExplorationActivity, 'used'],
+              [n.usedModelBuildingActivity, 'Used'],
+              [n.usedModelExplorationActivity, 'Used'],
             ];
             break;
           case 'model exploration activity':
-            nodesToConnect = [[n.used, 'used']];
+            nodesToConnect = [[n.used, 'Used']];
             break;
           case 'model':
-            nodesToConnect = [[n.used, 'used']];
+            nodesToConnect = [[n.used, 'Used']];
         }
 
         // haha change this name
@@ -408,9 +440,9 @@ export default Vue.extend({
       svg.selectAll('*').remove();
 
       svg.append('svg:defs').selectAll('marker')
-        .data(['end'])  // Different link/path types can be defined here
+        .data(this.relationshipLegend)  // Different link/path types can be defined here
         .enter().append('svg:marker')  // This section adds in the arrows
-        .attr('id', String)
+        .attr('id', (d) => d.color)
         .attr('viewBox', '0 -5 10 10')
         .attr('refX', 10)
         .attr('refY', 0)
@@ -418,6 +450,7 @@ export default Vue.extend({
         .attr('markerHeight', 6)
         .attr('orient', 'auto')
         .append('svg:path')
+        .style('fill', (d) => d.color)
         .attr('d', 'M0,-5L10,0L0,5');
 
       const hull = svg.append('g')
@@ -444,7 +477,8 @@ export default Vue.extend({
         .join('line')
         .attr('stroke-width', (d) => 3)
         .attr('stroke', (d) => d.color)
-        .attr('marker-end', 'url(#end)'); // This, along with the defs above, adds the arrows
+        // This, along with the defs above, adds the arrows
+        .attr('marker-end', (d) => `url(#${d.color})`);
 
       const drag = () => {
         function dragstarted(d: d3.SimulationNodeDatum) {
@@ -598,5 +632,17 @@ export default Vue.extend({
 
 .field-spacer {
   margin: 5px 0;
+}
+
+.legend--item {
+  display: flex;
+  align-items: center;
+}
+.legend--block {
+  height: 15px;
+  width: 15px;
+}
+.legend--text {
+  margin-left: 10px;
 }
 </style>
