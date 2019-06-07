@@ -1,62 +1,36 @@
 <template>
   <div class="home">
     <svg ref="svg" :height="height" :width="width"></svg>
-    <b-collapse class="card">
-      <div
-        slot="trigger" 
-        slot-scope="props"
-        class="card-header"
-        role="button"
-      >
-        <p class="card-header-title">
-          Prov DM
-        </p>
-        <a class="card-header-icon">
-          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
-        </a>
-      </div>
-      <div class="card-content">
-        <div class="content information">
-          <div class="legend">
-            <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
-              <div class="legend--block" :style="`background-color: ${item.color}`"></div>
-              <div class="legend--text">{{ item.relationship }}</div>
-            </div>
+    <node
+      style="position: absolute; top: 20px; left: 15px"
+      type="entity"
+      :radius="5"
+      :height="50"
+      :width="50"
+      stroke="#555"
+    ></node>
+    <div class="cards">
+      <card title="Prov DM">
+        <div class="legend">
+          <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
+            <div class="legend--block" :style="`background-color: ${item.color}`"></div>
+            <div class="legend--text">{{ item.relationship }}</div>
           </div>
         </div>
-      </div>
-    </b-collapse>
-    <b-collapse v-if="selectedNode" class="card">
-      <div
-        slot="trigger" 
-        slot-scope="props"
-        class="card-header"
-        role="button"
-      >
-        <p class="card-header-title">
-          Node Information
-        </p>
-        <a class="card-header-icon">
-          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
-        </a>
-      </div>
-      <div class="card-content">
-        <div class="content information">
-          <div v-for="([key, value], index) in informationFields" :key="key">
-            <div class="field-title">{{ key }}</div>
-            <div class="field-text">{{ value }}</div>
-            <div v-if="index !== informationFields.length - 1" class="field-spacer"></div>
-          </div>
-          <!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris.
-          <a>#buefy</a>. -->
+      </card>
+      <div class="spacer"></div>
+      <card v-if="selectedNode" title="Node Information">
+        <div v-for="([key, value], index) in informationFields" :key="key">
+          <div class="field-title">{{ key }}</div>
+          <div class="field-text">{{ value }}</div>
+          <div v-if="index !== informationFields.length - 1" class="field-spacer"></div>
         </div>
-      </div>
-      <footer class="card-footer">
-          <!-- <a class="card-footer-item">Save</a> -->
+        <template v-slot:footer>
           <a class="card-footer-item">Edit</a>
           <a class="card-footer-item">Delete</a>
-      </footer>
-    </b-collapse>
+        </template>
+      </card>
+    </div>
   </div>
 </template>
 
@@ -68,6 +42,8 @@ import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { Relationship, relationshipColors } from '@/constants';
 import { NodeType, Nodes } from 'specification';
+import Node from '@/components/Node.vue';
+import Card from '@/components/Card.vue';
 
 function assertUnreachable(x: never): never {
   throw new Error('Didn\'t expect to get here');
@@ -91,6 +67,7 @@ interface GroupNode extends BaseNode {
 
 interface SingleNode extends BaseNode {
   isGroup: false;
+  isEntity: boolean;
   type: NodeType;
   id: string;
   width: number;
@@ -143,6 +120,7 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 export default Vue.extend({
   name: 'Home',
+  components: { Node, Card },
   data: (): Data => {
     return {
       height: window.innerHeight,
@@ -349,10 +327,10 @@ export default Vue.extend({
           case 'model-building-activity':
             nodesToConnect = [
               [n.wetLabsUsedForValidation, 'Used for validation'],
-              [n.wetLabsUsedForCalibration, 'Used for validation'],
+              [n.wetLabsUsedForCalibration, 'Used for calibration'],
               [n.simulationsUsedForValidation, 'Used for validation'],
-              [n.simulationsUsedForCalibration, 'Used for validation'],
-              [n.used, 'Used for validation'],
+              [n.simulationsUsedForCalibration, 'Used for calibration'],
+              [n.used, 'Used'],
             ];
             break;
           case 'simulation data':
@@ -407,6 +385,7 @@ export default Vue.extend({
         const text = this.getText(n);
         nodes.push({
           isGroup: false as false, // TODO
+          isEntity: n.type === 'wet-lab data' || n.type === 'simulation data',
           id: n.type + n.id,
           text,
           type: n.type,
@@ -507,7 +486,6 @@ export default Vue.extend({
       const scale = d3.scaleOrdinal(d3.schemeCategory10);
       const g = svg.append('g')
         .attr('stroke', '#fff')
-        .attr('stroke-width', 1.5)
         .selectAll('.node')
         .data(nodes)
         .join('g')
@@ -521,7 +499,7 @@ export default Vue.extend({
         .attr('height', this.size)
         .attr('fill', (d) => 'white')
         .style('stroke-width', 3)
-        .attr('rx', (d) => !d.isGroup && (d.type === 'wet-lab data' || d.type === 'simulation data') ? 5 : 0)
+        .attr('rx', (d) => !d.isGroup && d.isEntity ? 5 : 0)
         .style('stroke', this.nodeOutline)
         .on('click', (d) => {
           if (d.isGroup) {
@@ -615,11 +593,15 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.card {
+.cards {
   position: absolute;
   right: 20px;
   top: 20px;
   width: 350px;
+}
+
+.spacer {
+  margin: 10px 0;
 }
 
 .information {
