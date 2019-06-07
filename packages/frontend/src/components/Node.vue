@@ -1,46 +1,36 @@
-<template>
-  <svg></svg>  
-</template>
-
 <script lang="ts">
-import Vue, { PropType } from 'vue';
 import * as d3 from 'd3';
+import { ID3, isD3 } from '@/components/d3';
+import { Component, Vue, Prop } from 'vue-property-decorator';
 
-export default Vue.extend({
-  name: 'Node',
-  props: {
-    type: String as PropType<'entity' | 'activity'>,
-    radius: Number as PropType<number>,
-    height: Number as PropType<number>,
-    width: Number as PropType<number>,
-    stroke: String as PropType<string>,
-  },
-  computed: {
-    rx(): number {
-      return this.type === 'entity' ? this.radius : 0;
-    },
-  },
-  methods: {
-    doRender() {
-      const svg = d3.select(this.$el);
+@Component
+export default class Node extends Vue {
+  @Prop({ type: String, required: true }) public id!: string;
+  @Prop({ type: Number, required: true }) public rx!: number;
+  @Prop({ type: Number, required: true }) public size!: number;
+  @Prop({ type: String, required: true }) public stroke!: string;
 
-      const g = svg.append('g')
-        .attr('stroke', '#fff')
-        .selectAll('.node')
-        .data([{}])
-        .join('g')
-        .attr('class', 'node')
-        .append('rect')
-        .attr('width', this.width)
-        .attr('height', this.height)
-        .attr('fill', (d) => 'white')
-        .style('stroke-width', 3)
-        .attr('rx', (d) => this.rx)
-        .style('stroke', this.stroke);
-    },
-  },
-  mounted() {
-    this.doRender();
-  },
-});
+  public mounted() {
+    if (!isD3(this.$parent)) {
+      throw Error('parent must be D3');
+    }
+
+    this.$parent.addNode({
+      id: this.id,
+      rx: this.rx,
+      size: this.size,
+      stroke: this.stroke,
+    });
+  }
+
+  public render() {
+    return null;
+  }
+}
 </script>
+
+<style scoped>
+.node {
+  overflow: visible;
+}
+</style>

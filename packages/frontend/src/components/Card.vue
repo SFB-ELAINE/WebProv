@@ -53,6 +53,10 @@ $duration: 0.2s;
   opacity: 0;
 }
 
+.information {
+  text-align: left;
+}
+
 @keyframes card-show {
   0% { 
     opacity: 0; 

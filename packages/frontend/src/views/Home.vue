@@ -1,21 +1,37 @@
 <template>
   <div class="home">
     <svg ref="svg" :height="height" :width="width"></svg>
-    <node
-      style="position: absolute; top: 20px; left: 15px"
-      type="entity"
-      :radius="5"
-      :height="50"
-      :width="50"
-      stroke="#555"
-    ></node>
     <div class="cards">
       <card title="Prov DM">
         <div class="legend">
-          <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
+          
+          <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
+            <node
+              class="legend--block"
+              :type="type"
+              :radius="5"
+              :size="25"
+              :stroke="nodeOutline"
+            ></node>
+            <div class="legend--text">{{ type | uppercase }}</div>
+          </div>
+
+          <!-- <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
+            <node
+              class="legend--block"
+              :type="type"
+              :radius="5"
+              :size="25"
+              :stroke="nodeOutline"
+            ></node>
+            <div class="legend--text">{{ type | uppercase }}</div>
+          </div> -->
+
+          <!-- <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
             <div class="legend--block" :style="`background-color: ${item.color}`"></div>
             <div class="legend--text">{{ item.relationship }}</div>
-          </div>
+          </div> -->
+
         </div>
       </card>
       <div class="spacer"></div>
@@ -37,12 +53,13 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as d3 from 'd3';
+import * as graphing from '@/graphing';
 import * as data from '@/assets/test';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { Relationship, relationshipColors } from '@/constants';
 import { NodeType, Nodes } from 'specification';
-import Node from '@/components/Node.vue';
+import NodeComponent from '@/components/Node.vue';
 import Card from '@/components/Card.vue';
 
 function assertUnreachable(x: never): never {
@@ -120,7 +137,12 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 export default Vue.extend({
   name: 'Home',
-  components: { Node, Card },
+  components: { Node: NodeComponent, Card },
+  filters: {
+    uppercase(s: string) {
+      return s.charAt(0).toUpperCase() + s.substring(1);
+    },
+  },
   data: (): Data => {
     return {
       height: window.innerHeight,
@@ -295,6 +317,7 @@ export default Vue.extend({
         const previousNode: Node | undefined = this.previousNodeLookup[n.id];
 
         // This tries to get the previous x, y location of a node for reuse
+        // I'm not even 100% sure this does anything, I just saw an example online do it
         const { x, y } = previousNode ? previousNode : { x: 0, y: 0 };
 
         if (!this.expanded[n.groupId] && !groups.hasOwnProperty(n.groupId)) {
@@ -402,11 +425,6 @@ export default Vue.extend({
 
       this.previousNodes = nodes;
 
-      // tslint:disable-next-line:no-console
-      console.log(nodes.map((n) => n.id).join(', '));
-      // tslint:disable-next-line:no-console
-      console.log(links.map((l) => `${l.source} -> ${l.target}`).join('\n'));
-
       const simulation = d3.forceSimulation(nodes)
         .force('link', forceLink<Node, Link>(links).id((d) => d.id).strength(0.3))
         .velocityDecay(0.5)
@@ -417,20 +435,6 @@ export default Vue.extend({
       const svg = d3.select(this.$refs.svg as Element);
 
       svg.selectAll('*').remove();
-
-      svg.append('svg:defs').selectAll('marker')
-        .data(this.relationshipLegend)  // Different link/path types can be defined here
-        .enter().append('svg:marker')  // This section adds in the arrows
-        .attr('id', (d) => d.color)
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 10)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('svg:path')
-        .style('fill', (d) => d.color)
-        .attr('d', 'M0,-5L10,0L0,5');
 
       const hull = svg.append('g')
           .attr('class', 'hulls')
@@ -448,16 +452,7 @@ export default Vue.extend({
             }
           });
 
-      const link = svg.append('g')
-        .attr('stroke', '#999')
-        .attr('stroke-opacity', 0.6)
-        .selectAll('line')
-        .data(links)
-        .join('line')
-        .attr('stroke-width', (d) => 3)
-        .attr('stroke', (d) => d.color)
-        // This, along with the defs above, adds the arrows
-        .attr('marker-end', (d) => `url(#${d.color})`);
+      const link = graphing.addArrows(svg, links, { arrows: true });
 
       const drag = () => {
         function dragstarted(d: d3.SimulationNodeDatum) {
@@ -604,10 +599,6 @@ export default Vue.extend({
   margin: 10px 0;
 }
 
-.information {
-  text-align: left;
-}
-
 .field-title {
   font-weight: bold;
 }
@@ -619,10 +610,11 @@ export default Vue.extend({
 .legend--item {
   display: flex;
   align-items: center;
+  margin-bottom: 5px;
 }
 .legend--block {
-  height: 15px;
-  width: 15px;
+  height: 25px;
+  width: 25px;
 }
 .legend--text {
   margin-left: 10px;
