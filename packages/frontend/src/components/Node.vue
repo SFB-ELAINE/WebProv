@@ -22,7 +22,8 @@ export default class Node extends Vue {
       rx: this.rx,
       x: this.x,
       y: this.y,
-      size: this.size,
+      height: this.size,
+      width: this.size,
       stroke: this.stroke,
     });
   }

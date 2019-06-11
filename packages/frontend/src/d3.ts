@@ -21,10 +21,13 @@ export interface Link {
 export interface Node {
   id: string;
   rx: number;
-  size: number;
+  height: number;
+  width: number;
   stroke: string;
+  text?: string;
   x: number;
   y: number;
+  hullGroup?: number;
 }
 
 export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;
@@ -38,3 +41,8 @@ export interface ID3 extends Vue {
 export const isD3 = (component: any): component is ID3 => {
   return component.isD3 === true;
 };
+
+export interface Hull {
+  group: number;
+  path: Array<[number, number]>;
+}
