@@ -1,4 +1,4 @@
 module.exports = {
     publicPath: '/WebProv/',
-    outputDir: 'docs'
+    outputDir: '../../docs'
 }
