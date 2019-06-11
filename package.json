@@ -2,7 +2,8 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "bootstrap": "npx lerna bootstrap"
+    "bootstrap": "npx lerna bootstrap",
+    "build-libraries": "lerna run --scope specification build"
   },
   "devDependencies": {
     "lerna": "^3.11.1"
