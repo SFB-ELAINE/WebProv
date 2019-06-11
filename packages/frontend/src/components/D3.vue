@@ -30,6 +30,7 @@ export default class D3 extends Vue implements ID3 {
   @Prop({ type: Boolean, default: false }) public arrows!: boolean;
   @Prop({ type: Number, default: 100 }) public height!: number;
   @Prop({ type: Number, default: 100 }) public width!: number;
+  @Prop({ type: Number, default: 6 }) public arrowSize!: number;
 
   public isD3: true = true;
   public links: MyLink[] = [];
@@ -79,8 +80,8 @@ export default class D3 extends Vue implements ID3 {
         .attr('viewBox', '0 -5 10 10')
         .attr('refX', 10)
         .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
+        .attr('markerWidth', this.arrowSize)
+        .attr('markerHeight', this.arrowSize)
         .attr('orient', 'auto')
         .append('svg:path')
         .style('fill', (d) => d)

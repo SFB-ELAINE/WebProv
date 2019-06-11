@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import { ID3, isD3 } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
+// Called Relationship because <link> is a builtin html tag
 @Component
 export default class Relationship extends Vue {
   @Prop({ type: String, required: true }) public target!: string;

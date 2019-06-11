@@ -19,7 +19,7 @@
           </div>
 
           <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
-            <d3 :height="25" :width="100" arrows>
+            <d3 :height="25" :width="100" arrows :arrow-size="4">
               <node
                 class="legend--block"
                 :rx="5"
@@ -70,12 +70,12 @@ import * as graphing from '@/graphing';
 import * as data from '@/assets/test';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { Relationship, relationshipColors } from '@/constants';
+import { NodeRelationship, relationshipColors } from '@/constants';
 import { NodeType, Nodes } from 'specification';
 import NodeComponent from '@/components/Node.vue';
 import Card from '@/components/Card.vue';
 import D3 from '@/components/D3.vue';
-import LinkComponent from '@/components/Link.vue';
+import Relationship from '@/components/Relationship.vue';
 
 interface BaseNode {
   x: number;
@@ -148,7 +148,7 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 export default Vue.extend({
   name: 'Home',
-  components: { Node: NodeComponent, Card, Relationship: LinkComponent, D3 },
+  components: { Node: NodeComponent, Card, Relationship, D3 },
   filters: {
     uppercase(s: string) {
       return s.charAt(0).toUpperCase() + s.substring(1);
@@ -354,7 +354,7 @@ export default Vue.extend({
           return ns.map((nn) => [nn, color] as [Nodes, V]);
         };
 
-        let nodesToConnect: Array<[Nodes[] | Nodes | null, Relationship]> = [];
+        let nodesToConnect: Array<[Nodes[] | Nodes | null, NodeRelationship]> = [];
         switch (n.type) {
           case 'wet-lab data':
             break;
