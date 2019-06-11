@@ -1,20 +1,35 @@
 <template>
-  <svg>
-  </svg>
+    <svg 
+      ref="svg" 
+      class="svg"
+      :height="height"
+      :width="width"
+    ><slot></slot></svg>
 </template>
 
 <script lang="ts">
 import * as d3 from 'd3';
-import { CB, emitter, ID3, Link, Node } from '@/components/d3';
+import { CB, emitter, ID3, Link, Node } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
 interface MyLink extends Link {
   color: string;
 }
 
+export const makeLookup = <T extends { id: string }>(array: Iterable<T>) => {
+  const lookup: { [k: string]: T } = {};
+  for (const item of array) {
+    lookup[item.id] = item;
+  }
+  return lookup;
+};
+
+@Component
 export default class D3 extends Vue implements ID3 {
   @Prop({ type: String, default: '#000' }) public defaultStrokeColor!: string;
   @Prop({ type: Boolean, default: false }) public arrows!: boolean;
+  @Prop({ type: Number, default: 100 }) public height!: number;
+  @Prop({ type: Number, default: 100 }) public width!: number;
 
   public isD3: true = true;
   public links: MyLink[] = [];
@@ -31,8 +46,12 @@ export default class D3 extends Vue implements ID3 {
     this.nodes.push(node);
   }
 
+  get nodeLookup() {
+    return makeLookup(this.nodes);
+  }
+
   public mounted() {
-    const svg = d3.select(this.$el as Element);
+    const svg = d3.select(this.$refs.svg as Element);
 
     const g = svg.append('g')
       .attr('stroke', '#fff')
@@ -46,13 +65,15 @@ export default class D3 extends Vue implements ID3 {
       .attr('fill', (d) => 'white')
       .style('stroke-width', 3)
       .attr('rx', (d) => d.rx)
+      .attr('x', (d) => d.x)
+      .attr('y', (d) => d.y)
       .style('stroke', (d) => d.stroke);
 
     const data = this.links.map(({ color }) => color);
 
     if (this.arrows) {
       svg.append('svg:defs').selectAll('marker')
-      .data(data)  // Different link/path types can be defined here
+        .data(data)  // Different link/path types can be defined here
         .enter().append('svg:marker')  // This section adds in the arrows
         .attr('id', (d) => `${d}`)
         .attr('viewBox', '0 -5 10 10')
@@ -66,6 +87,12 @@ export default class D3 extends Vue implements ID3 {
         .attr('d', 'M0,-5L10,0L0,5');
     }
 
+    const makeAttr = (xy: 'x' | 'y', st: 'source' | 'target') => (d: Link) => {
+      const node = this.nodeLookup[d[st]];
+      const toAdd = xy === 'y' ? node.size / 2 : st === 'source' ? node.size : 0;
+      return node[xy] + toAdd;
+    };
+
     const link = svg.append('g')
       .attr('stroke-opacity', 0.6)
       .selectAll('line')
@@ -73,8 +100,21 @@ export default class D3 extends Vue implements ID3 {
       .join('line')
       .attr('stroke-width', (d) => 3)
       .attr('stroke', (d) => d.color)
+      .attr('x1', makeAttr('x', 'source'))
+      .attr('y1', makeAttr('y', 'source'))
+      .attr('x2', makeAttr('x', 'target'))
+      .attr('y2', makeAttr('y', 'target'));
+
+    if (this.arrows) {
       // This, along with the defs above, adds the arrows
-      .attr('marker-end', (d) => `url(#${d.color})`);
+      link.attr('marker-end', (d) => `url(#${d.color})`);
+    }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.svg {
+  overflow: visible;
+}
+</style>

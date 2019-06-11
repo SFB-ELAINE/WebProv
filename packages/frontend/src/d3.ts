@@ -23,14 +23,16 @@ export interface Node {
   rx: number;
   size: number;
   stroke: string;
+  x: number;
+  y: number;
 }
 
 export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;
 
 export interface ID3 extends Vue {
   isD3: true;
-  addLink(link: Link);
-  addNode(node: Node);
+  addLink(link: Link): void;
+  addNode(node: Node): void;
 }
 
 export const isD3 = (component: any): component is ID3 => {

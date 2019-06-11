@@ -6,31 +6,44 @@
         <div class="legend">
           
           <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
-            <node
-              class="legend--block"
-              :type="type"
-              :radius="5"
-              :size="25"
-              :stroke="nodeOutline"
-            ></node>
+            <d3 :height="25" :width="100">
+              <node
+                class="legend--block"
+                :rx="type === 'entity' ? 5 : 0"
+                :id="type"
+                :size="25"
+                :stroke="nodeOutline"
+              ></node>
+            </d3>
             <div class="legend--text">{{ type | uppercase }}</div>
           </div>
 
-          <!-- <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
-            <node
-              class="legend--block"
-              :type="type"
-              :radius="5"
-              :size="25"
-              :stroke="nodeOutline"
-            ></node>
-            <div class="legend--text">{{ type | uppercase }}</div>
-          </div> -->
+          <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
+            <d3 :height="25" :width="100" arrows>
+              <node
+                class="legend--block"
+                :rx="5"
+                id="one"
+                :size="25"
+                :stroke="nodeOutline"
+              ></node>
+              <relationship
+                source="one"
+                target="two"
+                :color="item.color"
+              ></relationship>
+              <node
+                class="legend--block"
+                :rx="5"
+                id="two"
+                :size="25"
+                :x="75"
+                :stroke="nodeOutline"
+              ></node>
+            </d3>
 
-          <!-- <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
-            <div class="legend--block" :style="`background-color: ${item.color}`"></div>
             <div class="legend--text">{{ item.relationship }}</div>
-          </div> -->
+          </div>
 
         </div>
       </card>
@@ -61,10 +74,8 @@ import { Relationship, relationshipColors } from '@/constants';
 import { NodeType, Nodes } from 'specification';
 import NodeComponent from '@/components/Node.vue';
 import Card from '@/components/Card.vue';
-
-function assertUnreachable(x: never): never {
-  throw new Error('Didn\'t expect to get here');
-}
+import D3 from '@/components/D3.vue';
+import LinkComponent from '@/components/Link.vue';
 
 interface BaseNode {
   x: number;
@@ -137,7 +148,7 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 export default Vue.extend({
   name: 'Home',
-  components: { Node: NodeComponent, Card },
+  components: { Node: NodeComponent, Card, Relationship: LinkComponent, D3 },
   filters: {
     uppercase(s: string) {
       return s.charAt(0).toUpperCase() + s.substring(1);
@@ -610,13 +621,13 @@ export default Vue.extend({
 .legend--item {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 .legend--block {
   height: 25px;
   width: 25px;
 }
 .legend--text {
-  margin-left: 10px;
+  margin-left: 20px;
 }
 </style>

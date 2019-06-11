@@ -1,6 +1,6 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import { ID3, isD3 } from '@/components/d3';
+import { ID3, isD3 } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
 @Component
