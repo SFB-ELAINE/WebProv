@@ -24,6 +24,10 @@ export const makeLookup = <T extends { id: string }>(array: Iterable<T>) => {
   return lookup;
 };
 
+// This id is used to ensure that the ID atttribute doesn't conflict with others
+// Since id is global
+let id = 0;
+
 @Component
 export default class D3 extends Vue implements ID3 {
   @Prop({ type: String, default: '#000' }) public defaultStrokeColor!: string;
@@ -76,7 +80,7 @@ export default class D3 extends Vue implements ID3 {
       svg.append('svg:defs').selectAll('marker')
         .data(data)  // Different link/path types can be defined here
         .enter().append('svg:marker')  // This section adds in the arrows
-        .attr('id', (d) => `${d}`)
+        .attr('id', (d) => `${id}-${d}`)
         .attr('viewBox', '0 -5 10 10')
         .attr('refX', 10)
         .attr('refY', 0)
@@ -108,8 +112,10 @@ export default class D3 extends Vue implements ID3 {
 
     if (this.arrows) {
       // This, along with the defs above, adds the arrows
-      link.attr('marker-end', (d) => `url(#${d.color})`);
+      link.attr('marker-end', (d) => `url(#${id}-${d.color})`);
     }
+
+    id++;
   }
 }
 </script>

@@ -2,51 +2,10 @@
   <div class="home">
     <svg ref="svg" :height="height" :width="width"></svg>
     <div class="cards">
-      <card title="Prov DM">
-        <div class="legend">
-          
-          <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
-            <d3 :height="25" :width="100">
-              <node
-                class="legend--block"
-                :rx="type === 'entity' ? 5 : 0"
-                :id="type"
-                :size="25"
-                :stroke="nodeOutline"
-              ></node>
-            </d3>
-            <div class="legend--text">{{ type | uppercase }}</div>
-          </div>
-
-          <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
-            <d3 :height="25" :width="100" arrows :arrow-size="4">
-              <node
-                class="legend--block"
-                :rx="5"
-                id="one"
-                :size="25"
-                :stroke="nodeOutline"
-              ></node>
-              <relationship
-                source="one"
-                target="two"
-                :color="item.color"
-              ></relationship>
-              <node
-                class="legend--block"
-                :rx="5"
-                id="two"
-                :size="25"
-                :x="75"
-                :stroke="nodeOutline"
-              ></node>
-            </d3>
-
-            <div class="legend--text">{{ item.relationship }}</div>
-          </div>
-
-        </div>
-      </card>
+      <prov-legend 
+        :node-radius="nodeRadius"
+        :node-outline="nodeOutline"
+      ></prov-legend>
       <div class="spacer"></div>
       <card v-if="selectedNode" title="Node Information">
         <div v-for="([key, value], index) in informationFields" :key="key">
@@ -72,10 +31,8 @@ import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { NodeRelationship, relationshipColors } from '@/constants';
 import { NodeType, Nodes } from 'specification';
-import NodeComponent from '@/components/Node.vue';
 import Card from '@/components/Card.vue';
-import D3 from '@/components/D3.vue';
-import Relationship from '@/components/Relationship.vue';
+import ProvLegend from '@/views/ProvLegend.vue';
 
 interface BaseNode {
   x: number;
@@ -120,6 +77,7 @@ interface Data {
   height: number;
   width: number;
   size: number;
+  nodeRadius: number;
   selectedNode: null | SingleNode;
   nodeOutline: string;
   selectedOutline: string;
@@ -148,12 +106,7 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 export default Vue.extend({
   name: 'Home',
-  components: { Node: NodeComponent, Card, Relationship, D3 },
-  filters: {
-    uppercase(s: string) {
-      return s.charAt(0).toUpperCase() + s.substring(1);
-    },
-  },
+  components: { Card, ProvLegend },
   data: (): Data => {
     return {
       height: window.innerHeight,
@@ -168,6 +121,7 @@ export default Vue.extend({
       curve: d3.line().curve(d3.curveCardinalClosed.tension(0.85)),
       expanded: {},
       previousNodes: [],
+      nodeRadius: 10,
     };
   },
   computed: {
@@ -211,14 +165,6 @@ export default Vue.extend({
         lookup[n.id] =  n;
       });
       return lookup;
-    },
-    relationshipLegend() {
-      return Object.entries(relationshipColors).map(([relationship, color]) => {
-        return {
-          color,
-          relationship,
-        };
-      });
     },
   },
   methods: {
@@ -406,7 +352,7 @@ export default Vue.extend({
             links.push({
               source,
               target,
-              color: relationshipColors[relationship],
+              color: relationshipColors[relationship].color,
             });
           });
         });
@@ -505,7 +451,7 @@ export default Vue.extend({
         .attr('height', this.size)
         .attr('fill', (d) => 'white')
         .style('stroke-width', 3)
-        .attr('rx', (d) => !d.isGroup && d.isEntity ? 5 : 0)
+        .attr('rx', (d) => !d.isGroup && d.isEntity ? this.nodeRadius : 0)
         .style('stroke', this.nodeOutline)
         .on('click', (d) => {
           if (d.isGroup) {
@@ -616,18 +562,5 @@ export default Vue.extend({
 
 .field-spacer {
   margin: 5px 0;
-}
-
-.legend--item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.legend--block {
-  height: 25px;
-  width: 25px;
-}
-.legend--text {
-  margin-left: 20px;
 }
 </style>
