@@ -108,7 +108,12 @@ export interface Model {
   /**
    * The model building activity that was used to build this model. A model is always based on one model building activity.
    */
-  used: ModelBuildingActivity;
+  wasGeneratedBy: ModelBuildingActivity;
+
+  /**
+   * The model that this model was derived from. Not all models are derived from other models.
+   */
+  derivedFrom: Model | null;
 }
 
 export interface WetLabData {
@@ -167,12 +172,12 @@ export interface SimulationData {
   /**
    * The model building activity the simulation data was based on. 
    */
-  usedModelBuildingActivity: ModelBuildingActivity | null;
+  wasGeneratedByModelBuildingActivity: ModelBuildingActivity | null;
 
   /**
    * The model exploration activity the simulation data was based on. 
    */
-  usedModelExplorationActivity: ModelExplorationActivity | null;
+  wasGeneratedByModelExplorationActivity: ModelExplorationActivity | null;
 }
 
 export type Nodes = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;

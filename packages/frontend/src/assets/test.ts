@@ -8,8 +8,6 @@ import {
   ModelExplorationActivity,
 } from 'specification';
 
-// TODO Make sure all of the variable names are correct (specially, the relatinoships)
-
 // M1
 const WX_7: WetLabData = {
   id: 7,
@@ -17,7 +15,7 @@ const WX_7: WetLabData = {
   name: 'Wx_7',
   type: 'wet-lab data',
   information: {
-    'Cell line': 'hNPCs', // TODO FIX
+    'Cell line': 'Xenopus egg extract',
   },
 };
 
@@ -27,7 +25,7 @@ const W1_1: WetLabData = {
   name: 'W1_1',
   type: 'wet-lab data',
   information: {
-    'Cell line': 'hNPCs', // TODO FIX
+    'Cell line': 'Xenopus egg extract',
   },
 };
 
@@ -37,7 +35,7 @@ const W1_2: WetLabData = {
   name: 'W1_2',
   type: 'wet-lab data',
   information: {
-    'Cell line': 'hNPCs', // TODO FIX
+    'Cell line': 'Xenopus egg extract',
   },
 };
 
@@ -57,8 +55,8 @@ const S1_1: SimulationData = {
   groupId: 1,
   type: 'simulation data',
   name: 'S1_1',
-  usedModelBuildingActivity: MBA_3,
-  usedModelExplorationActivity: null,
+  wasGeneratedByModelBuildingActivity: MBA_3,
+  wasGeneratedByModelExplorationActivity: null,
 };
 
 const modelInformation1: ModelInformation = {
@@ -73,7 +71,8 @@ const model3: Model = {
   type: 'model',
   modelInformation: modelInformation1,
   version: 2,
-  used: MBA_3,
+  wasGeneratedBy: MBA_3,
+  derivedFrom: null,
 };
 
 const MEA: ModelExplorationActivity = {
@@ -88,8 +87,8 @@ const S1_2: SimulationData = {
   groupId: 1,
   type: 'simulation data',
   name: 'S1_2',
-  usedModelBuildingActivity: null,
-  usedModelExplorationActivity: MEA,
+  wasGeneratedByModelBuildingActivity: null,
+  wasGeneratedByModelExplorationActivity: MEA,
 };
 
 // M12
@@ -146,8 +145,8 @@ const S12_1: SimulationData = {
   groupId: 12,
   type: 'simulation data',
   name: 'S12_1',
-  usedModelBuildingActivity: MBA_1,
-  usedModelExplorationActivity: null,
+  wasGeneratedByModelBuildingActivity: MBA_1,
+  wasGeneratedByModelExplorationActivity: null,
 };
 
 const model1: Model = {
@@ -156,7 +155,8 @@ const model1: Model = {
   type: 'model',
   modelInformation: modelInformation12,
   version: 1,
-  used: MBA_1,
+  wasGeneratedBy: MBA_1,
+  derivedFrom: null,
 };
 
 const W12_2: WetLabData = {
@@ -205,8 +205,8 @@ const S12_2: SimulationData = {
   groupId: 12,
   type: 'simulation data',
   name: 'S12_2',
-  usedModelBuildingActivity: MBA_2,
-  usedModelExplorationActivity: null,
+  wasGeneratedByModelBuildingActivity: MBA_2,
+  wasGeneratedByModelExplorationActivity: null,
 };
 
 const model2: Model = {
@@ -215,7 +215,8 @@ const model2: Model = {
   type: 'model',
   modelInformation: modelInformation12,
   version: 2,
-  used: MBA_2,
+  wasGeneratedBy: MBA_2,
+  derivedFrom: null,
 };
 
 export const nodes: Nodes[] = [

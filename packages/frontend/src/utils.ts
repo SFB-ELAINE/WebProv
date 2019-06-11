@@ -11,8 +11,6 @@ export const makeLookup = <T extends { id: string }>(array: Iterable<T>) => {
 
 export interface Lookup<T> { [k: string]: T; }
 
-
-
 export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
   return W(path, options);
 }

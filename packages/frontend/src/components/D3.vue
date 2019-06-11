@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import * as d3 from 'd3';
-import { CB, emitter, ID3, Link, Node, Listeners, Hull } from '@/d3';
+import { CB, emitter, ID3, Link, Node, Hull } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
@@ -107,31 +107,13 @@ export default class D3 extends Vue implements ID3 {
         y: number;
       }
 
-      const pushPoints = (point: Point) => {
-        l.push([point.x - offset, point.y - offset]);
-        l.push([point.x - offset, point.y + offset]);
-        l.push([point.x + offset, point.y - offset]);
-        l.push([point.x + offset, point.y + offset]);
-      };
-
-      pushPoints(n);
-
-      // TODO the points could be optimzed if neccessary
-      // We only need to check two points for each corner, not four
-      pushPoints({
-        x: n.x + n.width,
-        y: n.y,
-      });
-
-      pushPoints({
-        x: n.x + n.width,
-        y: n.y + n.height,
-      });
-
-      pushPoints({
-        x: n.x,
-        y: n.y + n.height,
-      });
+      // There are 4 corners and each needs to be checked
+      // We add/subtract an offset to each corner depending on which corner it is
+      // For example, for the top left corner, we subtract the offset from the x AND y
+      l.push([n.x - offset, n.y - offset]);
+      l.push([n.x + n.width + offset, n.y - offset]);
+      l.push([n.x + n.width + offset, n.y + n.height + offset]);
+      l.push([n.x - offset, n.y + n.height + offset]);
     });
     // create convex hulls
     const hullset = [];
