@@ -11,6 +11,7 @@
       :node-click="nodeClick"
       :node-dblclick="nodeDblclick"
       :hull-dblclick="hullDblclick"
+      :action-click="actionClick"
     ></d3>
     <div class="overlay">
       <search
@@ -50,34 +51,24 @@ import { NodeType, Nodes } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
-import { Lookup } from '@/utils';
-import { Hull } from '@/d3';
+import { Lookup, getText } from '@/utils';
+import { D3Hull, D3Node } from '@/d3';
 import Search from '@/components/Search.vue';
 import { Result, search, SearchItem } from '@/search';
 
-interface BaseNode {
-  x: number;
-  y: number;
-  rx: number;
+interface BaseNode extends D3Node {
   group: number;
   text: string;
-  actionText?: string;
-  stroke: string;
-  width: number;
-  height: number;
 }
 
 interface GroupNode extends BaseNode {
   isGroup: true;
-  id: string;
 }
 
 interface SingleNode extends BaseNode {
   isGroup: false;
   isEntity: boolean;
   type: NodeType;
-  id: string;
-  hullGroup: number;
 }
 
 type Node = SingleNode | GroupNode;
@@ -95,13 +86,11 @@ interface Data {
   nodeRadius: number;
   selectedNode: null | SingleNode;
   nodeOutline: string;
-  nodeLookup: Lookup<Nodes>;
   expanded: Lookup<boolean | undefined>;
   nodes: Node[];
   links: Link[];
   results: Result[];
   loadedGroups: number[];
-  showIncoming: Lookup<boolean | undefined>;
   nodesToShow: Lookup<boolean | undefined>;
 }
 
@@ -120,8 +109,6 @@ const notNull = <T>(t: T | null): t is T => {
   return t !== null;
 };
 
-// TODO Node type checking!! And links
-
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
@@ -131,23 +118,29 @@ export default Vue.extend({
   components: { InformationCard, ProvLegend, D3, Search },
   data: (): Data => {
     return {
-      height: window.innerHeight - 7, // OK, so for some reason we have to remove 7 here
+      // OK, so for some reason we have to remove 7 here so that there is no overlow......
+      height: window.innerHeight - 7,
       width: window.innerWidth,
       size: 40,
       selectedNode: null,
       nodeOutline: 'rgb(22, 89, 136)',
-      nodeLookup: {},
       expanded: {},
       nodeRadius: 10,
       nodes: [],
       links: [],
       results: [],
       loadedGroups: [], // TODO Remove this
-      showIncoming: {},
       nodesToShow: {},
     };
   },
   computed: {
+    nodeLookup(): Lookup<Nodes> {
+      const lookup: Lookup<Nodes> = {};
+      data.nodes.forEach((n) => {
+        lookup[n.type + n.id] = n;
+      });
+      return lookup;
+    },
     informationFields() {
       if (!this.selectedNode) {
         return;
@@ -261,7 +254,6 @@ export default Vue.extend({
     showProvenanceGraph(r: Result) {
       const showNode = (id: string) => {
         this.nodesToShow[id] = true;
-        this.showIncoming[id] = false;
         const info = this.dependencyInfoLookup[id];
         info.outgoing.forEach((c) => {
           showNode(c.node.type + c.node.id);
@@ -293,7 +285,7 @@ export default Vue.extend({
 
         return {
           id: n.type + n.id,
-          title: this.getText(n),
+          title: getText(n),
           type: n.type,
           model: n.groupId,
           information,
@@ -323,7 +315,15 @@ export default Vue.extend({
         this.selectedNode = d;
       }
     },
-    hullDblclick(d: Hull) {
+    actionClick(d: Node) {
+      const info = this.dependencyInfoLookup[d.id];
+      info.incoming.forEach((incoming) => {
+        this.nodesToShow[incoming.node.type + incoming.node.id] = true;
+      });
+
+      this.doRender();
+    },
+    hullDblclick(d: D3Hull) {
       if (this.expanded[d.group]) {
         this.expanded[d.group] = false;
         this.doRender();
@@ -333,36 +333,6 @@ export default Vue.extend({
       // 8 just kinda works well (10 is the padding)
       return text.length * 8 + 10;
     },
-    getText(n: Nodes): string {
-      switch (n.type) {
-        case 'wet-lab data':
-          return n.name;
-        case 'model-building-activity':
-          return 'MBA';
-        case 'simulation data':
-          return n.name;
-        case 'model exploration activity':
-          return 'MEA';
-        case 'model':
-          if (n.version < 1) {
-            throw Error(`Bad model version number: ${n.version}. Expected value >= 1`);
-          }
-
-          let text = `M${n.modelInformation.modelNumber}`;
-
-          if (n.version === 1) {
-            // Do nothing is the version is 1
-          } else if (n.version === 2) {
-            // Just add an apostrophe if the version is 2
-            text += `'`;
-          } else {
-            // Add an explicit version number if > 2
-            text += `v${n.version}`;
-          }
-
-          return text + ` (${n.modelInformation.bibInformation})`;
-      }
-    },
     getNodesLinks() {
       const links: Link[] = [];
       const nodes: Node[] = [];
@@ -370,8 +340,6 @@ export default Vue.extend({
 
       data.nodes.forEach((n) => {
         const id = n.type + n.id;
-        // Save for later use
-        this.nodeLookup[id] = n;
 
         if (!this.loadedGroups.includes(n.groupId) && !this.nodesToShow[id]) {
           return;
@@ -441,7 +409,7 @@ export default Vue.extend({
           return true;
         });
 
-        const text = this.getText(n);
+        const text = getText(n);
         nodes.push({
           isGroup: false as false, // TODO
           isEntity: n.type === 'wet-lab data' || n.type === 'simulation data',
@@ -450,8 +418,8 @@ export default Vue.extend({
           actionText: moreLeftToShow ? 'See more' : undefined,
           type: n.type,
           group: n.groupId,
-          hullGroup: n.groupId,
           x: 0,
+          hullGroup: n.groupId,
           stroke: this.nodeOutline,
           y: 0,
           rx: 0, // TODO

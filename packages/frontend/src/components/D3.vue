@@ -9,13 +9,13 @@
 
 <script lang="ts">
 import * as d3 from 'd3';
-import { CB, emitter, ID3, Link, Node, Hull } from '@/d3';
+import { CB, emitter, ID3, D3Link, D3Node, D3Hull } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { makeLookup, Lookup, Watch } from '@/utils';
 
-interface MyLink extends Link {
+interface MyLink extends D3Link {
   color: string;
 }
 
@@ -35,16 +35,17 @@ export default class D3 extends Vue implements ID3 {
   @Prop({ type: Number, default: 100 }) public width!: number;
   @Prop({ type: Number, default: 6 }) public arrowSize!: number;
   @Prop({ type: Number, default: 40 }) public hullOffset!: number;
-  @Prop({ type: Array, default: () => [] }) public nodes!: Node[];
-  @Prop({ type: Array, default: () => [] }) public links!: Link[];
-  @Prop({ type: Function, required: false }) public hullClick?: (node: Hull) => void;
-  @Prop({ type: Function, required: false }) public hullDblclick?: (node: Hull) => void;
-  @Prop({ type: Function, required: false }) public nodeClick?: (node: Node) => void;
-  @Prop({ type: Function, required: false }) public nodeDblclick?: (node: Node) => void;
+  @Prop({ type: Array, default: () => [] }) public nodes!: D3Node[];
+  @Prop({ type: Array, default: () => [] }) public links!: D3Link[];
+  @Prop({ type: Function, required: false }) public hullClick?: (node: D3Hull) => void;
+  @Prop({ type: Function, required: false }) public hullDblclick?: (node: D3Hull) => void;
+  @Prop({ type: Function, required: false }) public nodeClick?: (node: D3Node) => void;
+  @Prop({ type: Function, required: false }) public nodeDblclick?: (node: D3Node) => void;
+  @Prop({ type: Function, required: false }) public actionClick?: (node: D3Node) => void;
 
   public isD3: true = true;
   public addedLinks: MyLink[] = [];
-  public addedNodes: Node[] = [];
+  public addedNodes: D3Node[] = [];
 
   public curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
 
@@ -72,14 +73,14 @@ export default class D3 extends Vue implements ID3 {
     return ordinalScale(d.group);
   }
 
-  public addLink(link: Link) {
+  public addLink(link: D3Link) {
     this.allLinks.push({
       ...link,
       color: link.color ? link.color : this.defaultStrokeColor,
     });
   }
 
-  public addNode(node: Node) {
+  public addNode(node: D3Node) {
     this.allNodes.push(node);
   }
 
@@ -157,10 +158,10 @@ export default class D3 extends Vue implements ID3 {
       hull.on('dblclick', checkAndCall(this.hullDblclick));
     }
 
-    let simulation: null | d3.Simulation<Node, undefined> = null;
+    let simulation: null | d3.Simulation<D3Node, undefined> = null;
     if (this.force) {
       simulation = d3.forceSimulation(this.allNodes)
-        .force('link', forceLink<Node, Link>(this.allLinks).id((d) => d.id).strength(0.3))
+        .force('link', forceLink<D3Node, D3Link>(this.allLinks).id((d) => d.id).strength(0.3))
         .velocityDecay(0.5)
         .force('charge', forceManyBody().strength(-1000))
         .force('center', d3.forceCenter(this.width / 2, this.height / 2));
@@ -193,7 +194,7 @@ export default class D3 extends Vue implements ID3 {
       .attr('stroke', (d) => d.color);
 
     if (!simulation) {
-      const calcPosition = (xy: 'x' | 'y', st: 'source' | 'target') => (d: Link) => {
+      const calcPosition = (xy: 'x' | 'y', st: 'source' | 'target') => (d: D3Link) => {
         const node = this.nodeLookup[d[st]];
         const toAdd = xy === 'y' ? node.height / 2 : st === 'source' ? node.width : 0;
         return node[xy] + toAdd;
@@ -282,7 +283,8 @@ export default class D3 extends Vue implements ID3 {
       .style('font-size', '10px')
       .text((d) => {
         return d.actionText!;
-      });
+      })
+      .on('click', checkAndCall(this.actionClick));
 
     if (simulation) {
       simulation.on('tick', () => {
@@ -297,19 +299,19 @@ export default class D3 extends Vue implements ID3 {
         // TODO These functions could likely be consolidated with the above `calcPosition` function
         link
           .attr('x1', (d) => {
-            const source = d.source as any as Node;
+            const source = d.source as any as D3Node;
             return source.x;
           })
           .attr('y1', (d) => {
-            const source = d.source as any as Node;
+            const source = d.source as any as D3Node;
             return source.y + source.height / 2;
           })
           .attr('x2', (d) => {
-            const target = d.target as any as Node;
+            const target = d.target as any as D3Node;
             return target.x + this.calcWidth(target.text);
           })
           .attr('y2', (d) => {
-            const target = d.target as any as Node;
+            const target = d.target as any as D3Node;
             return target.y + target.height / 2;
           });
 
