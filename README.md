@@ -35,6 +35,9 @@ npm run serve
 
 This starts a hot-reload development server. Navigate to the link that is outputted in the console.
 
+## Installing Dependencies
+// TODO
+
 ## Contributing
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 

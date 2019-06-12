@@ -12,7 +12,11 @@
       :node-dblclick="nodeDblclick"
       :hull-dblclick="hullDblclick"
     ></d3>
-    <svg ref="svg" :height="height" :width="width"></svg>
+    <search 
+      class="search" 
+      :results="results"
+      @search="search"
+    ></search>
     <div class="cards">
       <prov-legend 
         :node-radius="nodeRadius"
@@ -37,6 +41,8 @@ import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import { Lookup } from '@/utils';
 import { Hull } from '@/d3';
+import Search from '@/components/Search.vue';
+import { Result, search, SearchItem } from '@/search';
 
 interface BaseNode {
   x: number;
@@ -81,6 +87,7 @@ interface Data {
   expanded: Lookup<boolean | undefined>;
   nodes: Node[];
   links: Link[];
+  results: Result[];
 }
 
 // TODO Node type checking!! And links
@@ -91,7 +98,7 @@ interface Data {
 
 export default Vue.extend({
   name: 'Home',
-  components: { InformationCard, ProvLegend, D3 },
+  components: { InformationCard, ProvLegend, D3, Search },
   data: (): Data => {
     return {
       height: window.innerHeight,
@@ -104,6 +111,7 @@ export default Vue.extend({
       nodeRadius: 10,
       nodes: [],
       links: [],
+      results: [],
     };
   },
   computed: {
@@ -143,6 +151,23 @@ export default Vue.extend({
     },
   },
   methods: {
+    search(pattern: string) {
+      const items: SearchItem[] = data.nodes.map((n) => {
+        const information =
+          n.type === 'wet-lab data' &&
+          n.information ?
+          Object.values(n.information) : [];
+
+        return {
+          title: this.getText(n),
+          type: n.type,
+          model: n.groupId,
+          information,
+        };
+      });
+
+      this.results = search(items, pattern);
+    },
     nodeDblclick(d: Node) {
       if (d.isGroup) {
         this.expanded[d.group] = true;
@@ -337,6 +362,14 @@ export default Vue.extend({
   right: 20px;
   top: 20px;
   width: 350px;
+}
+
+.search {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  width: 450px;
+  max-height: calc(100vh - 40px);
 }
 
 .spacer {
