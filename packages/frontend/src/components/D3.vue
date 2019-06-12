@@ -226,8 +226,8 @@ export default class D3 extends Vue implements ID3 {
       .attr('fill', (d) => 'white')
       .style('stroke-width', 3)
       .attr('rx', (d) => d.rx)
-      .attr('x', (d) => d.x) // TODO
-      .attr('y', (d) => d.y)
+      .attr('x', (d) => this.force ? 0 : d.x) // TODO
+      .attr('y', (d) => this.force ? 0 : d.y)
       .style('stroke', (d) => d.stroke);
 
     g.on('click', checkAndCall(this.nodeClick));
@@ -316,7 +316,6 @@ export default class D3 extends Vue implements ID3 {
           });
 
         g
-          // @ts-ignore
           .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
       });
     }

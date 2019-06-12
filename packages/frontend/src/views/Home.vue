@@ -50,7 +50,7 @@ import { NodeType, Nodes } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
-import { Lookup, getText } from '@/utils';
+import { Lookup, getText, makeLookup } from '@/utils';
 import { D3Hull, D3Node } from '@/d3';
 import Search from '@/components/Search.vue';
 import { Result, search, SearchItem } from '@/search';
@@ -104,12 +104,21 @@ const notNull = <T>(t: T | null): t is T => {
 export default class Home extends Vue {
   // OK, so for some reason we have to remove 7 here so that there is no overlow......
   public height: number = window.innerHeight - 7;
+
   public width: number = window.innerWidth;
-  public size: number = 40;
+
+  // constant
+  public nodeHeight: number = 40;
+
+  // used to display information on a card
   public selectedNode: null | SingleNode = null;
+
+  // constant
   public nodeOutline: string = 'rgb(22, 89, 136)';
   public expanded: Lookup<boolean | undefined> = {};
   public nodeRadius: number = 10;
+
+  // The current nodes that are passed to D3
   public nodes: Node[] = [];
   public links: Link[] = [];
   public results: Result[] = [];
@@ -122,6 +131,10 @@ export default class Home extends Vue {
       lookup[n.type + n.id] = n;
     });
     return lookup;
+  }
+
+  get d3NodeLookup() {
+    return makeLookup(this.nodes);
   }
 
   get informationFields() {
@@ -340,17 +353,19 @@ export default class Home extends Vue {
       }
 
       if (!this.expanded[n.modelId] && !this.nodesToShow[id] && !groups.hasOwnProperty(n.modelId)) {
+        // this bad naming just avoids name shadowing
+        const { x: x1, y: y1 } = this.d3NodeLookup['' + n.modelId] ? this.d3NodeLookup['' + n.modelId] : { x: 0, y: 0 };
         const node: GroupNode = {
           isGroup: true,
           model: n.modelId,
           id: '' + n.modelId,
-          x: 0,
-          y: 0,
+          x: x1,
+          y: y1,
           stroke: this.nodeOutline,
           rx: 0, // TODO
           text: `M${n.modelId}`,
           width: 50,
-          height: this.size,
+          height: this.nodeHeight,
         };
 
         groups[n.modelId] = node;
@@ -404,24 +419,25 @@ export default class Home extends Vue {
       });
 
       const text = getText(n);
+      const { x, y } = this.d3NodeLookup[id] ? this.d3NodeLookup[id] : { x: 0, y: 0 };
       nodes.push({
         isGroup: false as false, // TODO
         isEntity: n.type === 'wet-lab data' || n.type === 'simulation data',
-        id: n.type + n.id,
+        id,
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
         type: n.type,
         model: n.modelId,
-        x: 0,
         hullGroup: n.modelId,
         stroke: this.nodeOutline,
-        y: 0,
+        x,
+        y,
         rx: 0, // TODO
         // width and height are essential
         // TODO add requirement to type file
         // they are used in the other js files
         width: this.calcWidth(text),
-        height: this.size,
+        height: this.nodeHeight,
       });
     });
 
