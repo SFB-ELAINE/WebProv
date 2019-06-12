@@ -57,7 +57,7 @@ import { Result, search, SearchItem } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
 
 interface BaseNode extends D3Node {
-  group: number;
+  model: number;
   text: string;
 }
 
@@ -275,7 +275,7 @@ export default class Home extends Vue {
         id: n.type + n.id,
         title: getText(n),
         type: n.type,
-        model: n.groupId,
+        model: n.modelId,
         information,
       };
     });
@@ -285,7 +285,7 @@ export default class Home extends Vue {
 
   public nodeDblclick(d: Node) {
     if (d.isGroup) {
-      this.expanded[d.group] = true;
+      this.expanded[d.model] = true;
       const res = this.getNodesLinks();
       this.nodes = res.nodes;
       this.links = res.links;
@@ -335,43 +335,43 @@ export default class Home extends Vue {
     data.nodes.forEach((n) => {
       const id = n.type + n.id;
 
-      if (!this.loadedGroups.includes(n.groupId) && !this.nodesToShow[id]) {
+      if (!this.loadedGroups.includes(n.modelId) && !this.nodesToShow[id]) {
         return;
       }
 
-      if (!this.expanded[n.groupId] && !this.nodesToShow[id] && !groups.hasOwnProperty(n.groupId)) {
+      if (!this.expanded[n.modelId] && !this.nodesToShow[id] && !groups.hasOwnProperty(n.modelId)) {
         const node: GroupNode = {
           isGroup: true,
-          group: n.groupId,
-          id: '' + n.groupId,
+          model: n.modelId,
+          id: '' + n.modelId,
           x: 0,
           y: 0,
           stroke: this.nodeOutline,
           rx: 0, // TODO
-          text: `M${n.groupId}`,
+          text: `M${n.modelId}`,
           width: 50,
           height: this.size,
         };
 
-        groups[n.groupId] = node;
+        groups[n.modelId] = node;
         nodes.push(node);
       }
 
       const info = this.dependencyInfoLookup[id];
       info.outgoing.forEach((c) => {
         const targetId = c.node.type + c.node.id;
-        if (!this.loadedGroups.includes(c.node.groupId) && !this.nodesToShow[targetId]) {
+        if (!this.loadedGroups.includes(c.node.modelId) && !this.nodesToShow[targetId]) {
           return;
         }
 
-        const target = this.expanded[c.node.groupId] || this.nodesToShow[targetId] ?
+        const target = this.expanded[c.node.modelId] || this.nodesToShow[targetId] ?
           targetId :
-          '' + c.node.groupId;
+          '' + c.node.modelId;
 
         const sourceId = n.type + n.id;
-        const source = this.expanded[n.groupId] || this.nodesToShow[sourceId] ?
+        const source = this.expanded[n.modelId] || this.nodesToShow[sourceId] ?
           sourceId :
-          '' + n.groupId;
+          '' + n.modelId;
 
         // This happens for nodes in the same model that hasn't been expanded
         if (target === source) {
@@ -386,13 +386,13 @@ export default class Home extends Vue {
       });
 
 
-      // don't add nodes that are a group that isn't expanded
-      if (!this.expanded[n.groupId] && !this.nodesToShow[id]) {
+      // don't add nodes that are a model that isn't expanded
+      if (!this.expanded[n.modelId] && !this.nodesToShow[id]) {
         return;
       }
 
       const moreLeftToShow = this.dependencyInfoLookup[id].incoming.some((dep) => {
-        if (this.expanded[dep.node.groupId]) {
+        if (this.expanded[dep.node.modelId]) {
           return false;
         }
 
@@ -411,9 +411,9 @@ export default class Home extends Vue {
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
         type: n.type,
-        group: n.groupId,
+        model: n.modelId,
         x: 0,
-        hullGroup: n.groupId,
+        hullGroup: n.modelId,
         stroke: this.nodeOutline,
         y: 0,
         rx: 0, // TODO
