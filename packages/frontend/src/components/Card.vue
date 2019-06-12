@@ -64,8 +64,12 @@ $header-height: 48px;
 }
 
 .card-content {
-  height: 100%;
-  overflow: scroll;
+  overflow-y: auto;
+  padding: 0; // override the default
+}
+
+.content {
+  margin: 1.5rem;
 }
 
 @keyframes card-show {

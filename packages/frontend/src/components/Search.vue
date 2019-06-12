@@ -1,13 +1,14 @@
 <template>
   <card>
     <template v-slot:header>
-      <b-field style="margin: 1.5rem 1.5rem 0">
+      <b-field style="margin: 1.5rem">
         <b-input placeholder="Search..."
           type="search"
           icon="magnify"
           expanded
           v-model="searchText"
-          @input="checkEnter"
+          @input="checkEmpty"
+          @keydown.native="checkEnter"
         ></b-input>
         <p class="control">
           <button 
@@ -24,10 +25,22 @@
         v-for="(result, i) in results"
         :key="i"
       >
-        <h3 class="result--title">{{ result.title }}</h3>
-        <h6 class="result--type">{{ result.type }}</h6>
-        <p class="result--extra">{{ result.information | format }}</p>
-        <hr class="result--break" v-if="i !== results.length - 1">
+        <div style="display: flex">
+          <div>
+            <h4 class="result--title">{{ result.title }}</h4>
+            <h6 class="result--type">Model {{ result.model }}</h6>
+            <p class="result--extra">{{ result.information | format }}</p>
+            <hr class="result--break" v-if="i !== results.length - 1">
+          </div>
+          <div style="flex: 1"></div>
+          <div>
+            <b-button 
+              type="is-text" 
+              icon-right="launch"
+              @click="$emit('open', result)"
+            ></b-button>
+          </div>
+        </div>
       </div>
     </div>
   </card>
@@ -57,6 +70,12 @@ export default class Search extends Vue {
     }
   }
 
+  public checkEmpty() {
+    if (this.searchText === '') {
+      this.$emit('clear');
+    }
+  }
+
   public search() {
     const loadingComponent = this.$loading.open({
       container: this.$el,
@@ -71,6 +90,14 @@ export default class Search extends Vue {
 <style lang="scss" scoped>
 .result--title, .result--type, .result--extra {
   margin-bottom: 0;
+}
+
+.result--type {
+  font-weight: normal;
+}
+
+.result--extra {
+  font-size: 0.9em;
 }
 
 .result--break {

@@ -24,3 +24,13 @@ export default class InformationCard extends Vue {
   @Prop({ type: Array, required: true }) public informationFields!: Array<[string, string]>;
 }
 </script>
+
+<style lang="scss" scoped>
+.field-title {
+  font-weight: bold;
+}
+
+.field-spacer {
+  margin: 5px 0;
+}
+</style>
