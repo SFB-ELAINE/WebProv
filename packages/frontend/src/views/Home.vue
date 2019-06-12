@@ -19,6 +19,7 @@
         @search="search"
         @clear="removeResults"
         @open="openResult"
+        @dependency="showProvenanceGraph"
       ></search>
       <div style="flex: 1"></div>
       <b-button
@@ -60,6 +61,7 @@ interface BaseNode {
   rx: number;
   group: number;
   text: string;
+  actionText?: string;
   stroke: string;
   width: number;
   height: number;
@@ -98,7 +100,9 @@ interface Data {
   nodes: Node[];
   links: Link[];
   results: Result[];
-  openedGroups: number[];
+  loadedGroups: number[];
+  showIncoming: Lookup<boolean | undefined>;
+  nodesToShow: Lookup<boolean | undefined>;
 }
 
 interface Dependency {
@@ -108,7 +112,8 @@ interface Dependency {
 
 interface DependencyInfo {
   node: Nodes;
-  connections: Dependency[];
+  outgoing: Dependency[];
+  incoming: Dependency[];
 }
 
 const notNull = <T>(t: T | null): t is T => {
@@ -137,7 +142,9 @@ export default Vue.extend({
       nodes: [],
       links: [],
       results: [],
-      openedGroups: [],
+      loadedGroups: [], // TODO Remove this
+      showIncoming: {},
+      nodesToShow: {},
     };
   },
   computed: {
@@ -175,8 +182,11 @@ export default Vue.extend({
 
       return toReturn;
     },
+    // TODO Point to dependency info and not NODE
     dependencyInfo(): DependencyInfo[] {
-      return data.nodes.map((n) => {
+      const incomingLookup: Lookup<Dependency[]> = {};
+
+      const dependencyInfo = data.nodes.map((n) => {
         let setsToConnect: Array<[Nodes[] | Nodes | null, NodeRelationship]> = [];
         switch (n.type) {
           case 'wet-lab data':
@@ -203,26 +213,41 @@ export default Vue.extend({
             setsToConnect = [[n.wasGeneratedBy, 'Used'], [n.derivedFrom, 'Derived from']];
         }
 
+        const outgoing = setsToConnect.map(([nodesToConnect, relationship]) => {
+          if (nodesToConnect === null) {
+            return null;
+          }
+
+          if (!Array.isArray(nodesToConnect)) {
+            nodesToConnect = [nodesToConnect];
+          }
+
+          return nodesToConnect.map((toConnect) => {
+            return {
+              color: relationshipColors[relationship].color,
+              node: toConnect,
+            };
+          });
+        }).filter(notNull).flat();
+
+        const incoming: Dependency[] = [];
+        incomingLookup[n.type + n.id] = incoming;
+
         return {
           node: n,
-          connections: setsToConnect.map(([nodesToConnect, relationship]) => {
-            if (nodesToConnect === null) {
-              return null;
-            }
-
-            if (!Array.isArray(nodesToConnect)) {
-              nodesToConnect = [nodesToConnect];
-            }
-
-            return nodesToConnect.map((toConnect) => {
-              return {
-                color: relationshipColors[relationship].color,
-                node: toConnect,
-              };
-            });
-          }).filter(notNull).flat(),
+          incoming,
+          outgoing,
         };
       });
+
+      dependencyInfo.forEach((info) => {
+        info.outgoing.forEach((dependency) => {
+          const id = dependency.node.type + dependency.node.id;
+          incomingLookup[id].push({ color: dependency.color, node: info.node });
+        });
+      });
+
+      return dependencyInfo;
     },
     dependencyInfoLookup() {
       const lookup: Lookup<DependencyInfo> = {};
@@ -233,13 +258,26 @@ export default Vue.extend({
     },
   },
   methods: {
+    showProvenanceGraph(r: Result) {
+      const showNode = (id: string) => {
+        this.nodesToShow[id] = true;
+        this.showIncoming[id] = false;
+        const info = this.dependencyInfoLookup[id];
+        info.outgoing.forEach((c) => {
+          showNode(c.node.type + c.node.id);
+        });
+      };
+
+      showNode(r.id);
+      this.doRender();
+    },
     clearNodes() {
-      this.openedGroups = [];
+      this.loadedGroups = [];
       this.doRender();
     },
     openResult(result: Result) {
-      if (!this.openedGroups.includes(result.model)) {
-        this.openedGroups.push(result.model);
+      if (!this.loadedGroups.includes(result.model)) {
+        this.loadedGroups.push(result.model);
         this.doRender();
       }
     },
@@ -254,6 +292,7 @@ export default Vue.extend({
           Object.values(n.information) : [];
 
         return {
+          id: n.type + n.id,
           title: this.getText(n),
           type: n.type,
           model: n.groupId,
@@ -330,11 +369,15 @@ export default Vue.extend({
       const groups: Lookup<GroupNode> = {};
 
       data.nodes.forEach((n) => {
-        if (!this.openedGroups.includes(n.groupId)) {
+        const id = n.type + n.id;
+        // Save for later use
+        this.nodeLookup[id] = n;
+
+        if (!this.loadedGroups.includes(n.groupId) && !this.nodesToShow[id]) {
           return;
         }
 
-        if (!this.expanded[n.groupId] && !groups.hasOwnProperty(n.groupId)) {
+        if (!this.expanded[n.groupId] && !this.nodesToShow[id] && !groups.hasOwnProperty(n.groupId)) {
           const node: GroupNode = {
             isGroup: true,
             group: n.groupId,
@@ -352,23 +395,23 @@ export default Vue.extend({
           nodes.push(node);
         }
 
-        // Save for later use
-        const id = n.type + n.id;
-        this.nodeLookup[id] = n;
         const info = this.dependencyInfoLookup[id];
-        info.connections.forEach((c) => {
-          if (!this.openedGroups.includes(c.node.groupId)) {
+        info.outgoing.forEach((c) => {
+          const targetId = c.node.type + c.node.id;
+          if (!this.loadedGroups.includes(c.node.groupId) && !this.nodesToShow[targetId]) {
             return;
           }
 
-          const target = this.expanded[c.node.groupId] ?
-            c.node.type + c.node.id :
+          const target = this.expanded[c.node.groupId] || this.nodesToShow[targetId] ?
+            targetId :
             '' + c.node.groupId;
 
-          const source = this.expanded[n.groupId] ?
-            n.type + n.id :
+          const sourceId = n.type + n.id;
+          const source = this.expanded[n.groupId] || this.nodesToShow[sourceId] ?
+            sourceId :
             '' + n.groupId;
 
+          // This happens for nodes in the same model that hasn't been expanded
           if (target === source) {
             return;
           }
@@ -380,10 +423,23 @@ export default Vue.extend({
           });
         });
 
+
         // don't add nodes that are a group that isn't expanded
-        if (!this.expanded[n.groupId]) {
+        if (!this.expanded[n.groupId] && !this.nodesToShow[id]) {
           return;
         }
+
+        const moreLeftToShow = this.dependencyInfoLookup[id].incoming.some((dep) => {
+          if (this.expanded[dep.node.groupId]) {
+            return false;
+          }
+
+          if (this.nodesToShow[dep.node.type + dep.node.id]) {
+            return false;
+          }
+
+          return true;
+        });
 
         const text = this.getText(n);
         nodes.push({
@@ -391,6 +447,7 @@ export default Vue.extend({
           isEntity: n.type === 'wet-lab data' || n.type === 'simulation data',
           id: n.type + n.id,
           text,
+          actionText: moreLeftToShow ? 'See more' : undefined,
           type: n.type,
           group: n.groupId,
           hullGroup: n.groupId,
@@ -405,6 +462,8 @@ export default Vue.extend({
           height: this.size,
         });
       });
+
+      console.log(nodes.map((n) => n.text).join(' - '));
 
       return {
         links,

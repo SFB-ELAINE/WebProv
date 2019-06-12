@@ -33,7 +33,12 @@
             <hr class="result--break" v-if="i !== results.length - 1">
           </div>
           <div style="flex: 1"></div>
-          <div>
+          <div style="display: flex">
+            <b-button 
+              type="is-text" 
+              icon-right="call-split"
+              @click="$emit('dependency', result)"
+            ></b-button>
             <b-button 
               type="is-text" 
               icon-right="launch"

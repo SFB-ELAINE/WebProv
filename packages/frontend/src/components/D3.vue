@@ -263,13 +263,25 @@ export default class D3 extends Vue implements ID3 {
       .attr('x', (d) => d.text!.length * 4 + 5)
       .attr('y', (d) => d.height / 2 + 5) // the extra 5 is just random
       .style('stroke-width', 0)
-      .style('', '')
       .style('font-family', 'monospace')
       .style('pointer-events', 'none')
       .style('text-anchor', 'middle')
       .style('font-size', '12px')
       .text((d) => {
         return d.text!;
+      });
+
+    g.append('text')
+      .filter((d) => d.actionText !== undefined)
+      .attr('x', (d) => d.actionText!.length * 3 - 2)
+      .attr('y', (d) => d.height + 12)
+      .style('stroke-width', 0)
+      .style('font-family', 'monospace')
+      .style('text-anchor', 'middle')
+      .attr('class', 'action')
+      .style('font-size', '10px')
+      .text((d) => {
+        return d.actionText!;
       });
 
     if (simulation) {
@@ -330,5 +342,10 @@ export default class D3 extends Vue implements ID3 {
 <style lang="scss" scoped>
 .svg {
   overflow: visible;
+}
+
+.svg ::v-deep .action:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

@@ -25,6 +25,7 @@ export interface Node {
   width: number;
   stroke: string;
   text?: string;
+  actionText?: string;
   x: number;
   y: number;
   hullGroup?: number;
