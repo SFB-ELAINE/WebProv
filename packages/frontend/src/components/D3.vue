@@ -69,8 +69,8 @@ export default class D3 extends Vue implements ID3 {
     return makeLookup(this.allNodes);
   }
 
-  public fill(d: { group: string }) {
-    return ordinalScale(d.group);
+  public fill(d: { group: number }) {
+    return ordinalScale('' + d.group);
   }
 
   public addLink(link: D3Link) {
@@ -90,7 +90,7 @@ export default class D3 extends Vue implements ID3 {
     }
 
   public convexHulls() {
-    const hulls: { [group: string]: Array<[number, number]> } = {};
+    const hulls: { [group: string]: { points: Array<[number, number]>, nodes: D3Node[] } } = {};
     const offset = this.hullOffset;
     // create point sets
     this.allNodes.forEach((n) => {
@@ -101,31 +101,34 @@ export default class D3 extends Vue implements ID3 {
 
       // eslint-disable-next-line
       const i = n.hullGroup;
-      const l = hulls[i] || (hulls[i] = []);
+      const l = hulls[i] || (hulls[i] = { points: [], nodes: [] });
 
       interface Point {
         x: number;
         y: number;
       }
 
+      l.nodes.push(n);
+
       // There are 4 corners and each needs to be checked
       // We add/subtract an offset to each corner depending on which corner it is
       // For example, for the top left corner, we subtract the offset from the x AND y
-      l.push([n.x - offset, n.y - offset]);
-      l.push([n.x + n.width + offset, n.y - offset]);
-      l.push([n.x + n.width + offset, n.y + n.height + offset]);
-      l.push([n.x - offset, n.y + n.height + offset]);
+      l.points.push([n.x - offset, n.y - offset]);
+      l.points.push([n.x + n.width + offset, n.y - offset]);
+      l.points.push([n.x + n.width + offset, n.y + n.height + offset]);
+      l.points.push([n.x - offset, n.y + n.height + offset]);
     });
     // create convex hulls
-    const hullset = [];
+    const hullset: D3Hull[] = [];
     for (const i of Object.keys(hulls)) {
-      const path = d3.polygonHull(hulls[i]);
+      const path = d3.polygonHull(hulls[i].points);
       if (!path) {
         continue;
       }
 
       hullset.push({
-        group: i,
+        group: Number.parseInt(i, 10),
+        nodes: hulls[i].nodes,
         path,
       });
     }

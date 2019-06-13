@@ -45,5 +45,6 @@ export const isD3 = (component: any): component is ID3 => {
 
 export interface D3Hull {
   group: number;
+  nodes: D3Node[];
   path: Array<[number, number]>;
 }

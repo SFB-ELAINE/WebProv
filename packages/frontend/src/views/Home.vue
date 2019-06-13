@@ -120,8 +120,11 @@ export default class Home extends Vue {
   public nodes: Node[] = [];
   public links: Link[] = [];
   public results: SearchItem[] = [];
-  public loadedGroups: number[] = []; // TODO Remove this
-  public nodesToShow: Lookup<boolean | undefined> = {};
+  public nodesToShow: Lookup<boolean> = {};
+
+  // Used when users click the "See more" button so that new nodes aren't placed at 0, 0
+  // Instead, they are initially placed at the location of the clicked node
+  public pointToPlaceNode = { x: 0, y: 0 };
 
   get nodeLookup(): Lookup<ProvenanceNode> {
     const lookup: Lookup<ProvenanceNode> = {};
@@ -226,6 +229,8 @@ export default class Home extends Vue {
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.dependencyInfoLookup[id];
+      this.expanded[info.node.modelId] = true;
+
       info.outgoing.forEach((c) => {
         showNode(c.target.id);
       });
@@ -236,15 +241,18 @@ export default class Home extends Vue {
   }
 
   public clearNodes() {
-    this.loadedGroups = [];
+    this.nodesToShow = {};
     this.doRender();
   }
 
   public openResult(result: SearchItem) {
-    if (!this.loadedGroups.includes(result.model)) {
-      this.loadedGroups.push(result.model);
-      this.doRender();
-    }
+    this.dependencyInfo.forEach(({ node, id }) => {
+      if (node.modelId === result.model) {
+        this.nodesToShow[id] = true;
+      }
+    });
+
+    this.doRender();
   }
 
   public removeResults() {
@@ -273,6 +281,8 @@ export default class Home extends Vue {
   public nodeDblclick(d: Node) {
     if (d.isGroup) {
       this.expanded[d.model] = true;
+      this.pointToPlaceNode = d;
+
       const res = this.getNodesLinks();
       this.nodes = res.nodes;
       this.links = res.links;
@@ -296,17 +306,29 @@ export default class Home extends Vue {
   public actionClick(d: Node) {
     const info = this.dependencyInfoLookup[d.id];
     info.incoming.forEach((incoming) => {
+      this.expanded[incoming.source.node.modelId] = true;
       this.nodesToShow[incoming.source.id] = true;
     });
 
+    this.pointToPlaceNode = d;
     this.doRender();
   }
 
   public hullDblclick(d: D3Hull) {
-    if (this.expanded[d.group]) {
-      this.expanded[d.group] = false;
-      this.doRender();
-    }
+    this.expanded[d.group] = false;
+
+    const point = { x: 0, y: 0 };
+    d.nodes.forEach((n) => {
+      point.x += n.x;
+      point.y += n.y;
+    });
+
+    point.x /= d.nodes.length;
+    point.y /= d.nodes.length;
+
+    this.pointToPlaceNode = point;
+
+    this.doRender();
   }
 
   public calcWidth(text: string) {
@@ -322,17 +344,18 @@ export default class Home extends Vue {
     data.nodes.forEach((n) => {
       const sourceId = n.type + n.id;
 
-      if (!this.loadedGroups.includes(n.modelId) && !this.nodesToShow[sourceId]) {
+      if (!this.nodesToShow[sourceId]) {
         return;
       }
 
-      if (!this.expanded[n.modelId] && !this.nodesToShow[sourceId] && !groups.hasOwnProperty(n.modelId)) {
+      if (!this.expanded[n.modelId] && !groups.hasOwnProperty(n.modelId)) {
         // this bad naming just avoids name shadowing
-        const { x: x1, y: y1 } = this.d3NodeLookup['' + n.modelId] ? this.d3NodeLookup['' + n.modelId] : { x: 0, y: 0 };
+        const groupId = '' + n.modelId;
+        const { x: x1, y: y1 } = this.d3NodeLookup[groupId] ? this.d3NodeLookup[groupId] : this.pointToPlaceNode;
         const node: GroupNode = {
           isGroup: true,
           model: n.modelId,
-          id: '' + n.modelId,
+          id: groupId,
           x: x1,
           y: y1,
           stroke: this.nodeOutline,
@@ -350,16 +373,12 @@ export default class Home extends Vue {
       info.outgoing.forEach((c) => {
         const targetId = c.target.id;
 
-        if (!this.loadedGroups.includes(c.target.node.modelId) && !this.nodesToShow[targetId]) {
+        if (!this.nodesToShow[targetId]) {
           return;
         }
 
         const determineLinkId = (id: string, model: number) => {
           if (this.expanded[model]) {
-            return id;
-          }
-
-          if (this.nodesToShow[id]) {
             return id;
           }
 
@@ -387,24 +406,17 @@ export default class Home extends Vue {
 
 
       // don't add nodes that are a model that isn't expanded
-      if (!this.expanded[n.modelId] && !this.nodesToShow[sourceId]) {
+      if (!this.expanded[n.modelId]) {
         return;
       }
 
       const moreLeftToShow = this.dependencyInfoLookup[sourceId].incoming.some((dep) => {
-        if (this.expanded[dep.source.node.modelId]) {
-          return false;
-        }
-
-        if (this.nodesToShow[dep.source.id]) {
-          return false;
-        }
-
-        return true;
+        return !this.nodesToShow[dep.source.id];
       });
 
       const text = getText(n);
-      const { x, y } = this.d3NodeLookup[sourceId] ? this.d3NodeLookup[sourceId] : { x: 0, y: 0 };
+      const { x, y } = this.d3NodeLookup[sourceId] ? this.d3NodeLookup[sourceId] : this.pointToPlaceNode;
+
       nodes.push({
         isGroup: false as false, // TODO
         isEntity: n.type === 'wet-lab data' || n.type === 'simulation data',
@@ -425,6 +437,9 @@ export default class Home extends Vue {
         height: this.nodeHeight,
       });
     });
+
+    // Make sure to reset this since we are done rendering
+    this.pointToPlaceNode = { x: 0, y: 0 };
 
     return {
       links,
