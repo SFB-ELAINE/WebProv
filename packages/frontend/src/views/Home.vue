@@ -52,7 +52,7 @@ import { ProvenanceNodeType, ProvenanceNode } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
-import { Lookup, getText, makeLookup, getConnections } from '@/utils';
+import { Lookup, getText, makeLookup, getConnections, getInformationFields } from '@/utils';
 import { D3Hull, D3Node } from '@/d3';
 import Search from '@/components/Search.vue';
 import { SearchItem, search } from '@/search';
@@ -68,6 +68,7 @@ interface GroupNode extends BaseNode {
 }
 
 interface SingleNode extends BaseNode {
+  provenanceNode: ProvenanceNode;
   isGroup: false;
   isEntity: boolean;
   type: ProvenanceNodeType;
@@ -121,22 +122,19 @@ export default class Home extends Vue {
   // The current nodes that are passed to D3
   public nodes: Node[] = [];
   public links: Link[] = [];
+
+  // The search results
   public results: SearchItem[] = [];
+
+  // All of the nodes to show
+  // If a node is in a group that isn't expanded, it will not actually be shown
   public nodesToShow: Lookup<boolean> = {};
 
   // Used when users click the "See more" button so that new nodes aren't placed at 0, 0
   // Instead, they are initially placed at the location of the clicked node
   public pointToPlaceNode = { x: 0, y: 0 };
 
-  get nodeLookup(): Lookup<ProvenanceNode> {
-    const lookup: Lookup<ProvenanceNode> = {};
-    data.nodes.forEach((n) => {
-      lookup[n.type + n.id] = n;
-    });
-    return lookup;
-  }
-
-  get d3NodeLookup() {
+  get nodeLookup() {
     return makeLookup(this.nodes);
   }
 
@@ -145,34 +143,7 @@ export default class Home extends Vue {
       return;
     }
 
-    const toReturn: Array<[string, string]> = [['Title', this.selectedNode.text]];
-
-    const node = this.nodeLookup[this.selectedNode.id];
-    if (!node) {
-      throw Error(`Unable to find node with ID: ${this.selectedNode.id}. This should not happen.`);
-    }
-
-    switch (node.type) {
-      case 'model-building-activity':
-        break;
-      case 'model exploration activity':
-        break;
-      case 'model':
-        toReturn.push(['Source', node.modelInformation.bibInformation]);
-        toReturn.push(['Model Number', '' + node.modelInformation.modelNumber]);
-        toReturn.push(['Version', '' + node.version]);
-        break;
-      case 'wet-lab data':
-        const information = node.information ? node.information : {};
-        Object.keys(information).forEach((key) => {
-          toReturn.push([key, information[key]]);
-        });
-        break;
-      case 'simulation data':
-        break;
-    }
-
-    return toReturn;
+    return getInformationFields(this.selectedNode.provenanceNode, this.selectedNode.text);
   }
 
   get transformedNodes() {
@@ -238,22 +209,24 @@ export default class Home extends Vue {
     };
 
     showNode(r.id);
-    this.doRender();
+    this.calculateLinksNodes();
   }
 
   public clearNodes() {
     this.nodesToShow = {};
-    this.doRender();
+    this.calculateLinksNodes();
   }
 
   public openResult(result: SearchItem) {
+    this.expanded[result.model] = true;
+
     this.dependencyInfo.forEach(({ node, id }) => {
       if (node.modelId === result.model) {
         this.nodesToShow[id] = true;
       }
     });
 
-    this.doRender();
+    this.calculateLinksNodes();
   }
 
   public removeResults() {
@@ -261,14 +234,14 @@ export default class Home extends Vue {
   }
 
   public search(pattern: string) {
-    const items: SearchItem[] = data.nodes.map((n) => {
+    const items: SearchItem[] =  this.transformedNodes.map(({ id, original: n }) => {
       const information =
         n.type === 'wet-lab data' &&
         n.information ?
         Object.values(n.information) : [];
 
       return {
-        id: n.type + n.id,
+        id,
         title: getText(n),
         type: n.type,
         model: n.modelId,
@@ -284,9 +257,7 @@ export default class Home extends Vue {
       this.expanded[d.model] = true;
       this.pointToPlaceNode = d;
 
-      const res = this.getNodesLinks();
-      this.nodes = res.nodes;
-      this.links = res.links;
+      this.calculateLinksNodes();
     }
   }
 
@@ -319,7 +290,7 @@ export default class Home extends Vue {
 
     expandDependencies(d.id);
     this.pointToPlaceNode = d;
-    this.doRender();
+    this.calculateLinksNodes();
   }
 
   public hullDblclick(d: D3Hull) {
@@ -331,23 +302,19 @@ export default class Home extends Vue {
       point.y += n.y;
     });
 
+    // Place the new node at the center of all of the nodes its consumming
     point.x /= d.nodes.length;
     point.y /= d.nodes.length;
 
     this.pointToPlaceNode = point;
 
-    this.doRender();
+    this.calculateLinksNodes();
   }
 
-  public calcWidth(text: string) {
-    // 8 just kinda works well (10 is the padding)
-    return text.length * 8 + 10;
-  }
-
-  public getNodesLinks() {
+  public calculateLinksNodes() {
     const links: Link[] = [];
     const nodes: Node[] = [];
-    const groups: Lookup<GroupNode> = {};
+    const models = new Set<number>();
 
     data.nodes.forEach((n) => {
       const sourceId = n.type + n.id;
@@ -356,10 +323,10 @@ export default class Home extends Vue {
         return;
       }
 
-      if (!this.expanded[n.modelId] && !groups.hasOwnProperty(n.modelId)) {
+      if (!this.expanded[n.modelId] && !models.has(n.modelId)) {
         // this bad naming just avoids name shadowing
         const groupId = '' + n.modelId;
-        const { x: x1, y: y1 } = this.d3NodeLookup[groupId] ? this.d3NodeLookup[groupId] : this.pointToPlaceNode;
+        const { x: x1, y: y1 } = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
         const node: GroupNode = {
           isGroup: true,
           model: n.modelId,
@@ -373,7 +340,7 @@ export default class Home extends Vue {
           height: this.nodeHeight,
         };
 
-        groups[n.modelId] = node;
+        models.add(n.modelId);
         nodes.push(node);
       }
 
@@ -423,11 +390,11 @@ export default class Home extends Vue {
       });
 
       const text = getText(n);
-      const { x, y } = this.d3NodeLookup[sourceId] ? this.d3NodeLookup[sourceId] : this.pointToPlaceNode;
+      const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
 
       const isEntity = n.type === 'wet-lab data' || n.type === 'simulation data';
       nodes.push({
-        isGroup: false as false, // TODO
+        isGroup: false,
         isEntity,
         id: sourceId,
         text,
@@ -438,11 +405,13 @@ export default class Home extends Vue {
         stroke: this.nodeOutline,
         x,
         y,
+        provenanceNode: n,
         rx: isEntity ? 10 : 0,
         // width and height are essential
         // TODO add requirement to type file
         // they are used in the other js files
-        width: this.calcWidth(text),
+        // ALSO, * 8 just kinda works well and 10 is the padding
+        width: text.length * 8 + 10,
         height: this.nodeHeight,
       });
     });
@@ -450,21 +419,12 @@ export default class Home extends Vue {
     // Make sure to reset this since we are done rendering
     this.pointToPlaceNode = { x: 0, y: 0 };
 
-    return {
-      links,
-      nodes,
-      groups,
-    };
+    this.links = links;
+    this.nodes = nodes;
   }
 
   public mounted() {
-    this.doRender();
-  }
-
-  public doRender() {
-    const { links, nodes } = this.getNodesLinks();
-    this.links = links;
-    this.nodes = nodes;
+    this.calculateLinksNodes();
   }
 }
 </script>

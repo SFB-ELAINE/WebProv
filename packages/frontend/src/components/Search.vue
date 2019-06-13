@@ -1,7 +1,7 @@
 <template>
   <card>
     <template v-slot:header>
-      <b-field style="margin: 1.5rem">
+      <b-field style="margin: 1.5rem 1.5rem 0">
         <b-input placeholder="Search..."
           type="search"
           icon="magnify"
@@ -34,16 +34,21 @@
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
-            <b-button 
-              type="is-text" 
-              icon-right="call-split"
-              @click="$emit('dependency', result)"
-            ></b-button>
-            <b-button 
-              type="is-text" 
-              icon-right="launch"
-              @click="$emit('open', result)"
-            ></b-button>
+            <b-tooltip label="Show Provenance Graph" position="is-left">
+              <b-button
+                style="transform: rotate(-90deg)"
+                type="is-text" 
+                icon-right="call-split"
+                @click="$emit('dependency', result)"
+              ></b-button>
+            </b-tooltip>
+            <b-tooltip label="Show Entire Model" position="is-left">
+              <b-button 
+                type="is-text" 
+                icon-right="arrow-expand-all"
+                @click="$emit('open', result)"
+              ></b-button>
+            </b-tooltip>
           </div>
         </div>
       </div>

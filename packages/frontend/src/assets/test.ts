@@ -70,7 +70,7 @@ const model3: Model = {
   modelId: 1,
   type: 'model',
   modelInformation: modelInformation1,
-  version: 2,
+  version: 1,
   wasGeneratedBy: MBA_3,
   derivedFrom: null,
 };

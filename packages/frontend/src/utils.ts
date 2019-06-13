@@ -94,3 +94,30 @@ export function getConnections(n: ProvenanceNode): Connections[] {
     return [nodesToConnect, relationship] as Connections;
   }).filter(notNull);
 }
+
+
+export function getInformationFields(node: ProvenanceNode, title: string) {
+  const fields: Array<[string, string]> = [['Title', title]];
+
+  switch (node.type) {
+    case 'model-building-activity':
+      break;
+    case 'model exploration activity':
+      break;
+    case 'model':
+      fields.push(['Source', node.modelInformation.bibInformation]);
+      fields.push(['Model Number', '' + node.modelInformation.modelNumber]);
+      fields.push(['Version', '' + node.version]);
+      break;
+    case 'wet-lab data':
+      const information = node.information ? node.information : {};
+      Object.keys(information).forEach((key) => {
+        fields.push([key, information[key]]);
+      });
+      break;
+    case 'simulation data':
+      break;
+  }
+
+  return fields;
+}

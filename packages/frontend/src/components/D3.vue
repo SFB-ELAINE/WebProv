@@ -139,9 +139,9 @@ export default class D3 extends Vue implements ID3 {
     const svg = d3.select(this.$refs.svg as Element);
     svg.selectAll('*').remove();
 
-    const checkAndCall = <V>(f?: (v: V, actions: ID3) => void) => (v: V) => {
+    const checkAndCall = <V>(f?: (v: V) => void) => (v: V) => {
       if (f) {
-        f(v, this);
+        f(v);
       }
     };
 
@@ -259,9 +259,9 @@ export default class D3 extends Vue implements ID3 {
       // @ts-ignore
       // I can't get the types to work out for some reason, this definitely works though
       g.call(d3.drag()
-          .on('start', dragstarted)
-          .on('drag', dragged)
-          .on('end', dragended));
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
     }
 
     g.append('text')
