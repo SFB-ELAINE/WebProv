@@ -5,10 +5,10 @@ export type NodeRelationship =
   'Used for calibration' |
   'Used for validation';
 
-export type NodeType = 'activity' | 'entity';
+export type ProvenanceNodeType = 'activity' | 'entity';
 
 export type RelationshipColors = {
-  [r in NodeRelationship]: { color: string, source: NodeType, target: NodeType }
+  [r in NodeRelationship]: { color: string, source: ProvenanceNodeType, target: ProvenanceNodeType }
 };
 
 export const relationshipColors: RelationshipColors = {

@@ -1,13 +1,5 @@
 import Fuse from 'fuse.js';
 
-// TODO REMOVE
-export interface Result {
-  id: string;
-  title: string;
-  type: string; // TODO
-  model: number;
-}
-
 export interface SearchItem {
   id: string;
   title: string;

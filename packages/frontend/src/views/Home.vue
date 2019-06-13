@@ -27,7 +27,7 @@
         class="clear-button overlay-child"
         type="is-text"
         @click="clearNodes"
-      >Clear Nodes</b-button>
+      >Clear ProvenanceNode</b-button>
       <div class="cards overlay-child">
         <prov-legend
           :node-radius="nodeRadius"
@@ -46,14 +46,14 @@
 <script lang="ts">
 import * as data from '@/assets/test';
 import { NodeRelationship, relationshipColors } from '@/constants';
-import { NodeType, Nodes } from 'specification';
+import { ProvenanceNodeType, ProvenanceNode } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import { Lookup, getText, makeLookup } from '@/utils';
 import { D3Hull, D3Node } from '@/d3';
 import Search from '@/components/Search.vue';
-import { Result, search, SearchItem } from '@/search';
+import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
 
 interface BaseNode extends D3Node {
@@ -68,7 +68,7 @@ interface GroupNode extends BaseNode {
 interface SingleNode extends BaseNode {
   isGroup: false;
   isEntity: boolean;
-  type: NodeType;
+  type: ProvenanceNodeType;
 }
 
 type Node = SingleNode | GroupNode;
@@ -80,12 +80,12 @@ interface Link {
 }
 
 interface Dependency {
-  node: Nodes;
+  node: ProvenanceNode;
   color: string;
 }
 
 interface DependencyInfo {
-  node: Nodes;
+  node: ProvenanceNode;
   outgoing: Dependency[];
   incoming: Dependency[];
 }
@@ -121,12 +121,12 @@ export default class Home extends Vue {
   // The current nodes that are passed to D3
   public nodes: Node[] = [];
   public links: Link[] = [];
-  public results: Result[] = [];
+  public results: SearchItem[] = [];
   public loadedGroups: number[] = []; // TODO Remove this
   public nodesToShow: Lookup<boolean | undefined> = {};
 
-  get nodeLookup(): Lookup<Nodes> {
-    const lookup: Lookup<Nodes> = {};
+  get nodeLookup(): Lookup<ProvenanceNode> {
+    const lookup: Lookup<ProvenanceNode> = {};
     data.nodes.forEach((n) => {
       lookup[n.type + n.id] = n;
     });
@@ -177,7 +177,7 @@ export default class Home extends Vue {
     const incomingLookup: Lookup<Dependency[]> = {};
 
     const dependencyInfo = data.nodes.map((n) => {
-      let setsToConnect: Array<[Nodes[] | Nodes | null, NodeRelationship]> = [];
+      let setsToConnect: Array<[ProvenanceNode[] | ProvenanceNode | null, NodeRelationship]> = [];
       switch (n.type) {
         case 'wet-lab data':
           break;
@@ -248,7 +248,7 @@ export default class Home extends Vue {
     return lookup;
   }
 
-  public showProvenanceGraph(r: Result) {
+  public showProvenanceGraph(r: SearchItem) {
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.dependencyInfoLookup[id];
@@ -266,7 +266,7 @@ export default class Home extends Vue {
     this.doRender();
   }
 
-  public openResult(result: Result) {
+  public openResult(result: SearchItem) {
     if (!this.loadedGroups.includes(result.model)) {
       this.loadedGroups.push(result.model);
       this.doRender();

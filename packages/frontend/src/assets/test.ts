@@ -4,7 +4,7 @@ import {
   SimulationData,
   Model,
   ModelInformation,
-  Nodes,
+  ProvenanceNode,
   ModelExplorationActivity,
 } from 'specification';
 
@@ -219,7 +219,7 @@ const model2: Model = {
   derivedFrom: null,
 };
 
-export const nodes: Nodes[] = [
+export const nodes: ProvenanceNode[] = [
   // MODEL 12
   W12_1,
   WX_1,

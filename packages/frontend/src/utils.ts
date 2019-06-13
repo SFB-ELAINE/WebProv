@@ -1,6 +1,6 @@
 import { Watch as W } from 'vue-property-decorator';
 import { WatchOptions } from 'vue';
-import { Nodes } from 'specification';
+import { ProvenanceNode } from 'specification';
 
 export const makeLookup = <T extends { id: string }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -17,7 +17,7 @@ export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
 }
 
 
-export function getText(n: Nodes): string {
+export function getText(n: ProvenanceNode): string {
   switch (n.type) {
     case 'wet-lab data':
       return n.name;

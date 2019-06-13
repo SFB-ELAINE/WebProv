@@ -54,7 +54,7 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { Result } from '@/search';
+import { SearchItem } from '@/search';
 
 @Component({
   components: { Card },
@@ -65,7 +65,7 @@ import { Result } from '@/search';
   },
 })
 export default class Search extends Vue {
-  @Prop({ type: Array, required: true }) public results!: Result[];
+  @Prop({ type: Array, required: true }) public results!: SearchItem[];
 
   public searchText = '';
 

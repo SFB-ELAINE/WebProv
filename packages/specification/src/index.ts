@@ -180,8 +180,8 @@ export interface SimulationData {
   wasGeneratedByModelExplorationActivity: ModelExplorationActivity | null;
 }
 
-export type Nodes = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
-export type NodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
+export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
+export type ProvenanceNodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
 
 export interface ProvenanceAPI {
   '/health': {
