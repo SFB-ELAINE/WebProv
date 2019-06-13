@@ -27,7 +27,9 @@
         class="clear-button overlay-child"
         type="is-text"
         @click="clearNodes"
-      >Clear ProvenanceNode</b-button>
+      >
+        Reset
+      </b-button>
       <div class="cards overlay-child">
         <prov-legend
           :node-radius="nodeRadius"
@@ -180,7 +182,6 @@ export default class Home extends Vue {
     }));
   }
 
-  // TODO Point to dependency info and not NODE
   get dependencyInfo(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
 
@@ -365,8 +366,8 @@ export default class Home extends Vue {
           id: groupId,
           x: x1,
           y: y1,
-          stroke: this.nodeOutline,
-          rx: 0, // TODO
+          stroke: 'rgb(0, 0, 0)',
+          rx: 0,
           text: `M${n.modelId}`,
           width: 50,
           height: this.nodeHeight,
@@ -424,9 +425,10 @@ export default class Home extends Vue {
       const text = getText(n);
       const { x, y } = this.d3NodeLookup[sourceId] ? this.d3NodeLookup[sourceId] : this.pointToPlaceNode;
 
+      const isEntity = n.type === 'wet-lab data' || n.type === 'simulation data';
       nodes.push({
         isGroup: false as false, // TODO
-        isEntity: n.type === 'wet-lab data' || n.type === 'simulation data',
+        isEntity,
         id: sourceId,
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
@@ -436,7 +438,7 @@ export default class Home extends Vue {
         stroke: this.nodeOutline,
         x,
         y,
-        rx: 0, // TODO
+        rx: isEntity ? 10 : 0,
         // width and height are essential
         // TODO add requirement to type file
         // they are used in the other js files

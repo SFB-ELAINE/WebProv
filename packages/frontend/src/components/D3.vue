@@ -229,7 +229,9 @@ export default class D3 extends Vue implements ID3 {
       .attr('fill', (d) => 'white')
       .style('stroke-width', 3)
       .attr('rx', (d) => d.rx)
-      .attr('x', (d) => this.force ? 0 : d.x) // TODO
+      // If there is a force, then the position will be set by the force
+      // If this check didn't happen, we would set the position twice which causes issues
+      .attr('x', (d) => this.force ? 0 : d.x)
       .attr('y', (d) => this.force ? 0 : d.y)
       .style('stroke', (d) => d.stroke);
 
@@ -299,7 +301,6 @@ export default class D3 extends Vue implements ID3 {
 
         // Unfortunently, it seems like I need to add these weird type –cast statements here
         // The following code is perfectly fine so the d3 typings must be wrong
-        // TODO These functions could likely be consolidated with the above `calcPosition` function
         link
           .attr('x1', (d) => {
             const source = d.source as any as D3Node;
