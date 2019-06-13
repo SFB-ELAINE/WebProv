@@ -304,12 +304,19 @@ export default class Home extends Vue {
   }
 
   public actionClick(d: Node) {
-    const info = this.dependencyInfoLookup[d.id];
-    info.incoming.forEach((incoming) => {
-      this.expanded[incoming.source.node.modelId] = true;
-      this.nodesToShow[incoming.source.id] = true;
-    });
+    // OK so, when the user wants to see the incoming connections by clicking "See more",
+    // we need to (recursively) expand all outgoing connections for all of the incoming nodes
+    // Right now, there is no way for a user to expand outgoing nodes which is why we do this
+    const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
+      const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
+      this.dependencyInfoLookup[id][direction].forEach((connection) => {
+        this.expanded[connection[st].node.modelId] = true;
+        this.nodesToShow[connection[st].id] = true;
+        expandDependencies(connection[st].id, 'outgoing');
+      });
+    };
 
+    expandDependencies(d.id);
     this.pointToPlaceNode = d;
     this.doRender();
   }
