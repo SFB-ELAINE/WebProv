@@ -4,14 +4,14 @@ import {
   SimulationData,
   Model,
   ModelInformation,
-  Nodes,
+  ProvenanceNode,
   ModelExplorationActivity,
 } from 'specification';
 
 // M1
 const WX_7: WetLabData = {
   id: 7,
-  groupId: 1,
+  modelId: 1,
   name: 'Wx_7',
   type: 'wet-lab data',
   information: {
@@ -21,7 +21,7 @@ const WX_7: WetLabData = {
 
 const W1_1: WetLabData = {
   id: 8,
-  groupId: 1,
+  modelId: 1,
   name: 'W1_1',
   type: 'wet-lab data',
   information: {
@@ -31,7 +31,7 @@ const W1_1: WetLabData = {
 
 const W1_2: WetLabData = {
   id: 9,
-  groupId: 1,
+  modelId: 1,
   name: 'W1_2',
   type: 'wet-lab data',
   information: {
@@ -41,7 +41,7 @@ const W1_2: WetLabData = {
 
 const MBA_3: ModelBuildingActivity = {
   id: 3,
-  groupId: 1,
+  modelId: 1,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [WX_7, W1_1],
   wetLabsUsedForValidation: [W1_2],
@@ -52,7 +52,7 @@ const MBA_3: ModelBuildingActivity = {
 
 const S1_1: SimulationData = {
   id: 3,
-  groupId: 1,
+  modelId: 1,
   type: 'simulation data',
   name: 'S1_1',
   wasGeneratedByModelBuildingActivity: MBA_3,
@@ -67,7 +67,7 @@ const modelInformation1: ModelInformation = {
 
 const model3: Model = {
   id: 3,
-  groupId: 1,
+  modelId: 1,
   type: 'model',
   modelInformation: modelInformation1,
   version: 2,
@@ -77,14 +77,14 @@ const model3: Model = {
 
 const MEA: ModelExplorationActivity = {
   id: 1,
-  groupId: 1,
+  modelId: 1,
   type: 'model exploration activity',
   used: model3,
 };
 
 const S1_2: SimulationData = {
   id: 4,
-  groupId: 1,
+  modelId: 1,
   type: 'simulation data',
   name: 'S1_2',
   wasGeneratedByModelBuildingActivity: null,
@@ -100,7 +100,7 @@ const modelInformation12: ModelInformation = {
 
 const W12_1: WetLabData = {
   id: 1,
-  groupId: 12,
+  modelId: 12,
   name: 'W12_1',
   type: 'wet-lab data',
   information: {
@@ -110,7 +110,7 @@ const W12_1: WetLabData = {
 
 const WX_1: WetLabData = {
   id: 2,
-  groupId: 12,
+  modelId: 12,
   name: 'Wx_1',
   type: 'wet-lab data',
   information: {
@@ -120,7 +120,7 @@ const WX_1: WetLabData = {
 
 const WX_2: WetLabData = {
   id: 3,
-  groupId: 12,
+  modelId: 12,
   name: 'Wx_2',
   type: 'wet-lab data',
   information: {
@@ -131,7 +131,7 @@ const WX_2: WetLabData = {
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
   id: 1,
-  groupId: 12,
+  modelId: 12,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [W12_1, WX_2, WX_1],
   wetLabsUsedForValidation: [],
@@ -142,7 +142,7 @@ const MBA_1: ModelBuildingActivity = {
 
 const S12_1: SimulationData = {
   id: 1,
-  groupId: 12,
+  modelId: 12,
   type: 'simulation data',
   name: 'S12_1',
   wasGeneratedByModelBuildingActivity: MBA_1,
@@ -151,7 +151,7 @@ const S12_1: SimulationData = {
 
 const model1: Model = {
   id: 1,
-  groupId: 12,
+  modelId: 12,
   type: 'model',
   modelInformation: modelInformation12,
   version: 1,
@@ -161,7 +161,7 @@ const model1: Model = {
 
 const W12_2: WetLabData = {
   id: 4,
-  groupId: 12,
+  modelId: 12,
   name: 'W12_2',
   type: 'wet-lab data',
   information: {
@@ -171,7 +171,7 @@ const W12_2: WetLabData = {
 
 const W12_3: WetLabData = {
   id: 5,
-  groupId: 12,
+  modelId: 12,
   name: 'W12_3',
   type: 'wet-lab data',
   information: {
@@ -181,7 +181,7 @@ const W12_3: WetLabData = {
 
 const WX_3: WetLabData = {
   id: 6,
-  groupId: 12,
+  modelId: 12,
   name: 'Wx_3',
   type: 'wet-lab data',
   information: {
@@ -191,7 +191,7 @@ const WX_3: WetLabData = {
 
 const MBA_2: ModelBuildingActivity = {
   id: 2,
-  groupId: 12,
+  modelId: 12,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [WX_3],
   wetLabsUsedForValidation: [W12_2, W12_3],
@@ -202,7 +202,7 @@ const MBA_2: ModelBuildingActivity = {
 
 const S12_2: SimulationData = {
   id: 2,
-  groupId: 12,
+  modelId: 12,
   type: 'simulation data',
   name: 'S12_2',
   wasGeneratedByModelBuildingActivity: MBA_2,
@@ -211,7 +211,7 @@ const S12_2: SimulationData = {
 
 const model2: Model = {
   id: 2,
-  groupId: 12,
+  modelId: 12,
   type: 'model',
   modelInformation: modelInformation12,
   version: 2,
@@ -219,7 +219,7 @@ const model2: Model = {
   derivedFrom: null,
 };
 
-export const nodes: Nodes[] = [
+export const nodes: ProvenanceNode[] = [
   // MODEL 12
   W12_1,
   WX_1,

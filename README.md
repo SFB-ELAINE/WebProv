@@ -35,6 +35,12 @@ npm run serve
 
 This starts a hot-reload development server. Navigate to the link that is outputted in the console.
 
+## Installing Dependencies
+If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, using the `lerna add` command. For example:
+```
+lerna add the-module-to-install --scope=frontend --dev
+```
+
 ## Contributing
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 

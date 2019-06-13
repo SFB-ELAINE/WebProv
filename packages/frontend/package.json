@@ -1,5 +1,5 @@
 {
-  "name": "prov",
+  "name": "web-provenance",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "buefy": "^0.7.7",
     "core-js": "^2.6.5",
     "d3": "^5.9.2",
+    "fuse.js": "^3.4.5",
     "specification": "^0.1.0",
     "typed-emitter": "^0.1.0",
     "vue": "^2.6.10",

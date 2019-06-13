@@ -5,9 +5,9 @@ export interface ModelBuildingActivity {
   id: number;
 
   /**
-   * The group id. This information is what links nodes together.
+   * The model id. This information is what links nodes together.
    */
-  groupId: number;
+  modelId: number;
 
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
@@ -47,9 +47,9 @@ export interface ModelExplorationActivity {
   id: number;
 
   /**
-   * The group id. This information is what links nodes together.
+   * The model id. This information is what links nodes together.
    */
-  groupId: number;
+  modelId: number;
 
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
@@ -86,9 +86,9 @@ export interface Model {
   id: number;
 
   /**
-   * The group id. This information is what links nodes together.
+   * The model id. This information is what links nodes together.
    */
-  groupId: number;
+  modelId: number;
 
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
@@ -123,9 +123,9 @@ export interface WetLabData {
   id: number;
 
   /**
-   * The group id. This information is what links nodes together.
+   * The model id. This information is what links nodes together.
    */
-  groupId: number;
+  modelId: number;
 
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
@@ -155,9 +155,9 @@ export interface SimulationData {
   id: number;
 
   /**
-   * The group id. This information is what links nodes together.
+   * The model id. This information is what links nodes together.
    */
-  groupId: number;
+  modelId: number;
 
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
@@ -180,8 +180,8 @@ export interface SimulationData {
   wasGeneratedByModelExplorationActivity: ModelExplorationActivity | null;
 }
 
-export type Nodes = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
-export type NodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
+export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
+export type ProvenanceNodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
 
 export interface ProvenanceAPI {
   '/health': {

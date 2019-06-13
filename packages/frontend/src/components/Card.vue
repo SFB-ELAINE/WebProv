@@ -1,19 +1,18 @@
 <template>
   <transition name="fade">
-    <b-collapse class="card flip-horizontal-bottom">
-      <div
-        slot="trigger" 
-        slot-scope="props"
-        class="card-header"
-        role="button"
-      >
-        <p class="card-header-title">
-          {{ title }}
-        </p>
-        <a class="card-header-icon">
-          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
-        </a>
-      </div>
+    <div class="helper card flip-horizontal-bottom">
+      <slot name="header">
+        <div
+          v-if="title"
+          class="card-header"
+        >
+          <p class="card-header-title">
+            {{ title }}
+          </p>
+          <a class="card-header-icon">
+          </a>
+        </div>
+      </slot>
       <div class="card-content">
         <div class="content information">
           <slot></slot>
@@ -23,7 +22,7 @@
         <slot name="footer">
         </slot>
       </footer>
-    </b-collapse>
+    </div>
   </transition>
 </template>
 
@@ -32,6 +31,7 @@ import Vue from 'vue';
 export default Vue.extend({
   props: {
     title: String,
+    noCollapse: Boolean,
   },
 });
 </script>
@@ -40,6 +40,7 @@ export default Vue.extend({
 $width: 450px;
 $icon-size: 30px;
 $duration: 0.2s;
+$header-height: 48px;
 
 .flip-horizontal-bottom {
   transform-origin: top;
@@ -53,8 +54,22 @@ $duration: 0.2s;
   opacity: 0;
 }
 
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
 .information {
   text-align: left;
+}
+
+.card-content {
+  overflow-y: auto;
+  padding: 0; // override the default
+}
+
+.content {
+  margin: 1.5rem;
 }
 
 @keyframes card-show {
@@ -66,5 +81,9 @@ $duration: 0.2s;
     opacity: 1; 
     transform: perspective($width) translate(0, 0) rotateX(0deg); 
   }
+}
+
+.helper ::v-deep .collapse-content {
+  height: calc(100% - 48px);  
 }
 </style>
