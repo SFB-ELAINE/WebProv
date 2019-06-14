@@ -25,10 +25,16 @@ export interface D3Node {
   width: number;
   stroke: string;
   text?: string;
+  index: number;
+  vx: number;
+  vy: number;
   actionText?: string;
   x: number;
   y: number;
   hullGroup?: number;
+  onDidClick?: () => void;
+  onDidDblclick?: () => void;
+  onDidMousedown?: () => void;
 }
 
 export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;

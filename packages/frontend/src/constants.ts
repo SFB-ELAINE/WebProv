@@ -38,3 +38,5 @@ export const relationshipColors: RelationshipColors = {
     target: 'entity',
   },
 };
+
+export const relationships = Object.keys(relationshipColors) as NodeRelationship[];

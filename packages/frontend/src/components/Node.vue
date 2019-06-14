@@ -10,6 +10,7 @@ export default class Node extends Vue {
   @Prop({ type: Number, default: 0 }) public x!: number;
   @Prop({ type: Number, default: 0 }) public y!: number;
   @Prop({ type: Number, required: true }) public size!: number;
+  @Prop({ type: String, default: '' }) public text!: string;
   @Prop({ type: String, required: true }) public stroke!: string;
 
   public mounted() {
@@ -17,14 +18,25 @@ export default class Node extends Vue {
       throw Error('parent must be D3');
     }
 
+    const that = this;
     this.$parent.addNode({
       id: this.id,
       rx: this.rx,
       x: this.x,
       y: this.y,
+      text: this.text,
       height: this.size,
       width: this.size,
       stroke: this.stroke,
+      onDidClick()  {
+        that.$emit('click', this);
+      },
+      onDidMousedown()  {
+        that.$emit('mousedown', this);
+      },
+      onDidDblclick()  {
+        that.$emit('dblclick', this);
+      },
     });
   }
 

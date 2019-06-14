@@ -24,12 +24,88 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 // This id is used to ensure that the ID atttribute doesn't conflict with others
 // Since id is global
 let id = 0;
+let factor = 10;
+
+const hullForce = () => {
+  interface Point {
+    x: number;
+    y: number;
+  }
+
+  interface PointWithCenter extends Point {
+    count: number;
+  }
+
+  let nodes: D3Node[] = [];
+
+  const force = () => {
+    const centers: Lookup<PointWithCenter> = {};
+
+    nodes.forEach(({ x, y, hullGroup }) => {
+      if (hullGroup === undefined) {
+        return;
+      }
+
+      if (!centers.hasOwnProperty(hullGroup)) {
+        centers[hullGroup] = { x: 0, y: 0, count: 0 };
+      }
+
+      const center = centers[hullGroup];
+      center.y += y;
+      center.x += x;
+      center.count++;
+    });
+
+    Object.values(centers).forEach((center) => {
+      center.x /= center.count;
+      center.y /= center.count;
+    });
+
+
+    const calcChangeInSpeed = (from: Point, to: Point) => {
+      let x = to.x - from.x;
+      let y = to.y - from.y;
+      const distance = (x ** 2 + y ** 2) ** 0.5;
+      if (distance !== 0) {
+        x /= distance ** 2;
+        y /= distance ** 2;
+      }
+
+      return {
+        vx: x * factor,
+        vy: y * factor,
+      };
+    };
+
+    nodes.forEach((node, i) => {
+      if (node.hullGroup === undefined) {
+        return;
+      }
+
+      const v = calcChangeInSpeed(node, centers[node.hullGroup]);
+      // node.vx += v.vx;
+      // node.vy += v.vy;
+    });
+  };
+
+  force.initialize = (_: D3Node[]) => {
+    nodes = _;
+  };
+
+  force.factor = (_: number) => {
+    factor = _;
+  };
+
+
+  return force;
+};
 
 @Component
 export default class D3 extends Vue implements ID3 {
   @Prop({ type: String, default: '#000' }) public defaultStrokeColor!: string;
   @Prop({ type: Boolean, default: false }) public arrows!: boolean;
   @Prop({ type: Boolean, default: false }) public force!: boolean;
+  @Prop({ type: Boolean, default: false }) public drag!: boolean;
   @Prop({ type: Boolean, default: false }) public hulls!: boolean;
   @Prop({ type: Number, default: 100 }) public height!: number;
   @Prop({ type: Number, default: 100 }) public width!: number;
@@ -167,6 +243,7 @@ export default class D3 extends Vue implements ID3 {
         .force('link', forceLink<D3Node, D3Link>(this.allLinks).id((d) => d.id).strength(0.3))
         .velocityDecay(0.5)
         .force('charge', forceManyBody().strength(-1000))
+        // .force('group', hullForce())
         .force('center', d3.forceCenter(this.width / 2, this.height / 2));
     }
 
@@ -235,33 +312,37 @@ export default class D3 extends Vue implements ID3 {
       .attr('y', (d) => this.force ? 0 : d.y)
       .style('stroke', (d) => d.stroke);
 
+    const checkAndCallV2 = (key: 'onDidClick' | 'onDidMousedown' | 'onDidDblclick') => (d: D3Node) => {
+      const cb = d[key];
+      if (cb) {
+        cb();
+      }
+    };
+
+    g.on('click', checkAndCallV2('onDidClick'));
+    g.on('dblclick', checkAndCallV2('onDidDblclick'));
+    g.on('mousedown', checkAndCallV2('onDidMousedown'));
     g.on('click', checkAndCall(this.nodeClick));
     g.on('dblclick', checkAndCall(this.nodeDblclick));
 
-    if (this.force) {
-      function dragstarted(d: d3.SimulationNodeDatum) {
-        if (simulation && !d3.event.active) { simulation.alphaTarget(0.3).restart(); }
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-
-      function dragged(d: d3.SimulationNodeDatum) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
-      }
-
-      function dragended(d: d3.SimulationNodeDatum) {
-        if (simulation && !d3.event.active) { simulation.alphaTarget(0); }
-        d.fx = null;
-        d.fy = null;
-      }
-
+    if (this.drag) {
       // @ts-ignore
       // I can't get the types to work out for some reason, this definitely works though
       g.call(d3.drag()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended));
+        .on('start', (d: d3.SimulationNodeDatum) => {
+          if (simulation && !d3.event.active) { simulation.alphaTarget(0.3).restart(); }
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on('drag', (d: d3.SimulationNodeDatum) => {
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
+        })
+        .on('end', (d: d3.SimulationNodeDatum) => {
+          if (simulation && !d3.event.active) { simulation.alphaTarget(0); }
+          d.fx = null;
+          d.fy = null;
+        }));
     }
 
     g.append('text')

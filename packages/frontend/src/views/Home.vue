@@ -7,6 +7,7 @@
       :nodes="nodes"
       force 
       arrows
+      drag
       hulls
       :node-click="nodeClick"
       :node-dblclick="nodeDblclick"
@@ -36,6 +37,13 @@
           :node-outline="nodeOutline"
         ></prov-legend>
         <div class="spacer"></div>
+        <tools
+          :node-radius="nodeRadius"
+          :node-outline="nodeOutline"
+          @create-entity="createEntity"
+          @create-activity="createActivity"
+        ></tools>
+        <div class="spacer"></div>
         <information-card
           v-if="informationFields"
           :information-fields="informationFields"
@@ -52,6 +60,7 @@ import { ProvenanceNodeType, ProvenanceNode } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
+import Tools from '@/components/Tools.vue';
 import { Lookup, getText, makeLookup, getConnections, getInformationFields } from '@/utils';
 import { D3Hull, D3Node } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -100,24 +109,31 @@ interface HighLevelNode {
 // the models that use that data.
 
 @Component({
-  components: { InformationCard, ProvLegend, D3, Search },
+  components: { InformationCard, ProvLegend, D3, Search, Tools },
 })
 export default class Home extends Vue {
-  // OK, so for some reason we have to remove 7 here so that there is no overlow......
-  public height: number = window.innerHeight - 7;
+  public provenanceNodes = data.nodes.map((node) => ({
+    id: node.type + node.id,
+    original: node,
+  }));
 
-  public width: number = window.innerWidth;
+  // OK, so for some reason we have to remove 7 here so that there is no overlow......
+  public height = window.innerHeight - 7;
+
+  public width = window.innerWidth;
 
   // constant
-  public nodeHeight: number = 40;
+  public nodeHeight = 40;
 
   // used to display information on a card
   public selectedNode: null | SingleNode = null;
 
-  // constant
+  // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
-  public expanded: Lookup<boolean | undefined> = {};
-  public nodeRadius: number = 10;
+  public nodeRadius = 10;
+
+  // which models are currently expanded
+  public expanded: Lookup<boolean> = {};
 
   // The current nodes that are passed to D3
   public nodes: Node[] = [];
@@ -146,17 +162,10 @@ export default class Home extends Vue {
     return getInformationFields(this.selectedNode.provenanceNode, this.selectedNode.text);
   }
 
-  get transformedNodes() {
-    return data.nodes.map((node) => ({
-      id: node.type + node.id,
-      original: node,
-    }));
-  }
-
-  get dependencyInfo(): HighLevelNode[] {
+  get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
 
-    const dependencyInfo = this.transformedNodes.map(({ id: sourceId, original: n }) => {
+    const highLevelNodes = this.provenanceNodes.map(({ id: sourceId, original: n }) => {
       const checkAndAdd = (id: string, node: ProvenanceNode) => {
         if (!nodeLookup.hasOwnProperty(id)) {
           nodeLookup[id] = {
@@ -193,14 +202,14 @@ export default class Home extends Vue {
     return Object.values(nodeLookup);
   }
 
-  get dependencyInfoLookup() {
-    return makeLookup(this.dependencyInfo);
+  get highLevelNodeLookup() {
+    return makeLookup(this.highLevelNodes);
   }
 
   public showProvenanceGraph(r: SearchItem) {
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
-      const info = this.dependencyInfoLookup[id];
+      const info = this.highLevelNodeLookup[id];
       this.expanded[info.node.modelId] = true;
 
       info.outgoing.forEach((c) => {
@@ -220,7 +229,7 @@ export default class Home extends Vue {
   public openResult(result: SearchItem) {
     this.expanded[result.model] = true;
 
-    this.dependencyInfo.forEach(({ node, id }) => {
+    this.highLevelNodes.forEach(({ node, id }) => {
       if (node.modelId === result.model) {
         this.nodesToShow[id] = true;
       }
@@ -234,7 +243,7 @@ export default class Home extends Vue {
   }
 
   public search(pattern: string) {
-    const items: SearchItem[] =  this.transformedNodes.map(({ id, original: n }) => {
+    const items: SearchItem[] =  this.provenanceNodes.map(({ id, original: n }) => {
       const information =
         n.type === 'wet-lab data' &&
         n.information ?
@@ -281,7 +290,7 @@ export default class Home extends Vue {
     // Right now, there is no way for a user to expand outgoing nodes which is why we do this
     const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
       const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
-      this.dependencyInfoLookup[id][direction].forEach((connection) => {
+      this.highLevelNodeLookup[id][direction].forEach((connection) => {
         this.expanded[connection[st].node.modelId] = true;
         this.nodesToShow[connection[st].id] = true;
         expandDependencies(connection[st].id, 'outgoing');
@@ -316,8 +325,7 @@ export default class Home extends Vue {
     const nodes: Node[] = [];
     const models = new Set<number>();
 
-    data.nodes.forEach((n) => {
-      const sourceId = n.type + n.id;
+    this.provenanceNodes.forEach(({ original: n, id: sourceId }) => {
 
       if (!this.nodesToShow[sourceId]) {
         return;
@@ -333,6 +341,9 @@ export default class Home extends Vue {
           id: groupId,
           x: x1,
           y: y1,
+          index: 0,
+          vx: 0,
+          vy: 0,
           stroke: 'rgb(0, 0, 0)',
           rx: 0,
           text: `M${n.modelId}`,
@@ -344,7 +355,7 @@ export default class Home extends Vue {
         nodes.push(node);
       }
 
-      const info = this.dependencyInfoLookup[sourceId];
+      const info = this.highLevelNodeLookup[sourceId];
       info.outgoing.forEach((c) => {
         const targetId = c.target.id;
 
@@ -385,7 +396,7 @@ export default class Home extends Vue {
         return;
       }
 
-      const moreLeftToShow = this.dependencyInfoLookup[sourceId].incoming.some((dep) => {
+      const moreLeftToShow = this.highLevelNodeLookup[sourceId].incoming.some((dep) => {
         return !this.nodesToShow[dep.source.id];
       });
 
@@ -405,6 +416,9 @@ export default class Home extends Vue {
         stroke: this.nodeOutline,
         x,
         y,
+        vx: 0,
+        vy: 0,
+        index: 0,
         provenanceNode: n,
         rx: isEntity ? 10 : 0,
         // width and height are essential
@@ -421,6 +435,28 @@ export default class Home extends Vue {
 
     this.links = links;
     this.nodes = nodes;
+  }
+
+  public createEntity() {
+    const node: ProvenanceNode = {
+      type: 'model-building-activity',
+      modelId: 1,
+      id: Math.floor(Math.random() * 10000),
+      wetLabsUsedForValidation: [],
+      wetLabsUsedForCalibration: [],
+      simulationsUsedForValidation: [],
+      simulationsUsedForCalibration: [],
+      used: [],
+    };
+
+    this.provenanceNodes.push({ id: node.type + node.id, original: node });
+    this.nodesToShow[node.type + node.id] = true;
+
+    this.calculateLinksNodes();
+  }
+
+  public createActivity() {
+    //
   }
 
   public mounted() {
