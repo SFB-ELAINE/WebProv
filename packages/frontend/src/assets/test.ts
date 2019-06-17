@@ -194,10 +194,10 @@ const MBA_2: ModelBuildingActivity = {
   modelId: 12,
   type: 'model-building-activity',
   wetLabsUsedForCalibration: [WX_3],
-  wetLabsUsedForValidation: [W12_2, W12_3],
+  wetLabsUsedForValidation: [], // [W12_2, W12_3],
   simulationsUsedForCalibration: [],
   simulationsUsedForValidation: [],
-  used: [model1],
+  used: [], // [model1],
 };
 
 const S12_2: SimulationData = {

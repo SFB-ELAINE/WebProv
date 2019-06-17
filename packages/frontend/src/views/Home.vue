@@ -37,12 +37,12 @@
           :node-outline="nodeOutline"
         ></prov-legend>
         <div class="spacer"></div>
-        <tools
+        <!-- <tools
           :node-radius="nodeRadius"
           :node-outline="nodeOutline"
           @create-entity="createEntity"
           @create-activity="createActivity"
-        ></tools>
+        ></tools> -->
         <div class="spacer"></div>
         <information-card
           v-if="informationFields"

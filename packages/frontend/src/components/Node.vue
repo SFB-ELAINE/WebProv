@@ -28,6 +28,9 @@ export default class Node extends Vue {
       height: this.size,
       width: this.size,
       stroke: this.stroke,
+      vx: 0,
+      vy: 0,
+      index: 0,
       onDidClick()  {
         that.$emit('click', this);
       },
