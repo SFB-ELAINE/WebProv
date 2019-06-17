@@ -6,26 +6,40 @@ const yGetter = (d: D3Node) => d.y;
 const constant = (x: number) => () => x;
 const jiggle = () => (Math.random() - 0.5) * 1e-6;
 const byUndefined = <T>(group: T | undefined): group is T => group !== undefined;
+const FACTOR = 25;
+
+interface ExtraData {
+  x: number;
+  y: number;
+  value: number;
+  groups: { [group: string]: number };
+}
+
+interface QuadNode extends ExtraData {
+  data: D3Node;
+  next: QuadNode;
+}
+
+type QuadNodes = QuadNode[] & ExtraData;
 
 export default function() {
   let nodes: D3Node[];
   let node: D3Node;
   let groups: number[] = [];
   let alpha: number;
-  let strength: (node: D3Node, i: number, nodes: D3Node[]) => number | string = constant(-30);
+  let strength: () => number = constant(-30);
   let strengths: number[];
   let distanceMin2 = 1;
   let distanceMax2 = Infinity;
   let theta2 = 0.81;
-  const factor = 100;
   let strengthGroups: Array<{ [group: string]: number }> = [];
 
   function force(_: any) {
     alpha = _;
-    const tree = quadtree(nodes, xGetter, yGetter).visitAfter(accumulate);
+    const tree = quadtree(nodes, xGetter, yGetter).visitAfter((quad: any) => accumulate(quad));
     nodes.forEach(((n) => {
       node = n;
-      tree.visit(apply);
+      tree.visit((quad: any, x1: number, y1: number, x2: number) => apply(quad, x1, y1, x2));
     }));
   }
 
@@ -33,54 +47,75 @@ export default function() {
     if (!nodes) { return; }
     strengths = new Array(nodes.length);
     strengthGroups = new Array(nodes.length);
-    nodes.forEach((n, i) => {
-      strengths[n.index] = +strength(node, i, nodes);
+    nodes.forEach((n) => {
+      strengths[n.index] = strength();
       strengthGroups[n.index] = {};
       groups.forEach((group) => {
-        strengthGroups[n.index][group] = strengths[n.index] + group === factor ? -factor : factor;
+        strengthGroups[n.index][group] = strengths[n.index] + (group === n.hullGroup ? FACTOR : -FACTOR);
       });
     });
   }
 
-  function accumulate(quad: any) {
-    let strength = 0;
+  function accumulate(quad: QuadNode | QuadNodes) {
+    let nodeStrength = 0;
     let weight = 0;
+    const groupCounts: { [group: string]: number } = {};
 
     // For internal nodes, accumulate forces from child quadrants.
-    if (quad.length) {
+    if (Array.isArray(quad)) {
       let x = 0;
       let y = 0;
-      for (let i = 0; i < 4; i++) {
-        const q = quad[i];
-        if (q) {
-          const c = Math.abs(q.value);
-          if (c) {
-            strength += q.value;
-            weight += c;
-            x += c * q.x;
-            y += c * q.y;
-          }
+      for (const q of quad) {
+        if (!q) {
+          continue;
         }
+
+        const c = Math.abs(q.value);
+        if (!c) {
+          continue;
+        }
+
+        nodeStrength += q.value;
+        weight += c;
+        x += c * q.x;
+        y += c * q.y;
+
+        Object.keys(q.groups).map((group) => {
+          if (groupCounts[group] === undefined) {
+            groupCounts[group] = 0;
+          }
+
+          groupCounts[group] += q.groups[group];
+        });
       }
       quad.x = x / weight;
       quad.y = y / weight;
     } else {
       let q = quad;
-      const data = q.data as D3Node;
-      q.x = data.x;
-      q.y = data.y;
+      q.x = q.data.x;
+      q.y = q.data.y;
       do {
-        strength += strengths[data.index];
+        nodeStrength += strengths[q.data.index];
+
+        if (q.data.hullGroup !== undefined) {
+          if (groupCounts[q.data.hullGroup] === undefined) {
+            groupCounts[q.data.hullGroup] = 0;
+          }
+
+          groupCounts[q.data.hullGroup]++;
+        }
+
         q = q.next;
       } while (q);
     }
 
-    quad.value = strength;
+    quad.value = nodeStrength;
+    quad.groups = groupCounts;
   }
 
-  function apply(quad: any, x1: number, y1: number, x2: number, y2: number) {
+  function apply(quad: QuadNode, x1: number, _: number, x2: number) {
     if (!quad.value) { return true; }
-    const data = quad.data as D3Node;
+    const data = quad.data;
 
     // The only this that is different from the d3-force implementation is the following line
     // We add node.width / 2 and node.height / 2 to get the force to happen from the center of the nodes
@@ -107,12 +142,25 @@ export default function() {
           l = Math.sqrt(distanceMin2 * l);
         }
 
-        node.vx += x * quad.value * alpha / l;
-        node.vy += y * quad.value * alpha / l;
+        let value: number = quad.value;
+        if (node.hullGroup !== undefined) {
+          const groupCounts = quad.groups;
+          Object.keys(groupCounts).forEach((group) => {
+            const count = groupCounts[group];
+            if (node.hullGroup === +group) {
+              value = Math.min(0, value + FACTOR * count);
+            } else {
+              value -= FACTOR * count;
+            }
+          });
+        }
+
+        node.vx += x * value * alpha / l;
+        node.vy += y * value * alpha / l;
       }
 
       return true;
-    } else if (quad.length || l >= distanceMax2) {
+    } else if (Array.isArray(quad) || l >= distanceMax2) {
       return;
     }
 
@@ -135,7 +183,11 @@ export default function() {
 
     do {
       if (data !== node) {
-        w = strengths[data.index] * alpha / l;
+        if (node.hullGroup !== undefined) {
+          w = strengthGroups[data.index][node.hullGroup] * alpha / l;
+        } else {
+          w = strengths[data.index] * alpha / l;
+        }
         node.vx += x * w;
         node.vy += y * w;
       }
@@ -151,7 +203,7 @@ export default function() {
 
   type Func<T> = () => T;
 
-  force.strength = (_: number | string | Func<string | number> | undefined) => {
+  force.strength = (_: number | Func<number> | undefined) => {
     if (_ === undefined) {
       return strength;
     }
