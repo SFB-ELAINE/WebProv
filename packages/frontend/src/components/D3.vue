@@ -326,9 +326,9 @@ export default class D3 extends Vue implements ID3 {
     g.on('dblclick', checkAndCall(this.nodeDblclick));
 
     if (this.drag) {
-      // @ts-ignore
       // I can't get the types to work out for some reason, this definitely works though
-      g.call(d3.drag()
+      // you can see that I cast as `any` at the end
+      const drag = d3.drag()
         .on('start', (d: d3.SimulationNodeDatum) => {
           if (simulation && !d3.event.active) { simulation.alphaTarget(0.3).restart(); }
           d.fx = d.x;
@@ -342,7 +342,8 @@ export default class D3 extends Vue implements ID3 {
           if (simulation && !d3.event.active) { simulation.alphaTarget(0); }
           d.fx = null;
           d.fy = null;
-        }));
+        });
+      g.call(drag as any);
     }
 
     g.append('text')

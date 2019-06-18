@@ -37,12 +37,14 @@
           :node-outline="nodeOutline"
         ></prov-legend>
         <div class="spacer"></div>
-        <!-- <tools
+        <node-palette
           :node-radius="nodeRadius"
           :node-outline="nodeOutline"
           @create-entity="createEntity"
           @create-activity="createActivity"
-        ></tools> -->
+        ></node-palette>
+        <div class="spacer"></div>
+        <link-type></link-type>
         <div class="spacer"></div>
         <information-card
           v-if="informationFields"
@@ -60,10 +62,11 @@ import { ProvenanceNodeType, ProvenanceNode } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
-import Tools from '@/components/Tools.vue';
+import NodePalette from '@/components/NodePalette.vue';
 import { Lookup, getText, makeLookup, getConnections, getInformationFields } from '@/utils';
 import { D3Hull, D3Node } from '@/d3';
 import Search from '@/components/Search.vue';
+import LinkType from '@/components/LinkType.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
 
@@ -109,7 +112,7 @@ interface HighLevelNode {
 // the models that use that data.
 
 @Component({
-  components: { InformationCard, ProvLegend, D3, Search, Tools },
+  components: { InformationCard, ProvLegend, D3, Search, NodePalette, LinkType },
 })
 export default class Home extends Vue {
   public provenanceNodes = data.nodes.map((node) => ({
@@ -131,6 +134,8 @@ export default class Home extends Vue {
   // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
   public nodeRadius = 10;
+
+  public nodeToPosition: Node | null = null;
 
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
@@ -451,16 +456,31 @@ export default class Home extends Vue {
 
     this.provenanceNodes.push({ id: node.type + node.id, original: node });
     this.nodesToShow[node.type + node.id] = true;
-
     this.calculateLinksNodes();
+
+    // grab the most recent node :)
+    this.nodeToPosition = this.nodes[this.nodes.length - 1];
   }
 
   public createActivity() {
     //
   }
 
+  public move(e: MouseEvent) {
+    console.log(this.nodeToPosition, e.clientX);
+    if (this.nodeToPosition) {
+      this.nodeToPosition.x = e.clientX;
+      this.nodeToPosition.y = e.clientY;
+    }
+  }
+
   public mounted() {
+    window.addEventListener('mousemove', this.move);
     this.calculateLinksNodes();
+  }
+
+  public destroyed() {
+    window.removeEventListener('mousemove', this.move);
   }
 }
 </script>
