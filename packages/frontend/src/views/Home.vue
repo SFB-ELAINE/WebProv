@@ -135,8 +135,6 @@ export default class Home extends Vue {
   public nodeOutline: string = 'rgb(22, 89, 136)';
   public nodeRadius = 10;
 
-  public nodeToPosition: Node | null = null;
-
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
 
@@ -442,7 +440,7 @@ export default class Home extends Vue {
     this.nodes = nodes;
   }
 
-  public createEntity() {
+  public createActivity() {
     const node: ProvenanceNode = {
       type: 'model-building-activity',
       modelId: 1,
@@ -456,31 +454,12 @@ export default class Home extends Vue {
 
     this.provenanceNodes.push({ id: node.type + node.id, original: node });
     this.nodesToShow[node.type + node.id] = true;
+    this.expanded[node.modelId] = true;
     this.calculateLinksNodes();
-
-    // grab the most recent node :)
-    this.nodeToPosition = this.nodes[this.nodes.length - 1];
   }
 
-  public createActivity() {
+  public createEntity() {
     //
-  }
-
-  public move(e: MouseEvent) {
-    console.log(this.nodeToPosition, e.clientX);
-    if (this.nodeToPosition) {
-      this.nodeToPosition.x = e.clientX;
-      this.nodeToPosition.y = e.clientY;
-    }
-  }
-
-  public mounted() {
-    window.addEventListener('mousemove', this.move);
-    this.calculateLinksNodes();
-  }
-
-  public destroyed() {
-    window.removeEventListener('mousemove', this.move);
   }
 }
 </script>

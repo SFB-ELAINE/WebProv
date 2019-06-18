@@ -155,6 +155,14 @@ export default function() {
           });
         }
 
+        // OK I added this to add a slight attraction force as nodes move away from each other
+        // See an example graph here: https://www.desmos.com/calculator/u1nhry5ozb
+        // The key this is that the nodes will start attracting after a distance of 800 (pixels I think)
+        // The tanh makes it slightly gradual; however, I think think this does much given the scale.
+        // Also 700 was kinda arbitrary. We could make it something the user could set and then set it
+        // automatically based on the size of the users screen.
+        value = value * -Math.tanh(l - 700 ** 2);
+
         node.vx += x * value * alpha / l;
         node.vy += y * value * alpha / l;
       }
