@@ -40,6 +40,9 @@ export default class Node extends Vue {
       onDidDblclick()  {
         that.$emit('dblclick', this);
       },
+      onDidRightClick()  {
+        that.$emit('contextmenu', this);
+      },
     });
   }
 

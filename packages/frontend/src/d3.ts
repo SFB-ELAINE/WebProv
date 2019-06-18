@@ -32,10 +32,13 @@ export interface D3Node {
   x: number;
   y: number;
   hullGroup?: number;
-  onDidClick?: () => void;
-  onDidDblclick?: () => void;
-  onDidMousedown?: () => void;
+  onDidClick?: (e: MouseEvent) => void;
+  onDidDblclick?: (e: MouseEvent) => void;
+  onDidMousedown?: (e: MouseEvent) => void;
+  onDidRightClick?: (e: MouseEvent) => void;
 }
+
+export type D3NodeCallbackKeys = 'onDidClick' | 'onDidMousedown' | 'onDidDblclick' | 'onDidRightClick';
 
 export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;
 

@@ -287,6 +287,11 @@ export default class Home extends Vue {
     }
   }
 
+  public nodeRightClick(e: MouseEvent) {
+    e.preventDefault();
+    console.log('HELLO');
+  }
+
   public actionClick(d: Node) {
     // OK so, when the user wants to see the incoming connections by clicking "See more",
     // we need to (recursively) expand all outgoing connections for all of the incoming nodes
@@ -352,6 +357,7 @@ export default class Home extends Vue {
           text: `M${n.modelId}`,
           width: 50,
           height: this.nodeHeight,
+          onDidRightClick: this.nodeRightClick,
         };
 
         models.add(n.modelId);
@@ -430,6 +436,7 @@ export default class Home extends Vue {
         // ALSO, * 8 just kinda works well and 10 is the padding
         width: text.length * 8 + 10,
         height: this.nodeHeight,
+        onDidRightClick: this.nodeRightClick,
       });
     });
 
