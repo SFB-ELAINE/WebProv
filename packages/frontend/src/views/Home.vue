@@ -77,8 +77,18 @@ import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import NodePalette from '@/components/NodePalette.vue';
-import { Lookup, getText, makeLookup, getConnections, getInformationFields, once, addEventListeners, makeConnection, isValidConnection } from '@/utils';
-import { D3Hull, D3Node, ID3 } from '@/d3';
+import {
+  Lookup,
+  getText,
+  makeLookup,
+  getConnections,
+  getInformationFields,
+  once,
+  addEventListeners,
+  makeConnection,
+  isValidConnection,
+} from '@/utils';
+import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
 import LinkType from '@/components/LinkType.vue';
 import { SearchItem, search } from '@/search';
@@ -102,9 +112,7 @@ interface SingleNode extends BaseNode {
 
 type Node = SingleNode | GroupNode;
 
-interface Link {
-  source: string;
-  target: string;
+interface Link extends D3Link {
   color: string;
 }
 
@@ -179,8 +187,11 @@ export default class Home extends Vue {
   // Instead, they are initially placed at the location of the clicked node
   public pointToPlaceNode = { x: 0, y: 0 };
 
+  // Used when drawing line in edit mode
   public lineStart: Point | null = null;
   public lineEnd: Point | null = null;
+
+  public selectedConnection: Connection | null = null;
 
   get nodeLookup() {
     return makeLookup(this.nodes);
@@ -330,12 +341,12 @@ export default class Home extends Vue {
 
     const getNodesInRange = (ev: MouseEvent) => {
       return this.nodes
-          .filter(isSingleNode)
-          .filter((n) => {
-            const ul = n;
-            const lr = { x: n.x + n.width, y: n.y + n.height };
-            return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
-          });
+        .filter(isSingleNode)
+        .filter((n) => {
+          const ul = n;
+          const lr = { x: n.x + n.width, y: n.y + n.height };
+          return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
+        });
     };
 
 
@@ -384,8 +395,10 @@ export default class Home extends Vue {
           }
 
           const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
-          makeConnection(node.provenanceNode, nodeToMakeConnection.provenanceNode);
-          this.calculateLinksNodes();
+          const madeConnection = makeConnection(node.provenanceNode, nodeToMakeConnection.provenanceNode);
+          if (madeConnection) {
+            this.calculateLinksNodes();
+          }
         }
       },
     });
@@ -487,11 +500,29 @@ export default class Home extends Vue {
           return;
         }
 
-        links.push({
+        const link: Link = {
           source,
           target,
           color: c.color,
-        });
+          onDidClick: () => {
+            this.selectedConnection = c;
+
+            const a = this.selectedConnection.source.node;
+            const b = this.selectedConnection.target.node;
+
+            if (a.type !== 'model-building-activity') {
+              return;
+            }
+
+            if (b.type !== 'wet-lab-data' && b.type !== 'simulation-data') {
+              return;
+            }
+
+            console.log('HHHHHW');
+          },
+        };
+
+        links.push(link);
       });
 
       // tslint:disable-next-line:no-console

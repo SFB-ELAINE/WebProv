@@ -152,7 +152,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
   }
 
   public addLink(link: D3Link) {
-    this.allLinks.push({
+    this.addedLinks.push({
       ...link,
       color: link.color ? link.color : this.defaultStrokeColor,
     });
@@ -163,9 +163,9 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
   }
 
   public calcWidth(text?: string) {
-      // 8 just kinda works well (10 is the padding)
-      return (text === undefined ? 0 : text.length * 8) + 10;
-    }
+    // 8 just kinda works well (10 is the padding)
+    return (text === undefined ? 0 : text.length * 8) + 10;
+  }
 
   public convexHulls() {
     const hulls: { [group: string]: { points: Array<[number, number]>, nodes: D3Node[] } } = {};
@@ -274,6 +274,12 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
       .join('line')
       .attr('stroke-width', (d) => 3)
       .attr('stroke', (d) => d.color);
+
+    link.on('click', (d) => {
+      if (d.onDidClick) {
+        d.onDidClick(d3.event);
+      }
+    });
 
     if (!simulation) {
       const calcPosition = (xy: 'x' | 'y', st: 'source' | 'target') => (d: D3Link) => {
@@ -417,7 +423,6 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
   public setStrokeColor(node: D3Node, color: string) {
     node.stroke = color;
     if (this.selection) {
-      console.log(`#${node.id}`, this.selection.select(`#${node.id}`).size());
       this.selection.select(`#${node.id}`)
         .style('stroke', (d) => d.stroke);
     }

@@ -16,6 +16,7 @@ export interface D3Link {
   source: string;
   target: string;
   color?: string;
+  onDidClick?: (e: MouseEvent) => void;
 }
 
 export interface D3Node {
