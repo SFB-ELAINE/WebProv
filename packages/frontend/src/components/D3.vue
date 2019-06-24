@@ -123,6 +123,8 @@ export default class D3 extends Vue implements ID3 {
   public addedLinks: MyLink[] = [];
   public addedNodes: D3Node[] = [];
 
+  public selection: d3.Selection<any, D3Node, any, any> | null = null;
+
   public curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
 
   get allNodes() {
@@ -292,7 +294,7 @@ export default class D3 extends Vue implements ID3 {
       link.attr('marker-end', (d) => `url(#${id}-${d.color})`);
     }
 
-    const g = svg.append('g')
+    const g = this.selection = svg.append('g')
       .attr('stroke', '#fff')
       .selectAll('.node')
       .data(this.allNodes)
@@ -301,6 +303,7 @@ export default class D3 extends Vue implements ID3 {
 
     g
       .append('rect')
+      .attr('id', (d) => d.id)
       .attr('width', (d) => d.width)
       .attr('height', (d) => d.height)
       .attr('fill', (d) => 'white')
@@ -315,7 +318,7 @@ export default class D3 extends Vue implements ID3 {
     const checkAndCallV2 = (key: D3NodeCallbackKeys) => (d: D3Node) => {
       const cb = d[key];
       if (cb) {
-        cb(d3.event);
+        cb(d3.event, d, this);
       }
     };
 
@@ -409,6 +412,14 @@ export default class D3 extends Vue implements ID3 {
 
     // make sure we increase the id for next time render of this component
     id++;
+  }
+
+  public setStrokeColor(node: D3Node, color: string) {
+    node.stroke = color;
+    if (this.selection) {
+      this.selection.select(`#${node.id}`)
+        .style('stroke', (d) => d.stroke);
+    }
   }
 
   public mounted() {

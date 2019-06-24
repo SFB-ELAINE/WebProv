@@ -32,20 +32,21 @@ export interface D3Node {
   x: number;
   y: number;
   hullGroup?: number;
-  onDidClick?: (e: MouseEvent) => void;
-  onDidDblclick?: (e: MouseEvent) => void;
-  onDidMousedown?: (e: MouseEvent) => void;
-  onDidRightClick?: (e: MouseEvent) => void;
+  onDidClick?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
+  onDidDblclick?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
+  onDidMousedown?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
+  onDidRightClick?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
 }
 
 export type D3NodeCallbackKeys = 'onDidClick' | 'onDidMousedown' | 'onDidDblclick' | 'onDidRightClick';
 
 export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;
 
-export interface ID3 extends Vue {
+export interface ID3 {
   isD3: true;
   addLink(link: D3Link): void;
   addNode(node: D3Node): void;
+  setStrokeColor(node: D3Node, color: string): void;
 }
 
 export const isD3 = (component: any): component is ID3 => {

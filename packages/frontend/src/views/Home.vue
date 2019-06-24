@@ -14,6 +14,20 @@
       :hull-dblclick="hullDblclick"
       :action-click="actionClick"
     ></d3>
+    <svg
+      :height="height"
+      :width="width"
+      style="position: absolute; top: 0; left: 0; pointer-events: none;"
+    >
+      <line
+        :x1="lineStart ? lineStart.x : 0"
+        :y1="lineStart ? lineStart.y : 0"
+        :x2="lineEnd ? lineEnd.x : 0"
+        :y2="lineEnd ? lineEnd.y : 0"
+        stroke-dasharray="4"
+        stroke="black"
+      ></line>
+    </svg>
     <div class="overlay">
       <search
         class="search overlay-child" 
@@ -63,8 +77,8 @@ import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import NodePalette from '@/components/NodePalette.vue';
-import { Lookup, getText, makeLookup, getConnections, getInformationFields } from '@/utils';
-import { D3Hull, D3Node } from '@/d3';
+import { Lookup, getText, makeLookup, getConnections, getInformationFields, once, addEventListeners } from '@/utils';
+import { D3Hull, D3Node, ID3 } from '@/d3';
 import Search from '@/components/Search.vue';
 import LinkType from '@/components/LinkType.vue';
 import { SearchItem, search } from '@/search';
@@ -107,6 +121,11 @@ interface HighLevelNode {
   incoming: Connection[];
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
@@ -133,6 +152,7 @@ export default class Home extends Vue {
 
   // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
+  public selectedOutline: string = 'rgb(55, 130, 33)';
   public nodeRadius = 10;
 
   // which models are currently expanded
@@ -152,6 +172,9 @@ export default class Home extends Vue {
   // Used when users click the "See more" button so that new nodes aren't placed at 0, 0
   // Instead, they are initially placed at the location of the clicked node
   public pointToPlaceNode = { x: 0, y: 0 };
+
+  public lineStart: Point | null = null;
+  public lineEnd: Point | null = null;
 
   get nodeLookup() {
     return makeLookup(this.nodes);
@@ -287,9 +310,56 @@ export default class Home extends Vue {
     }
   }
 
-  public nodeRightClick(e: MouseEvent) {
+  public nodeRightClick(e: MouseEvent, node: D3Node, action: ID3) {
     e.preventDefault();
-    console.log('HELLO');
+    const setCenter = () => {
+      this.lineStart = {
+        x: node.x + node.width / 2,
+        y: node.y + node.height / 2,
+      };
+    };
+
+    action.setStrokeColor(node, this.selectedOutline);
+
+    let selectedNode: D3Node | null = null;
+    const remove = addEventListeners({
+      mousemove: (ev: MouseEvent) => {
+        this.lineEnd = ev;
+        setCenter();
+
+        const nodesInRange = this.nodes
+          .filter((n) => {
+            const ul = n;
+            const lr = { x: n.x + n.width, y: n.y + n.height };
+            return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
+          });
+
+        // reset the color of the previously selected node
+        // TODO this will cause a bug if the node was initially colored something else
+        if (selectedNode) {
+          action.setStrokeColor(selectedNode, this.nodeOutline);
+        }
+
+        if (nodesInRange.length === 0) {
+          return;
+        }
+
+        selectedNode = nodesInRange[nodesInRange.length - 1];
+        action.setStrokeColor(selectedNode, this.selectedOutline);
+      },
+      mouseup: (ev: MouseEvent) => {
+        if (ev.which === 3) { // right click
+          remove();
+          this.lineStart = null;
+          this.lineEnd = null;
+
+          action.setStrokeColor(node, this.nodeOutline);
+          if (selectedNode) {
+            action.setStrokeColor(selectedNode, this.nodeOutline);
+          }
+        }
+      },
+    });
   }
 
   public actionClick(d: Node) {

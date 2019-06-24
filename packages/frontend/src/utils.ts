@@ -121,3 +121,65 @@ export function getInformationFields(node: ProvenanceNode, title: string) {
 
   return fields;
 }
+
+type Events = keyof WindowEventMap;
+
+type EventListener<K extends Events> = (ev: WindowEventMap[K]) => any;
+
+export const once = <K extends Events>(
+  type: K,
+  listener: EventListener<K>,
+  options?: boolean | AddEventListenerOptions,
+) => {
+  function callAndRemove(ev: WindowEventMap[K]) {
+    listener(ev);
+    window.removeEventListener(type, listener);
+  }
+
+  window.addEventListener(type, callAndRemove, options);
+};
+
+export const addEventListener = <K extends Events>(
+  type: K,
+  ev: EventListener<K>,
+  options?: boolean | AddEventListenerOptions,
+) => {
+  window.addEventListener(type, ev, options);
+
+  return () => {
+    window.removeEventListener(type, ev);
+  };
+};
+
+type EventListeners = {
+  [P in keyof WindowEventMap]?: EventListener<P> | 'remove';
+};
+
+export const addEventListeners = (
+  events: EventListeners,
+  options?: boolean | AddEventListenerOptions,
+) => {
+  const types = Object.keys(events) as Events[];
+
+  const remove = () => {
+    for (const type of types) {
+      const ev = events[type];
+      if (ev === 'remove') {
+        continue;
+      }
+
+      window.removeEventListener(type, ev as any);
+    }
+  };
+
+  for (const type of types) {
+    const ev = events[type];
+    if (ev === 'remove') {
+      events[type] = remove;
+    }
+    window.addEventListener(type, ev as any, options);
+  }
+
+
+  return remove;
+};
