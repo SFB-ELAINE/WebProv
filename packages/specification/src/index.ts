@@ -54,7 +54,7 @@ export interface ModelExplorationActivity {
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
-  type: 'model exploration activity';
+  type: 'model-exploration-activity';
 
   /**
    * The model that the exploration activity was based on. It can only be based on one model.
@@ -130,7 +130,7 @@ export interface WetLabData {
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
-  type: 'wet-lab data';
+  type: 'wet-lab-data';
 
   /**
    * The model information associated with this wet lab data. Only some wet lab data will come from a specific publication.
@@ -162,7 +162,7 @@ export interface SimulationData {
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
-  type: 'simulation data';
+  type: 'simulation-data';
 
   /**
    * The name of the simulation.

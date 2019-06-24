@@ -32,24 +32,24 @@ export interface D3Node {
   x: number;
   y: number;
   hullGroup?: number;
-  onDidClick?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
-  onDidDblclick?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
-  onDidMousedown?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
-  onDidRightClick?: (e: MouseEvent, node: D3Node, d3: ID3) => void;
+  onDidClick?: (e: MouseEvent, node: this, d3: ID3<this>) => void;
+  onDidDblclick?: (e: MouseEvent, node: this, d3: ID3<this>) => void;
+  onDidMousedown?: (e: MouseEvent, node: this, d3: ID3<this>) => void;
+  onDidRightClick?: (e: MouseEvent, node: this, d3: ID3<this>) => void;
 }
 
 export type D3NodeCallbackKeys = 'onDidClick' | 'onDidMousedown' | 'onDidDblclick' | 'onDidRightClick';
 
 export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;
 
-export interface ID3 {
+export interface ID3<N extends D3Node> {
   isD3: true;
   addLink(link: D3Link): void;
-  addNode(node: D3Node): void;
-  setStrokeColor(node: D3Node, color: string): void;
+  addNode(node: N): void;
+  setStrokeColor(node: N, color: string): void;
 }
 
-export const isD3 = (component: any): component is ID3 => {
+export const isD3 = <N extends D3Node>(component: any): component is ID3<N> => {
   return component.isD3 === true;
 };
 

@@ -101,7 +101,7 @@ const hullForce = () => {
 };
 
 @Component
-export default class D3 extends Vue implements ID3 {
+export default class D3<N extends D3Node> extends Vue implements ID3<N> {
   @Prop({ type: String, default: '#000' }) public defaultStrokeColor!: string;
   @Prop({ type: Boolean, default: false }) public arrows!: boolean;
   @Prop({ type: Boolean, default: false }) public force!: boolean;
@@ -417,6 +417,7 @@ export default class D3 extends Vue implements ID3 {
   public setStrokeColor(node: D3Node, color: string) {
     node.stroke = color;
     if (this.selection) {
+      console.log(`#${node.id}`, this.selection.select(`#${node.id}`).size());
       this.selection.select(`#${node.id}`)
         .style('stroke', (d) => d.stroke);
     }
@@ -426,12 +427,12 @@ export default class D3 extends Vue implements ID3 {
     this.doRender();
   }
 
-  @Watch<D3>('nodes')
+  @Watch<D3<any>>('nodes')
   public reRenderNodes() {
     this.doRender();
   }
 
-  @Watch<D3>('links')
+  @Watch<D3<any>>('links')
   public reRenderLinks() {
     this.doRender();
   }

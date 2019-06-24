@@ -13,7 +13,7 @@ const WX_7: WetLabData = {
   id: 7,
   modelId: 1,
   name: 'Wx_7',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'Xenopus egg extract',
   },
@@ -23,7 +23,7 @@ const W1_1: WetLabData = {
   id: 8,
   modelId: 1,
   name: 'W1_1',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'Xenopus egg extract',
   },
@@ -33,7 +33,7 @@ const W1_2: WetLabData = {
   id: 9,
   modelId: 1,
   name: 'W1_2',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'Xenopus egg extract',
   },
@@ -53,7 +53,7 @@ const MBA_3: ModelBuildingActivity = {
 const S1_1: SimulationData = {
   id: 3,
   modelId: 1,
-  type: 'simulation data',
+  type: 'simulation-data',
   name: 'S1_1',
   wasGeneratedByModelBuildingActivity: MBA_3,
   wasGeneratedByModelExplorationActivity: null,
@@ -78,14 +78,14 @@ const model3: Model = {
 const MEA: ModelExplorationActivity = {
   id: 1,
   modelId: 1,
-  type: 'model exploration activity',
+  type: 'model-exploration-activity',
   used: model3,
 };
 
 const S1_2: SimulationData = {
   id: 4,
   modelId: 1,
-  type: 'simulation data',
+  type: 'simulation-data',
   name: 'S1_2',
   wasGeneratedByModelBuildingActivity: null,
   wasGeneratedByModelExplorationActivity: MEA,
@@ -102,7 +102,7 @@ const W12_1: WetLabData = {
   id: 1,
   modelId: 12,
   name: 'W12_1',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'hNPCs',
   },
@@ -112,7 +112,7 @@ const WX_1: WetLabData = {
   id: 2,
   modelId: 12,
   name: 'Wx_1',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'HEK293T',
   },
@@ -122,7 +122,7 @@ const WX_2: WetLabData = {
   id: 3,
   modelId: 12,
   name: 'Wx_2',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
   },
@@ -143,7 +143,7 @@ const MBA_1: ModelBuildingActivity = {
 const S12_1: SimulationData = {
   id: 1,
   modelId: 12,
-  type: 'simulation data',
+  type: 'simulation-data',
   name: 'S12_1',
   wasGeneratedByModelBuildingActivity: MBA_1,
   wasGeneratedByModelExplorationActivity: null,
@@ -163,7 +163,7 @@ const W12_2: WetLabData = {
   id: 4,
   modelId: 12,
   name: 'W12_2',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'hNPCs',
   },
@@ -173,7 +173,7 @@ const W12_3: WetLabData = {
   id: 5,
   modelId: 12,
   name: 'W12_3',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
   },
@@ -183,7 +183,7 @@ const WX_3: WetLabData = {
   id: 6,
   modelId: 12,
   name: 'Wx_3',
-  type: 'wet-lab data',
+  type: 'wet-lab-data',
   information: {
     'Cell line': 'hNPCs',
   },
@@ -203,7 +203,7 @@ const MBA_2: ModelBuildingActivity = {
 const S12_2: SimulationData = {
   id: 2,
   modelId: 12,
-  type: 'simulation data',
+  type: 'simulation-data',
   name: 'S12_2',
   wasGeneratedByModelBuildingActivity: MBA_2,
   wasGeneratedByModelExplorationActivity: null,

@@ -77,7 +77,7 @@ import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import NodePalette from '@/components/NodePalette.vue';
-import { Lookup, getText, makeLookup, getConnections, getInformationFields, once, addEventListeners } from '@/utils';
+import { Lookup, getText, makeLookup, getConnections, getInformationFields, once, addEventListeners, makeConnection, isValidConnection } from '@/utils';
 import { D3Hull, D3Node, ID3 } from '@/d3';
 import Search from '@/components/Search.vue';
 import LinkType from '@/components/LinkType.vue';
@@ -126,6 +126,10 @@ interface Point {
   y: number;
 }
 
+const isSingleNode = (node: Node): node is SingleNode => {
+  return !node.isGroup;
+};
+
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
@@ -152,7 +156,9 @@ export default class Home extends Vue {
 
   // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
-  public selectedOutline: string = 'rgb(55, 130, 33)';
+  public validEndpointOutline: string = 'rgb(55, 130, 33)';
+  public invalidEndpointOutline: string = 'rgb(130, 55, 33)';
+
   public nodeRadius = 10;
 
   // which models are currently expanded
@@ -271,7 +277,7 @@ export default class Home extends Vue {
   public search(pattern: string) {
     const items: SearchItem[] =  this.provenanceNodes.map(({ id, original: n }) => {
       const information =
-        n.type === 'wet-lab data' &&
+        n.type === 'wet-lab-data' &&
         n.information ?
         Object.values(n.information) : [];
 
@@ -310,7 +316,8 @@ export default class Home extends Vue {
     }
   }
 
-  public nodeRightClick(e: MouseEvent, node: D3Node, action: ID3) {
+  // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
+  public nodeRightClick(e: MouseEvent, node: SingleNode, action: ID3<any>) {
     e.preventDefault();
     const setCenter = () => {
       this.lineStart = {
@@ -319,33 +326,46 @@ export default class Home extends Vue {
       };
     };
 
-    action.setStrokeColor(node, this.selectedOutline);
+    action.setStrokeColor(node, this.validEndpointOutline);
 
-    let selectedNode: D3Node | null = null;
-    const remove = addEventListeners({
-      mousemove: (ev: MouseEvent) => {
-        this.lineEnd = ev;
-        setCenter();
-
-        const nodesInRange = this.nodes
+    const getNodesInRange = (ev: MouseEvent) => {
+      return this.nodes
+          .filter(isSingleNode)
           .filter((n) => {
             const ul = n;
             const lr = { x: n.x + n.width, y: n.y + n.height };
             return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
           });
+    };
+
+
+    let selectedNode: SingleNode | null = null;
+    const remove = addEventListeners({
+      mousemove: (ev: MouseEvent) => {
+        this.lineEnd = ev;
+        setCenter();
+        const nodesInRange = getNodesInRange(ev);
 
         // reset the color of the previously selected node
         // TODO this will cause a bug if the node was initially colored something else
         if (selectedNode) {
           action.setStrokeColor(selectedNode, this.nodeOutline);
+          selectedNode = null;
         }
 
         if (nodesInRange.length === 0) {
           return;
         }
 
+        const top = nodesInRange[nodesInRange.length - 1];
+        const valid = isValidConnection(node.provenanceNode, top.provenanceNode);
+        const color = valid ? this.validEndpointOutline : this.invalidEndpointOutline;
+
+        // Grab the node on top
         selectedNode = nodesInRange[nodesInRange.length - 1];
-        action.setStrokeColor(selectedNode, this.selectedOutline);
+
+        action.setStrokeColor(selectedNode, color);
+
       },
       mouseup: (ev: MouseEvent) => {
         if (ev.which === 3) { // right click
@@ -357,6 +377,15 @@ export default class Home extends Vue {
           if (selectedNode) {
             action.setStrokeColor(selectedNode, this.nodeOutline);
           }
+
+          const nodesInRange = getNodesInRange(ev);
+          if (nodesInRange.length === 0) {
+            return;
+          }
+
+          const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
+          makeConnection(node.provenanceNode, nodeToMakeConnection.provenanceNode);
+          this.calculateLinksNodes();
         }
       },
     });
@@ -427,7 +456,6 @@ export default class Home extends Vue {
           text: `M${n.modelId}`,
           width: 50,
           height: this.nodeHeight,
-          onDidRightClick: this.nodeRightClick,
         };
 
         models.add(n.modelId);
@@ -482,7 +510,7 @@ export default class Home extends Vue {
       const text = getText(n);
       const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
 
-      const isEntity = n.type === 'wet-lab data' || n.type === 'simulation data';
+      const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data';
       nodes.push({
         isGroup: false,
         isEntity,
@@ -536,7 +564,17 @@ export default class Home extends Vue {
   }
 
   public createEntity() {
-    //
+    const node: ProvenanceNode = {
+      type: 'wet-lab-data',
+      name: 'Wx_x',
+      modelId: 1,
+      id: Math.floor(Math.random() * 10000),
+    };
+
+    this.provenanceNodes.push({ id: node.type + node.id, original: node });
+    this.nodesToShow[node.type + node.id] = true;
+    this.expanded[node.modelId] = true;
+    this.calculateLinksNodes();
   }
 }
 </script>
