@@ -72,7 +72,7 @@ export const relationshipRules: RelationshipRules = {
   }
 };
 
-interface ProvenanceNodeConnection {
+export interface ProvenanceNodeConnection {
   id: number;
   target: ProvenanceNode;
   type: ProvenanceNodeRelationships;

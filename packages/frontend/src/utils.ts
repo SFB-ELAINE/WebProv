@@ -96,6 +96,10 @@ export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: Conne
     return false;
   }
 
+  if (!opts.type) {
+    return false;
+  }
+
   const isValid = rules.some((rule) => {
     if (typeof rule === 'string') {
       return rule === opts.type;
@@ -111,7 +115,7 @@ export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: Conne
   if (doConnection) {
     a.connections.push({
       id: Math.round(Math.random() * 10000), // TODO JACOB
-      type: 'used',
+      type: opts.type,
       target: b,
     });
   }

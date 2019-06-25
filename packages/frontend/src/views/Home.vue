@@ -60,7 +60,8 @@
         <div class="spacer"></div>
         <link-type
           v-if="currentRelationship"
-          v-model="currentRelationship"
+          :value="currentRelationship"
+          @input="changeRelationship"
           :relationships="possibleRelationships"
           @close="cancelRelationshipSelection"
         ></link-type>
@@ -82,6 +83,7 @@ import {
   ProvenanceNode,
   relationshipRules,
   ProvenanceNodeRelationships,
+  ProvenanceNodeConnection,
 } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
@@ -129,6 +131,7 @@ interface Link extends D3Link {
 
 interface Connection {
   relationship: ProvenanceNodeRelationships;
+  original: ProvenanceNodeConnection;
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -254,12 +257,13 @@ export default class Home extends Vue {
         checkAndAdd(targetId, connection.target);
         const target = nodeLookup[targetId];
 
-        const d3Connection = {
+        const d3Connection: Connection = {
           relationship: connection.type,
+          original: connection,
           color: relationshipColors[connection.type].color,
           source,
           target,
-        } as Connection;
+        };
 
         source.outgoing.push(d3Connection);
         target.incoming.push(d3Connection);
@@ -384,6 +388,7 @@ export default class Home extends Vue {
         relationship = getDefaultRelationshipType(a.type, b.type);
       }
 
+      console.log(a.type, b.type, relationship);
       return relationship;
     };
 
@@ -418,7 +423,7 @@ export default class Home extends Vue {
 
       },
       mouseup: (ev: MouseEvent) => {
-        if (ev.which === 3) { // right click
+        if (ev.which === 3) { // right click up
           remove();
           this.lineStart = null;
           this.lineEnd = null;
@@ -675,19 +680,19 @@ export default class Home extends Vue {
     this.possibleRelationships = null;
   }
 
-  @Watch<Home>('currentRelationship')
-  public changeRelationship() {
+  public changeRelationship(relationship: ProvenanceNodeRelationships) {
     if (!this.selectedConnection) {
       return;
     }
 
+    const originalConnection = this.selectedConnection.original;
+
     const a = this.selectedConnection.source.node;
     const b = this.selectedConnection.target.node;
 
-    switch (a.type) {
-      case 'model-building-activity':
-
-    }
+    this.currentRelationship = relationship;
+    originalConnection.type = relationship;
+    this.calculateLinksNodes();
   }
 }
 </script>
