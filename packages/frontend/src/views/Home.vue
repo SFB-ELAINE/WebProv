@@ -64,6 +64,7 @@
           @input="changeRelationship"
           :relationships="possibleRelationships"
           @close="cancelRelationshipSelection"
+          @delete="deleteRelationship"
         ></link-type>
         <div class="spacer"></div>
         <information-card
@@ -378,17 +379,16 @@ export default class Home extends Vue {
     };
 
     const getRelationship = (a: ProvenanceNode, b: ProvenanceNode) => {
-      const defaultRelationshipMap = this.cachedConnections[a.type];
-      let relationship: ProvenanceNodeRelationships | undefined;
-      if (defaultRelationshipMap) {
-        relationship = defaultRelationshipMap[b.type];
+      let defaultRelationshipMap = this.cachedConnections[a.type];
+      if (!defaultRelationshipMap) {
+        defaultRelationshipMap = this.cachedConnections[a.type] = {};
       }
 
+      let relationship =  defaultRelationshipMap[b.type];
       if (!relationship) {
-        relationship = getDefaultRelationshipType(a.type, b.type);
+        relationship = defaultRelationshipMap[b.type] = getDefaultRelationshipType(a.type, b.type);
       }
 
-      console.log(a.type, b.type, relationship);
       return relationship;
     };
 
@@ -690,9 +690,31 @@ export default class Home extends Vue {
     const a = this.selectedConnection.source.node;
     const b = this.selectedConnection.target.node;
 
+    const cached = this.cachedConnections[a.type] = this.cachedConnections[a.type] || {};
+    cached[b.type] = relationship;
+
     this.currentRelationship = relationship;
     originalConnection.type = relationship;
     this.calculateLinksNodes();
+  }
+
+  public deleteRelationship() {
+    if (!this.selectedConnection) {
+      return;
+    }
+
+    const selectedConnection = this.selectedConnection;
+    const source = this.selectedConnection.source;
+    if (!source.node.connections) {
+      return;
+    }
+
+    source.node.connections = source.node.connections.filter((connection) => {
+      return connection.id !== selectedConnection.original.id;
+    });
+
+    this.calculateLinksNodes();
+    this.cancelRelationshipSelection();
   }
 }
 </script>

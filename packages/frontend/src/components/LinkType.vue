@@ -5,10 +5,10 @@
         <option v-for="r in relationships" :key="r" :value="r">{{ r }}</option>
       </b-select>
     </b-field>
-    <!-- <template v-slot:footer> -->
-      <!-- <a class="card-footer-item" @click="$emit('cancel')">Cancel</a> -->
-      <!-- <a class="card-footer-item" @click="$emit('save')">Save</a> -->
-    <!-- </template> -->
+    <template v-slot:footer>
+      <a class="card-footer-item" @click="$emit('close')">Cancel</a>
+      <a class="card-footer-item" @click="$emit('delete')">Delete</a>
+    </template>
   </card>
 </template>
 
