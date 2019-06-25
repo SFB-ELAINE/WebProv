@@ -161,7 +161,8 @@ export default function() {
         // The tanh makes it slightly gradual; however, I think think this does much given the scale.
         // Also 700 was kinda arbitrary. We could make it something the user could set and then set it
         // automatically based on the size of the users screen.
-        value = value * -Math.tanh(l - 700 ** 2);
+        // The 0.00005 if useful for making a slow transition between repulsion and attraction
+        value = value * -Math.tanh(0.000005 * (l - 700 ** 2));
 
         node.vx += x * value * alpha / l;
         node.vy += y * value * alpha / l;

@@ -43,11 +43,18 @@ const MBA_3: ModelBuildingActivity = {
   id: 3,
   modelId: 1,
   type: 'model-building-activity',
-  wetLabsUsedForCalibration: [WX_7, W1_1],
-  wetLabsUsedForValidation: [W1_2],
-  simulationsUsedForCalibration: [],
-  simulationsUsedForValidation: [],
-  used: [],
+  connections: [
+    {
+      id: 0,
+      target: WX_7,
+      type: 'used-for-calibration',
+    },
+    {
+      id: 1,
+      target: W1_1,
+      type: 'used-for-calibration',
+    },
+  ],
 };
 
 const S1_1: SimulationData = {
@@ -55,8 +62,13 @@ const S1_1: SimulationData = {
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_1',
-  wasGeneratedByModelBuildingActivity: MBA_3,
-  wasGeneratedByModelExplorationActivity: null,
+  connections: [
+    {
+      id: 2,
+      target: MBA_3,
+      type: 'generated-by',
+    },
+  ],
 };
 
 const modelInformation1: ModelInformation = {
@@ -71,15 +83,14 @@ const model3: Model = {
   type: 'model',
   modelInformation: modelInformation1,
   version: 1,
-  wasGeneratedBy: MBA_3,
-  derivedFrom: null,
+  connections: [{ id: 3, target: MBA_3, type: 'generated-by' }],
 };
 
 const MEA: ModelExplorationActivity = {
   id: 1,
   modelId: 1,
   type: 'model-exploration-activity',
-  used: model3,
+  connections: [{ id: 4, target: model3, type: 'used' }],
 };
 
 const S1_2: SimulationData = {
@@ -87,8 +98,7 @@ const S1_2: SimulationData = {
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_2',
-  wasGeneratedByModelBuildingActivity: null,
-  wasGeneratedByModelExplorationActivity: MEA,
+  connections: [{ id: 5, target: MEA, type: 'generated-by' }],
 };
 
 // M12
@@ -133,11 +143,28 @@ const MBA_1: ModelBuildingActivity = {
   id: 1,
   modelId: 12,
   type: 'model-building-activity',
-  wetLabsUsedForCalibration: [W12_1, WX_2, WX_1],
-  wetLabsUsedForValidation: [],
-  simulationsUsedForCalibration: [],
-  simulationsUsedForValidation: [S1_2],
-  used: [],
+  connections: [
+    {
+      id: 6,
+      target: W12_1,
+      type: 'used-for-calibration',
+    },
+    {
+      id: 7,
+      target: WX_2,
+      type: 'used-for-calibration',
+    },
+    {
+      id: 8,
+      target: WX_1,
+      type: 'used-for-calibration',
+    },
+    {
+      id: 9,
+      target: S1_2,
+      type: 'used-for-validation',
+    },
+  ],
 };
 
 const S12_1: SimulationData = {
@@ -145,8 +172,7 @@ const S12_1: SimulationData = {
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_1',
-  wasGeneratedByModelBuildingActivity: MBA_1,
-  wasGeneratedByModelExplorationActivity: null,
+  connections: [{ id: 10, target: MBA_1, type: 'generated-by' }],
 };
 
 const model1: Model = {
@@ -155,8 +181,7 @@ const model1: Model = {
   type: 'model',
   modelInformation: modelInformation12,
   version: 1,
-  wasGeneratedBy: MBA_1,
-  derivedFrom: null,
+  connections: [{ id: 11, target: MBA_1, type: 'generated-by' }],
 };
 
 const W12_2: WetLabData = {
@@ -193,11 +218,28 @@ const MBA_2: ModelBuildingActivity = {
   id: 2,
   modelId: 12,
   type: 'model-building-activity',
-  wetLabsUsedForCalibration: [WX_3],
-  wetLabsUsedForValidation: [W12_2, W12_3],
-  simulationsUsedForCalibration: [],
-  simulationsUsedForValidation: [],
-  used: [model1],
+  connections: [
+    {
+      id: 13,
+      target: WX_3,
+      type: 'used-for-calibration',
+    },
+    {
+      id: 14,
+      target: W12_2,
+      type: 'used-for-validation',
+    },
+    {
+      id: 15,
+      target: W12_3,
+      type: 'used-for-validation',
+    },
+    {
+      id: 16,
+      target: model1,
+      type: 'used',
+    },
+  ],
 };
 
 const S12_2: SimulationData = {
@@ -205,8 +247,7 @@ const S12_2: SimulationData = {
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_2',
-  wasGeneratedByModelBuildingActivity: MBA_2,
-  wasGeneratedByModelExplorationActivity: null,
+  connections: [{ id: 17, target: MBA_2, type: 'generated-by' }],
 };
 
 const model2: Model = {
@@ -215,8 +256,7 @@ const model2: Model = {
   type: 'model',
   modelInformation: modelInformation12,
   version: 2,
-  wasGeneratedBy: MBA_2,
-  derivedFrom: null,
+  connections: [{ id: 18, target: MBA_2, type: 'generated-by' }],
 };
 
 export const nodes: ProvenanceNode[] = [

@@ -324,7 +324,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     const checkAndCallV2 = (key: D3NodeCallbackKeys) => (d: D3Node) => {
       const cb = d[key];
       if (cb) {
-        cb(d3.event, d, this);
+        cb(d3.event, this);
       }
     };
 

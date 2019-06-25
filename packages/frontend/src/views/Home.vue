@@ -58,7 +58,12 @@
           @create-activity="createActivity"
         ></node-palette>
         <div class="spacer"></div>
-        <link-type></link-type>
+        <link-type
+          v-if="currentRelationship"
+          v-model="currentRelationship"
+          :relationships="possibleRelationships"
+          @close="cancelRelationshipSelection"
+        ></link-type>
         <div class="spacer"></div>
         <information-card
           v-if="informationFields"
@@ -71,8 +76,13 @@
 
 <script lang="ts">
 import * as data from '@/assets/test';
-import { NodeRelationship, relationshipColors } from '@/constants';
-import { ProvenanceNodeType, ProvenanceNode } from 'specification';
+import { relationshipColors } from '@/constants';
+import {
+  ProvenanceNodeType,
+  ProvenanceNode,
+  relationshipRules,
+  ProvenanceNodeRelationships,
+} from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
@@ -81,12 +91,13 @@ import {
   Lookup,
   getText,
   makeLookup,
-  getConnections,
   getInformationFields,
   once,
   addEventListeners,
   makeConnection,
   isValidConnection,
+  Watch,
+  getDefaultRelationshipType,
 } from '@/utils';
 import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -117,6 +128,7 @@ interface Link extends D3Link {
 }
 
 interface Connection {
+  relationship: ProvenanceNodeRelationships;
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -133,6 +145,12 @@ interface Point {
   x: number;
   y: number;
 }
+
+export type RelationshipCache = {
+  [A in ProvenanceNodeType]?: {
+    [B in ProvenanceNodeType]?: ProvenanceNodeRelationships;
+  };
+};
 
 const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
@@ -192,6 +210,10 @@ export default class Home extends Vue {
   public lineEnd: Point | null = null;
 
   public selectedConnection: Connection | null = null;
+  public currentRelationship: ProvenanceNodeRelationships | null = null;
+  public possibleRelationships: ProvenanceNodeRelationships[] | null = null;
+
+  public cachedConnections: RelationshipCache = {};
 
   get nodeLookup() {
     return makeLookup(this.nodes);
@@ -223,22 +245,24 @@ export default class Home extends Vue {
 
       checkAndAdd(sourceId, n);
       const source = nodeLookup[sourceId];
+      if (!n.connections) {
+        return;
+      }
 
-      getConnections(n).forEach(([targets, relationship]) => {
-        return targets.map((targetNode) => {
-          const targetId = targetNode.type + targetNode.id;
-          checkAndAdd(targetId, targetNode);
-          const target = nodeLookup[targetId];
+      n.connections.forEach((connection) => {
+        const targetId = connection.target.type + connection.target.id;
+        checkAndAdd(targetId, connection.target);
+        const target = nodeLookup[targetId];
 
-          const connection = {
-            color: relationshipColors[relationship].color,
-            source,
-            target,
-          } as Connection;
+        const d3Connection = {
+          relationship: connection.type,
+          color: relationshipColors[connection.type].color,
+          source,
+          target,
+        } as Connection;
 
-          source.outgoing.push(connection);
-          target.incoming.push(connection);
-        });
+        source.outgoing.push(d3Connection);
+        target.incoming.push(d3Connection);
       });
     });
 
@@ -328,7 +352,7 @@ export default class Home extends Vue {
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
-  public nodeRightClick(e: MouseEvent, node: SingleNode, action: ID3<any>) {
+  public nodeRightClick(e: MouseEvent, node: SingleNode, action: ID3<SingleNode>) {
     e.preventDefault();
     const setCenter = () => {
       this.lineStart = {
@@ -347,6 +371,20 @@ export default class Home extends Vue {
           const lr = { x: n.x + n.width, y: n.y + n.height };
           return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
         });
+    };
+
+    const getRelationship = (a: ProvenanceNode, b: ProvenanceNode) => {
+      const defaultRelationshipMap = this.cachedConnections[a.type];
+      let relationship: ProvenanceNodeRelationships | undefined;
+      if (defaultRelationshipMap) {
+        relationship = defaultRelationshipMap[b.type];
+      }
+
+      if (!relationship) {
+        relationship = getDefaultRelationshipType(a.type, b.type);
+      }
+
+      return relationship;
     };
 
 
@@ -368,12 +406,13 @@ export default class Home extends Vue {
           return;
         }
 
-        const top = nodesInRange[nodesInRange.length - 1];
-        const valid = isValidConnection(node.provenanceNode, top.provenanceNode);
-        const color = valid ? this.validEndpointOutline : this.invalidEndpointOutline;
+        const top = selectedNode = nodesInRange[nodesInRange.length - 1];
+        const a = node.provenanceNode;
+        const b = top.provenanceNode;
 
-        // Grab the node on top
-        selectedNode = nodesInRange[nodesInRange.length - 1];
+        const relationship = getRelationship(a, b);
+        const valid = isValidConnection(a, b, relationship);
+        const color = valid ? this.validEndpointOutline : this.invalidEndpointOutline;
 
         action.setStrokeColor(selectedNode, color);
 
@@ -395,7 +434,11 @@ export default class Home extends Vue {
           }
 
           const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
-          const madeConnection = makeConnection(node.provenanceNode, nodeToMakeConnection.provenanceNode);
+          const a = node.provenanceNode;
+          const b = nodeToMakeConnection.provenanceNode;
+          const relationship = getRelationship(a, b);
+
+          const madeConnection = makeConnection(a, b, { type: relationship });
           if (madeConnection) {
             this.calculateLinksNodes();
           }
@@ -505,20 +548,38 @@ export default class Home extends Vue {
           target,
           color: c.color,
           onDidClick: () => {
+            if (this.selectedConnection === c) {
+              this.cancelRelationshipSelection();
+              return;
+            }
+
             this.selectedConnection = c;
 
-            const a = this.selectedConnection.source.node;
-            const b = this.selectedConnection.target.node;
+            const a = c.source.node;
+            const b = c.target.node;
 
-            if (a.type !== 'model-building-activity') {
+            const aRules = relationshipRules[a.type];
+            if (!aRules) {
               return;
             }
 
-            if (b.type !== 'wet-lab-data' && b.type !== 'simulation-data') {
+            let rules = aRules[b.type];
+            if (!rules) {
               return;
             }
 
-            console.log('HHHHHW');
+            if (typeof rules === 'string') {
+              rules = [rules];
+            }
+
+            this.currentRelationship = c.relationship;
+            this.possibleRelationships = rules.map((rule) => {
+              if (typeof rule === 'string') {
+                return rule;
+              }
+
+              return rule.relationship;
+            });
           },
         };
 
@@ -542,7 +603,7 @@ export default class Home extends Vue {
       const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
 
       const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data';
-      nodes.push({
+      const node: SingleNode = {
         isGroup: false,
         isEntity,
         id: sourceId,
@@ -565,8 +626,12 @@ export default class Home extends Vue {
         // ALSO, * 8 just kinda works well and 10 is the padding
         width: text.length * 8 + 10,
         height: this.nodeHeight,
-        onDidRightClick: this.nodeRightClick,
-      });
+        onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
+          this.nodeRightClick(e, node, id3);
+        },
+      };
+
+      nodes.push(node);
     });
 
     // Make sure to reset this since we are done rendering
@@ -581,11 +646,7 @@ export default class Home extends Vue {
       type: 'model-building-activity',
       modelId: 1,
       id: Math.floor(Math.random() * 10000),
-      wetLabsUsedForValidation: [],
-      wetLabsUsedForCalibration: [],
-      simulationsUsedForValidation: [],
-      simulationsUsedForCalibration: [],
-      used: [],
+      connections: [],
     };
 
     this.provenanceNodes.push({ id: node.type + node.id, original: node });
@@ -606,6 +667,27 @@ export default class Home extends Vue {
     this.nodesToShow[node.type + node.id] = true;
     this.expanded[node.modelId] = true;
     this.calculateLinksNodes();
+  }
+
+  public cancelRelationshipSelection() {
+    this.selectedConnection = null;
+    this.currentRelationship = null;
+    this.possibleRelationships = null;
+  }
+
+  @Watch<Home>('currentRelationship')
+  public changeRelationship() {
+    if (!this.selectedConnection) {
+      return;
+    }
+
+    const a = this.selectedConnection.source.node;
+    const b = this.selectedConnection.target.node;
+
+    switch (a.type) {
+      case 'model-building-activity':
+
+    }
   }
 }
 </script>

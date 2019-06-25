@@ -10,6 +10,12 @@
             {{ title }}
           </p>
           <a class="card-header-icon">
+            <b-icon
+              v-if="closeable"
+              icon="close"
+              size="is-small"
+              @click.native="$emit('close')"
+            ></b-icon>
           </a>
         </div>
       </slot>
@@ -32,6 +38,7 @@ export default Vue.extend({
   props: {
     title: String,
     noCollapse: Boolean,
+    closeable: Boolean,
   },
 });
 </script>
