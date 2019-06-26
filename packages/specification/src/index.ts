@@ -85,6 +85,11 @@ interface BaseNode {
   id: number;
 
   /**
+   * The model id. This information is what links nodes together.
+   */
+  modelId: number;
+
+  /**
    * The connections.
    */
   connections?: ProvenanceNodeConnection[]
@@ -92,22 +97,12 @@ interface BaseNode {
 
 export interface ModelBuildingActivity extends BaseNode {
   /**
-   * The model id. This information is what links nodes together.
-   */
-  modelId: number;
-
-  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'model-building-activity';
 }
 
 export interface ModelExplorationActivity extends BaseNode {
-  /**
-   * The model id. This information is what links nodes together.
-   */
-  modelId: number;
-
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
@@ -123,56 +118,36 @@ export interface ModelInformation {
   /**
    * The model number. This number can be assigned arbitrarily. Should be an integer greater or equal to 1. 
    */
-  modelNumber: number;
+  modelId: number;
 
   /**
    * The information regarding the source of the model. For example, `Haack et al., PLoS comp. bio. 2015`.
    */
-  bibInformation: string;  
+  bibInformation?: string;  
 }
 
 export interface Model extends BaseNode {
   /**
-   * The model id. This information is what links nodes together.
-   */
-  modelId: number;
-
-  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'model';
-  
-  /**
-   * The information associated with this model. Multiple models can have the same information given they have different version numbers. 
-   */
-  modelInformation: ModelInformation;
 
   /**
    * The version! This should start at 1 and then increment for each version. A model should never depend on a model that has a higher version number (or itself). 
    */
-  version: number;
+  version?: number;
 }
 
 export interface WetLabData extends BaseNode {
-  /**
-   * The model id. This information is what links nodes together.
-   */
-  modelId: number;
-
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'wet-lab-data';
 
   /**
-   * The model information associated with this wet lab data. Only some wet lab data will come from a specific publication.
-   */
-  modelInformation?: ModelInformation;
-
-  /**
    * The name of the wet lab experiment. This might be broken up into more specific information.
    */
-  name: string;
+  name?: string;
 
   /**
    * Just extra information about the wet lab data. For example, this might contain cell line information.
@@ -182,11 +157,6 @@ export interface WetLabData extends BaseNode {
 
 export interface SimulationData extends BaseNode {
   /**
-   * The model id. This information is what links nodes together.
-   */
-  modelId: number;
-
-  /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
    */ 
   type: 'simulation-data';
@@ -194,7 +164,7 @@ export interface SimulationData extends BaseNode {
   /**
    * The name of the simulation.
    */
-  name: string;
+  name?: string;
 }
 
 export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;

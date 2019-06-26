@@ -5,6 +5,7 @@ import {
   ProvenanceNodeType,
   relationshipRules,
   ProvenanceNodeRelationships,
+  ModelInformation,
 } from 'specification';
 
 export const makeLookup = <T extends { id: string }>(array: Iterable<T>) => {
@@ -21,24 +22,25 @@ export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
   return W(path, options);
 }
 
-export function getText(n: ProvenanceNode): string {
+interface ModelInformationLookup {
+  [modelId: number]: ModelInformation;
+}
+
+export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
   switch (n.type) {
     case 'wet-lab-data':
-      return n.name;
+      return n.name || 'W';
     case 'model-building-activity':
       return 'MBA';
     case 'simulation-data':
-      return n.name;
+      return n.name || 'S';
     case 'model-exploration-activity':
       return 'MEA';
     case 'model':
-      if (n.version < 1) {
-        throw Error(`Bad model version number: ${n.version}. Expected value >= 1`);
-      }
+      const modelInformation = lookup[n.modelId];
+      let text = `M${modelInformation.modelId}`;
 
-      let text = `M${n.modelInformation.modelNumber}`;
-
-      if (n.version === 1) {
+      if (n.version === undefined || n.version === 1) {
         // Do nothing is the version is 1
       } else if (n.version === 2) {
         // Just add an apostrophe if the version is 2
@@ -48,7 +50,7 @@ export function getText(n: ProvenanceNode): string {
         text += `v${n.version}`;
       }
 
-      return text + ` (${n.modelInformation.bibInformation})`;
+      return text + ` (${modelInformation.bibInformation})`;
   }
 }
 
@@ -57,7 +59,7 @@ export const notNull = <T>(t: T | null): t is T => {
 };
 
 export function getInformationFields(node: ProvenanceNode, title: string) {
-  const fields: Array<[string, string]> = [['Title', title]];
+  const fields: Array<[string, string]> = [['Title', title], ['Model', '' + node.modelId]];
 
   switch (node.type) {
     case 'model-building-activity':
@@ -65,8 +67,6 @@ export function getInformationFields(node: ProvenanceNode, title: string) {
     case 'model-exploration-activity':
       break;
     case 'model':
-      fields.push(['Source', node.modelInformation.bibInformation]);
-      fields.push(['Model Number', '' + node.modelInformation.modelNumber]);
       fields.push(['Version', '' + node.version]);
       break;
     case 'wet-lab-data':

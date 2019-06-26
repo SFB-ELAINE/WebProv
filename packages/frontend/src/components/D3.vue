@@ -115,7 +115,6 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
   @Prop({ type: Array, default: () => [] }) public links!: D3Link[];
   @Prop({ type: Function, required: false }) public hullClick?: (node: D3Hull) => void;
   @Prop({ type: Function, required: false }) public hullDblclick?: (node: D3Hull) => void;
-  @Prop({ type: Function, required: false }) public nodeClick?: (node: D3Node) => void;
   @Prop({ type: Function, required: false }) public nodeDblclick?: (node: D3Node) => void;
   @Prop({ type: Function, required: false }) public actionClick?: (node: D3Node) => void;
 
@@ -332,8 +331,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     g.on('dblclick', checkAndCallV2('onDidDblclick'));
     g.on('mousedown', checkAndCallV2('onDidMousedown'));
     g.on('contextmenu', checkAndCallV2('onDidRightClick'));
-    g.on('click', checkAndCall(this.nodeClick));
-    g.on('dblclick', checkAndCall(this.nodeDblclick));
+    g.on('dblclick', checkAndCall(this.nodeDblclick)); // TODO FIX THIS
 
     if (this.drag) {
       // I can't get the types to work out for some reason, this definitely works though

@@ -10,7 +10,7 @@ import {
 
 // M1
 const WX_7: WetLabData = {
-  id: 7,
+  id: 1,
   modelId: 1,
   name: 'Wx_7',
   type: 'wet-lab-data',
@@ -20,7 +20,7 @@ const WX_7: WetLabData = {
 };
 
 const W1_1: WetLabData = {
-  id: 8,
+  id: 2,
   modelId: 1,
   name: 'W1_1',
   type: 'wet-lab-data',
@@ -30,7 +30,7 @@ const W1_1: WetLabData = {
 };
 
 const W1_2: WetLabData = {
-  id: 9,
+  id: 3,
   modelId: 1,
   name: 'W1_2',
   type: 'wet-lab-data',
@@ -40,7 +40,7 @@ const W1_2: WetLabData = {
 };
 
 const MBA_3: ModelBuildingActivity = {
-  id: 3,
+  id: 4,
   modelId: 1,
   type: 'model-building-activity',
   connections: [
@@ -54,11 +54,16 @@ const MBA_3: ModelBuildingActivity = {
       target: W1_1,
       type: 'used-for-calibration',
     },
+    {
+      id: -1,
+      target: W1_2,
+      type: 'used-for-validation',
+    },
   ],
 };
 
 const S1_1: SimulationData = {
-  id: 3,
+  id: 5,
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_1',
@@ -73,28 +78,27 @@ const S1_1: SimulationData = {
 
 const modelInformation1: ModelInformation = {
   id: 2,
-  modelNumber: 1,
+  modelId: 1,
   bibInformation: 'Lee et al., PLoS bio. 2003',
 };
 
 const model3: Model = {
-  id: 3,
+  id: 6,
   modelId: 1,
   type: 'model',
-  modelInformation: modelInformation1,
   version: 1,
   connections: [{ id: 3, target: MBA_3, type: 'generated-by' }],
 };
 
 const MEA: ModelExplorationActivity = {
-  id: 1,
+  id: 7,
   modelId: 1,
   type: 'model-exploration-activity',
   connections: [{ id: 4, target: model3, type: 'used' }],
 };
 
 const S1_2: SimulationData = {
-  id: 4,
+  id: 8,
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_2',
@@ -104,12 +108,12 @@ const S1_2: SimulationData = {
 // M12
 const modelInformation12: ModelInformation = {
   id: 1,
-  modelNumber: 12,
+  modelId: 12,
   bibInformation: 'Haack et al., PLoS comp. bio. 2015',
 };
 
 const W12_1: WetLabData = {
-  id: 1,
+  id: 9,
   modelId: 12,
   name: 'W12_1',
   type: 'wet-lab-data',
@@ -119,7 +123,7 @@ const W12_1: WetLabData = {
 };
 
 const WX_1: WetLabData = {
-  id: 2,
+  id: 10,
   modelId: 12,
   name: 'Wx_1',
   type: 'wet-lab-data',
@@ -129,7 +133,7 @@ const WX_1: WetLabData = {
 };
 
 const WX_2: WetLabData = {
-  id: 3,
+  id: 11,
   modelId: 12,
   name: 'Wx_2',
   type: 'wet-lab-data',
@@ -140,7 +144,7 @@ const WX_2: WetLabData = {
 
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
-  id: 1,
+  id: 12,
   modelId: 12,
   type: 'model-building-activity',
   connections: [
@@ -168,7 +172,7 @@ const MBA_1: ModelBuildingActivity = {
 };
 
 const S12_1: SimulationData = {
-  id: 1,
+  id: 13,
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_1',
@@ -176,16 +180,15 @@ const S12_1: SimulationData = {
 };
 
 const model1: Model = {
-  id: 1,
+  id: 14,
   modelId: 12,
   type: 'model',
-  modelInformation: modelInformation12,
   version: 1,
   connections: [{ id: 11, target: MBA_1, type: 'generated-by' }],
 };
 
 const W12_2: WetLabData = {
-  id: 4,
+  id: 15,
   modelId: 12,
   name: 'W12_2',
   type: 'wet-lab-data',
@@ -195,7 +198,7 @@ const W12_2: WetLabData = {
 };
 
 const W12_3: WetLabData = {
-  id: 5,
+  id: 16,
   modelId: 12,
   name: 'W12_3',
   type: 'wet-lab-data',
@@ -205,7 +208,7 @@ const W12_3: WetLabData = {
 };
 
 const WX_3: WetLabData = {
-  id: 6,
+  id: 17,
   modelId: 12,
   name: 'Wx_3',
   type: 'wet-lab-data',
@@ -215,7 +218,7 @@ const WX_3: WetLabData = {
 };
 
 const MBA_2: ModelBuildingActivity = {
-  id: 2,
+  id: 18,
   modelId: 12,
   type: 'model-building-activity',
   connections: [
@@ -243,7 +246,7 @@ const MBA_2: ModelBuildingActivity = {
 };
 
 const S12_2: SimulationData = {
-  id: 2,
+  id: 19,
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_2',
@@ -251,10 +254,9 @@ const S12_2: SimulationData = {
 };
 
 const model2: Model = {
-  id: 2,
+  id: 20,
   modelId: 12,
   type: 'model',
-  modelInformation: modelInformation12,
   version: 2,
   connections: [{ id: 18, target: MBA_2, type: 'generated-by' }],
 };
@@ -284,6 +286,11 @@ export const nodes: ProvenanceNode[] = [
   MEA,
   S1_2,
 ];
+
+export const models = {
+  modelInformation1,
+  modelInformation12,
+};
 
 
 

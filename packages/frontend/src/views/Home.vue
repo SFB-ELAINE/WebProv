@@ -9,7 +9,6 @@
       arrows
       drag
       hulls
-      :node-click="nodeClick"
       :node-dblclick="nodeDblclick"
       :hull-dblclick="hullDblclick"
       :action-click="actionClick"
@@ -41,6 +40,13 @@
       <b-button
         class="clear-button overlay-child"
         type="is-text"
+        @click="createActivity"
+      >
+        Add Node
+      </b-button>
+      <b-button
+        class="clear-button overlay-child"
+        type="is-text"
         @click="clearNodes"
       >
         Reset
@@ -51,14 +57,8 @@
           :node-outline="nodeOutline"
         ></prov-legend>
         <div class="spacer"></div>
-        <node-palette
-          :node-radius="nodeRadius"
-          :node-outline="nodeOutline"
-          @create-entity="createEntity"
-          @create-activity="createActivity"
-        ></node-palette>
-        <div class="spacer"></div>
         <card-select
+          title="Relationship" 
           v-if="currentRelationship"
           :value="currentRelationship"
           @input="changeRelationship"
@@ -67,6 +67,7 @@
           @delete="deleteRelationship"
         ></card-select>
         <card-select
+          title="Node Type" 
           v-if="selectedNodeType"
           :value="selectedNodeType"
           @input="changeNodeType"
@@ -75,10 +76,10 @@
           @delete="deleteNode"
         ></card-select>
         <div class="spacer"></div>
-        <information-card
+        <!-- <information-card
           v-if="informationFields"
           :information-fields="informationFields"
-        ></information-card>
+        ></information-card> -->
       </div>
     </div>
   </div>
@@ -94,11 +95,11 @@ import {
   ProvenanceNodeRelationships,
   ProvenanceNodeConnection,
   provenanceNodeTypes,
+  ModelInformation,
 } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
-import NodePalette from '@/components/NodePalette.vue';
 import {
   Lookup,
   getText,
@@ -140,6 +141,7 @@ interface Link extends D3Link {
 }
 
 interface Connection {
+  id: number;
   relationship: ProvenanceNodeRelationships;
   original: ProvenanceNodeConnection;
   source: HighLevelNode;
@@ -148,7 +150,7 @@ interface Connection {
 }
 
 interface HighLevelNode {
-  id: string;
+  id: number;
   node: ProvenanceNode;
   outgoing: Connection[];
   incoming: Connection[];
@@ -174,13 +176,10 @@ const isSingleNode = (node: Node): node is SingleNode => {
 // the models that use that data.
 
 @Component({
-  components: { InformationCard, ProvLegend, D3, Search, NodePalette, CardSelect },
+  components: { InformationCard, ProvLegend, D3, Search, CardSelect },
 })
 export default class Home extends Vue {
-  public provenanceNodes = data.nodes.map((node) => ({
-    id: node.type + node.id,
-    original: node,
-  }));
+  public provenanceNodes = data.nodes;
 
   // OK, so for some reason we have to remove 7 here so that there is no overlow......
   public height = window.innerHeight - 7;
@@ -245,11 +244,22 @@ export default class Home extends Vue {
     return getInformationFields(this.selectedNode.provenanceNode, this.selectedNode.text);
   }
 
+  get modelInformationLookup() {
+    const lookup: { [modelId: number]: ModelInformation } = {};
+    Object.values(data.models).forEach((modelInformation) => {
+      lookup[modelInformation.modelId] = modelInformation;
+    });
+
+    return lookup;
+  }
+
   get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
 
-    const highLevelNodes = this.provenanceNodes.map(({ id: sourceId, original: n }) => {
-      const checkAndAdd = (id: string, node: ProvenanceNode) => {
+    const highLevelNodes = this.provenanceNodes.map((n) => {
+      const sourceId = n.id;
+
+      const checkAndAdd = (id: number, node: ProvenanceNode) => {
         if (!nodeLookup.hasOwnProperty(id)) {
           nodeLookup[id] = {
             id,
@@ -268,11 +278,12 @@ export default class Home extends Vue {
       }
 
       n.connections.forEach((connection) => {
-        const targetId = connection.target.type + connection.target.id;
+        const targetId = connection.target.id;
         checkAndAdd(targetId, connection.target);
         const target = nodeLookup[targetId];
 
         const d3Connection: Connection = {
+          id: connection.id,
           relationship: connection.type,
           original: connection,
           color: relationshipColors[connection.type].color,
@@ -337,7 +348,7 @@ export default class Home extends Vue {
 
       return {
         id,
-        title: getText(n),
+        title: getText(n, this.modelInformationLookup),
         type: n.type,
         model: n.modelId,
         information,
@@ -604,7 +615,7 @@ export default class Home extends Vue {
         return !this.nodesToShow[dep.source.id];
       });
 
-      const text = getText(n);
+      const text = getText(n, this.modelInformationLookup);
       const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
 
       const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data';
@@ -640,13 +651,12 @@ export default class Home extends Vue {
           }
 
           if (this.selectedNode === newNode) {
-            this.selectedNode = null;
+            this.cancelNodeTypeSelection();
           } else {
             this.selectedNode = newNode;
+            this.possibleNodeTypes = provenanceNodeTypes;
+            this.selectedNodeType = n.type;
           }
-
-          this.possibleNodeTypes = provenanceNodeTypes;
-          this.selectedNodeType = n.type;
         },
       };
 
@@ -666,20 +676,6 @@ export default class Home extends Vue {
       modelId: 1,
       id: Math.floor(Math.random() * 10000),
       connections: [],
-    };
-
-    this.provenanceNodes.push({ id: node.type + node.id, original: node });
-    this.nodesToShow[node.type + node.id] = true;
-    this.expanded[node.modelId] = true;
-    this.calculateLinksNodes();
-  }
-
-  public createEntity() {
-    const node: ProvenanceNode = {
-      type: 'wet-lab-data',
-      name: 'Wx_x',
-      modelId: 1,
-      id: Math.floor(Math.random() * 10000),
     };
 
     this.provenanceNodes.push({ id: node.type + node.id, original: node });
@@ -710,6 +706,7 @@ export default class Home extends Vue {
     this.currentRelationship = relationship;
     originalConnection.type = relationship;
     this.calculateLinksNodes();
+    this.cancelRelationshipSelection();
   }
 
   public deleteRelationship() {
@@ -731,12 +728,51 @@ export default class Home extends Vue {
     this.cancelRelationshipSelection();
   }
 
-  public changeNodeType() {
-    // TODO
+  public cancelNodeTypeSelection() {
+    this.selectedNode = null;
+    this.selectedNodeType = null;
+    this.possibleNodeTypes = null;
+  }
+
+  public changeNodeType(type: ProvenanceNodeType) {
+    if (!this.selectedNode) {
+      return;
+    }
+
+
+    this.selectedNodeType = type;
+    this.selectedNode.provenanceNode.type = type;
+    this.selectedNode.type = type;
+
+    const { outgoing } = this.highLevelNodeLookup[this.selectedNode.id];
+
+    const toRemove = [];
+    const invalid = outgoing.filter((connection) => {
+      return !isValidConnection(connection.source.node, connection.target.node, connection.relationship);
+    }).map(({ id }) => id);
+
+    const connections = this.selectedNode.provenanceNode.connections;
+    if (connections) {
+      this.selectedNode.provenanceNode.connections = connections.filter((connection) => {
+        return !invalid.includes(connection.id);
+      });
+    }
+
+    this.calculateLinksNodes();
   }
 
   public deleteNode() {
-    // TODO
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const selected = this.selectedNode;
+    this.provenanceNodes = this.provenanceNodes.filter((n) => {
+      return n.id !== selected.id;
+    });
+
+    this.cancelNodeTypeSelection();
+    this.calculateLinksNodes();
   }
 }
 </script>
