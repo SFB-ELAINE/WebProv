@@ -58,14 +58,22 @@
           @create-activity="createActivity"
         ></node-palette>
         <div class="spacer"></div>
-        <link-type
+        <card-select
           v-if="currentRelationship"
           :value="currentRelationship"
           @input="changeRelationship"
-          :relationships="possibleRelationships"
+          :options="possibleRelationships"
           @close="cancelRelationshipSelection"
           @delete="deleteRelationship"
-        ></link-type>
+        ></card-select>
+        <card-select
+          v-if="selectedNodeType"
+          :value="selectedNodeType"
+          @input="changeNodeType"
+          :options="possibleNodeTypes"
+          @close="cancelNodeTypeSelection"
+          @delete="deleteNode"
+        ></card-select>
         <div class="spacer"></div>
         <information-card
           v-if="informationFields"
@@ -85,6 +93,7 @@ import {
   relationshipRules,
   ProvenanceNodeRelationships,
   ProvenanceNodeConnection,
+  provenanceNodeTypes,
 } from 'specification';
 import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
@@ -104,7 +113,7 @@ import {
 } from '@/utils';
 import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
-import LinkType from '@/components/LinkType.vue';
+import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
 
@@ -165,7 +174,7 @@ const isSingleNode = (node: Node): node is SingleNode => {
 // the models that use that data.
 
 @Component({
-  components: { InformationCard, ProvLegend, D3, Search, NodePalette, LinkType },
+  components: { InformationCard, ProvLegend, D3, Search, NodePalette, CardSelect },
 })
 export default class Home extends Vue {
   public provenanceNodes = data.nodes.map((node) => ({
@@ -180,9 +189,6 @@ export default class Home extends Vue {
 
   // constant
   public nodeHeight = 40;
-
-  // used to display information on a card
-  public selectedNode: null | SingleNode = null;
 
   // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
@@ -217,6 +223,14 @@ export default class Home extends Vue {
   public currentRelationship: ProvenanceNodeRelationships | null = null;
   public possibleRelationships: ProvenanceNodeRelationships[] | null = null;
 
+  // used to display information on a card
+  public selectedNode: SingleNode | null = null;
+  public selectedNodeType: ProvenanceNodeType | null = null;
+  public possibleNodeTypes: ProvenanceNodeType[] | null = null;
+
+  // This lookup is used to cache selected connections
+  // When a user change the type of relationship, new relatinoships that are created
+  // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
   get nodeLookup() {
@@ -339,20 +353,6 @@ export default class Home extends Vue {
       this.pointToPlaceNode = d;
 
       this.calculateLinksNodes();
-    }
-  }
-
-  public nodeClick(d: Node) {
-    if (d.isGroup) {
-      return;
-    }
-
-    if (this.selectedNode === null) {
-      this.selectedNode = d;
-    } else if (this.selectedNode === d) {
-      this.selectedNode = null;
-    } else {
-      this.selectedNode = d;
     }
   }
 
@@ -608,7 +608,7 @@ export default class Home extends Vue {
       const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
 
       const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data';
-      const node: SingleNode = {
+      const newNode: SingleNode = {
         isGroup: false,
         isEntity,
         id: sourceId,
@@ -632,11 +632,25 @@ export default class Home extends Vue {
         width: text.length * 8 + 10,
         height: this.nodeHeight,
         onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
-          this.nodeRightClick(e, node, id3);
+          this.nodeRightClick(e, newNode, id3);
+        },
+        onDidClick: () => {
+          if (newNode.isGroup) {
+            return;
+          }
+
+          if (this.selectedNode === newNode) {
+            this.selectedNode = null;
+          } else {
+            this.selectedNode = newNode;
+          }
+
+          this.possibleNodeTypes = provenanceNodeTypes;
+          this.selectedNodeType = n.type;
         },
       };
 
-      nodes.push(node);
+      nodes.push(newNode);
     });
 
     // Make sure to reset this since we are done rendering
@@ -715,6 +729,14 @@ export default class Home extends Vue {
 
     this.calculateLinksNodes();
     this.cancelRelationshipSelection();
+  }
+
+  public changeNodeType() {
+    // TODO
+  }
+
+  public deleteNode() {
+    // TODO
   }
 }
 </script>

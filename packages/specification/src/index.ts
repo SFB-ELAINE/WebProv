@@ -198,7 +198,24 @@ export interface SimulationData extends BaseNode {
 }
 
 export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
-export type ProvenanceNodeType = ModelBuildingActivity['type'] | ModelExplorationActivity['type'] | Model['type'] | WetLabData['type'] | SimulationData['type'];
+export type ProvenanceNodeType = 
+  ModelBuildingActivity['type'] | 
+  ModelExplorationActivity['type'] | 
+  Model['type'] | 
+  WetLabData['type'] | 
+  SimulationData['type'];
+
+type ProvenanceNodeTypeLookup = { [Type in ProvenanceNodeType]: string }
+
+export const provenanceNodeTypeDisplayText: ProvenanceNodeTypeLookup = {
+  'model': 'Model',
+  'model-building-activity': 'Model Building Activity',
+  'model-exploration-activity': 'Model Exploration Activity',
+  'simulation-data': 'Simulation Data',
+  'wet-lab-data': 'Wet Lab Data',
+}
+
+export const provenanceNodeTypes = Object.keys(provenanceNodeTypeDisplayText) as ProvenanceNodeType[];
 
 export interface ProvenanceAPI {
   '/health': {

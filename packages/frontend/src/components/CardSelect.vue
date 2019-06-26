@@ -1,8 +1,8 @@
 <template>
-  <card title="Link Type" closeable @close="$emit('close')">
+  <card :title="title" closeable @close="$emit('close')">
     <b-field>
       <b-select :value="value" @input="$emit('input', $event)" expanded>
-        <option v-for="r in relationships" :key="r" :value="r">{{ r }}</option>
+        <option v-for="option in options" :key="option" :value="option">{{ option }}</option>
       </b-select>
     </b-field>
     <template v-slot:footer>
@@ -19,9 +19,10 @@ import Card from '@/components/Card.vue';
 @Component({
   components: { Card },
 })
-export default class LinkType extends Vue {
-  @Prop({ type: Array, required: true }) public relationships!: string[];
+export default class CardSelect extends Vue {
+  @Prop({ type: Array, required: true }) public options!: string[];
   @Prop({ type: String, required: true }) public value!: string;
+  @Prop({ type: String, required: true }) public title!: string;
 }
 </script>
 
