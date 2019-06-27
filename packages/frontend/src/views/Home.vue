@@ -52,10 +52,7 @@
         Reset
       </b-button>
       <div class="cards overlay-child">
-        <prov-legend
-          :node-radius="nodeRadius"
-          :node-outline="nodeOutline"
-        ></prov-legend>
+        <prov-legend v-bind="legendProps"></prov-legend>
         <div class="spacer"></div>
         <card-select
           title="Relationship" 
@@ -85,7 +82,14 @@
 
 <script lang="ts">
 import * as data from '@/assets/test';
-import { relationshipColors } from '@/constants';
+import {
+  relationshipColors,
+  NODE_OUTLINE,
+  VALID_ENDPOINT_OUTLINE,
+  INVALID_ENDPOINT_OUTLINE,
+  NODE_HEIGHT,
+  NODE_RADIUS,
+} from '@/constants';
 import {
   ProvenanceNodeType,
   ProvenanceNode,
@@ -187,22 +191,14 @@ export default class Home extends Vue {
 
   public width = window.innerWidth;
 
-  // constant
-  public nodeHeight = 40;
-
-  // constants
-  public nodeOutline: string = 'rgb(22, 89, 136)';
-  public validEndpointOutline: string = 'rgb(55, 130, 33)';
-  public invalidEndpointOutline: string = 'rgb(130, 55, 33)';
-
-  public nodeRadius = 10;
-
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
 
   // The current nodes that are passed to D3
   public nodes: Node[] = [];
   public links: Link[] = [];
+
+  public legendProps = { nodeOutline: NODE_OUTLINE, nodeRadius: NODE_RADIUS };
 
   // The search results
   public results: SearchItem[] = [];
@@ -370,7 +366,7 @@ export default class Home extends Vue {
       };
     };
 
-    action.setStrokeColor(node, this.validEndpointOutline);
+    action.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
 
     const getNodesInRange = (ev: MouseEvent) => {
       return this.nodes
@@ -407,7 +403,7 @@ export default class Home extends Vue {
         // reset the color of the previously selected node
         // TODO this will cause a bug if the node was initially colored something else
         if (selectedNode) {
-          action.setStrokeColor(selectedNode, this.nodeOutline);
+          action.setStrokeColor(selectedNode, NODE_OUTLINE);
           selectedNode = null;
         }
 
@@ -421,7 +417,7 @@ export default class Home extends Vue {
 
         const relationship = getRelationship(a, b);
         const valid = isValidConnection(a, b, relationship);
-        const color = valid ? this.validEndpointOutline : this.invalidEndpointOutline;
+        const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
 
         action.setStrokeColor(selectedNode, color);
 
@@ -432,9 +428,9 @@ export default class Home extends Vue {
           this.lineStart = null;
           this.lineEnd = null;
 
-          action.setStrokeColor(node, this.nodeOutline);
+          action.setStrokeColor(node, NODE_OUTLINE);
           if (selectedNode) {
-            action.setStrokeColor(selectedNode, this.nodeOutline);
+            action.setStrokeColor(selectedNode, NODE_OUTLINE);
           }
 
           const nodesInRange = getNodesInRange(ev);
@@ -521,7 +517,7 @@ export default class Home extends Vue {
           rx: 0,
           text: `M${n.modelId}`,
           width: 50,
-          height: this.nodeHeight,
+          height: NODE_HEIGHT,
         };
 
         models[n.modelId] = node;
@@ -617,7 +613,7 @@ export default class Home extends Vue {
         type: n.type,
         model: n.modelId,
         hullGroup: n.modelId,
-        stroke: this.nodeOutline,
+        stroke: NODE_OUTLINE,
         x,
         y,
         vx: 0,
@@ -630,7 +626,7 @@ export default class Home extends Vue {
         // they are used in the other js files
         // ALSO, * 8 just kinda works well and 10 is the padding
         width: text.length * 8 + 10,
-        height: this.nodeHeight,
+        height: NODE_HEIGHT,
         onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
           this.nodeRightClick(e, newNode, id3);
         },

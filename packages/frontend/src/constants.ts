@@ -35,3 +35,9 @@ export const relationshipColors: RelationshipColors = {
     target: 'entity',
   },
 };
+
+export const NODE_OUTLINE = 'rgb(22, 89, 136)';
+export const VALID_ENDPOINT_OUTLINE = 'rgb(55, 130, 33)';
+export const INVALID_ENDPOINT_OUTLINE = 'rgb(130, 55, 33)';
+export const NODE_HEIGHT = 40;
+export const NODE_RADIUS = 10;

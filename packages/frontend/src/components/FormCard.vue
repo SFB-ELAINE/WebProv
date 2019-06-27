@@ -3,7 +3,7 @@
     <b-field 
       v-for="(field, i) in fields" 
       :key="i"
-      :label="field.name | uppercase"
+      :label="field.name | wordCase"
     >
       <!-- A select option -->
       <b-select v-if="field.options" :value="node[field.name]" @input="onInput(field.name, $event)" expanded>
@@ -42,14 +42,14 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { FieldInformation, uppercase } from '../utils';
+import { FieldInformation, wordCase } from '../utils';
 
 
 type Values = string | number | Array<[string, string]>;
 
 @Component({
   components: { Card },
-  filters: { uppercase },
+  filters: { wordCase },
 })
 export default class FormCard<T extends { [k: string]: Values | undefined }> extends Vue {
   @Prop({ type: Array, required: true }) public fields!: Array<FieldInformation<keyof T & string>>;

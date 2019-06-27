@@ -222,19 +222,20 @@ export interface FieldInformation<T extends string> {
 }
 
 type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
-type J = NodeFields['model'];
 
 const typeSelect: FieldInformation<'type'> = { name: 'type', type: 'string', options: provenanceNodeTypes };
+const modelSelect: FieldInformation<'modelId'> = { name: 'modelId', type: 'number' };
 
 // TODO Remove this and use io-ts instead!
 // We can infer this information from there instead!
 export const nodeFields: NodeFields = {
-  'model': [typeSelect, { name: 'version', type: 'number' }],
-  'model-building-activity': [typeSelect],
-  'model-exploration-activity': [typeSelect],
-  'simulation-data': [typeSelect, { name: 'name', type: 'string' }],
+  'model': [typeSelect, modelSelect, { name: 'version', type: 'number' }],
+  'model-building-activity': [typeSelect, modelSelect],
+  'model-exploration-activity': [typeSelect, modelSelect],
+  'simulation-data': [typeSelect, modelSelect, { name: 'name', type: 'string' }],
   'wet-lab-data': [
     typeSelect,
+    modelSelect,
     { name: 'name', type: 'string' },
     { name: 'information', type: 'string', multiple: true },
   ],
@@ -242,4 +243,10 @@ export const nodeFields: NodeFields = {
 
 export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
+}
+
+export function wordCase(s: string) {
+  return uppercase(
+    s.replace(/([A-Z]+)/g, ' $1').replace(/([A-Z][a-z])/g, ' $1'),
+  );
 }
