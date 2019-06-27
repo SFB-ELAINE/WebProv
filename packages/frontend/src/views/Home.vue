@@ -40,7 +40,7 @@
       <b-button
         class="clear-button overlay-child"
         type="is-text"
-        @click="createActivity"
+        @click="addNode"
       >
         Add Node
       </b-button>
@@ -66,7 +66,8 @@
           @close="cancelRelationshipSelection"
           @delete="deleteRelationship"
         ></card-select>
-        <card-select
+        <div class="spacer"></div>
+        <!-- <card-select
           title="Node Type" 
           v-if="selectedNodeType"
           :value="selectedNodeType"
@@ -74,8 +75,13 @@
           :options="possibleNodeTypes"
           @close="cancelNodeTypeSelection"
           @delete="deleteNode"
-        ></card-select>
-        <div class="spacer"></div>
+        ></card-select> -->
+        <form-card
+          title="Node Information"
+          :fields="fields"
+          :values="values"
+        ></form-card>
+        <!-- <div class="spacer"></div> -->
         <!-- <information-card
           v-if="informationFields"
           :information-fields="informationFields"
@@ -111,9 +117,12 @@ import {
   isValidConnection,
   Watch,
   getDefaultRelationshipType,
+  uniqueId,
+  nodeFields,
 } from '@/utils';
 import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
+import FormCard from '@/components/FormCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
@@ -141,7 +150,7 @@ interface Link extends D3Link {
 }
 
 interface Connection {
-  id: number;
+  id: string;
   relationship: ProvenanceNodeRelationships;
   original: ProvenanceNodeConnection;
   source: HighLevelNode;
@@ -150,7 +159,7 @@ interface Connection {
 }
 
 interface HighLevelNode {
-  id: number;
+  id: string;
   node: ProvenanceNode;
   outgoing: Connection[];
   incoming: Connection[];
@@ -176,7 +185,7 @@ const isSingleNode = (node: Node): node is SingleNode => {
 // the models that use that data.
 
 @Component({
-  components: { InformationCard, ProvLegend, D3, Search, CardSelect },
+  components: { InformationCard, ProvLegend, D3, Search, CardSelect, FormCard },
 })
 export default class Home extends Vue {
   public provenanceNodes = data.nodes;
@@ -188,6 +197,9 @@ export default class Home extends Vue {
 
   // constant
   public nodeHeight = 40;
+
+  public fields = nodeFields['wet-lab-data'];
+  public values = ['wet-lab-data', 'Wx_7', []];
 
   // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
@@ -259,7 +271,7 @@ export default class Home extends Vue {
     const highLevelNodes = this.provenanceNodes.map((n) => {
       const sourceId = n.id;
 
-      const checkAndAdd = (id: number, node: ProvenanceNode) => {
+      const checkAndAdd = (id: string, node: ProvenanceNode) => {
         if (!nodeLookup.hasOwnProperty(id)) {
           nodeLookup[id] = {
             id,
@@ -304,7 +316,7 @@ export default class Home extends Vue {
   }
 
   public showProvenanceGraph(r: SearchItem) {
-    const showNode = (id: number) => {
+    const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
       this.expanded[info.node.modelId] = true;
@@ -344,7 +356,7 @@ export default class Home extends Vue {
       const information =
         n.type === 'wet-lab-data' &&
         n.information ?
-        Object.values(n.information) : [];
+        n.information.map(([_, value]) => value) : [];
 
       return {
         id: n.id,
@@ -467,7 +479,7 @@ export default class Home extends Vue {
     // OK so, when the user wants to see the incoming connections by clicking "See more",
     // we need to (recursively) expand all outgoing connections for all of the incoming nodes
     // Right now, there is no way for a user to expand outgoing nodes which is why we do this
-    const expandDependencies = (id: number, direction: 'incoming' | 'outgoing' = 'incoming') => {
+    const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
       const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
       this.highLevelNodeLookup[id][direction].forEach((connection) => {
         this.expanded[connection[st].node.modelId] = true;
@@ -502,7 +514,7 @@ export default class Home extends Vue {
   public calculateLinksNodes() {
     const links: Link[] = [];
     const nodes: Node[] = [];
-    const models = new Set<number>();
+    const models: { [modelId: number]: GroupNode } = {};
 
     this.provenanceNodes.forEach((n) => {
       const sourceId = n.id;
@@ -511,9 +523,9 @@ export default class Home extends Vue {
         return;
       }
 
-      if (!this.expanded[n.modelId] && !models.has(n.modelId)) {
+      if (!this.expanded[n.modelId] && !models[n.modelId]) {
         // this bad naming just avoids name shadowing
-        const groupId = n.modelId + 1000; // TODO JACOB
+        const groupId = uniqueId();
         const { x: x1, y: y1 } = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
         const node: GroupNode = {
           isGroup: true,
@@ -531,7 +543,7 @@ export default class Home extends Vue {
           height: this.nodeHeight,
         };
 
-        models.add(n.modelId);
+        models[n.modelId] = node;
         nodes.push(node);
       }
 
@@ -543,12 +555,12 @@ export default class Home extends Vue {
           return;
         }
 
-        const determineLinkId = (id: number, model: number) => {
+        const determineLinkId = (id: string, model: number) => {
           if (this.expanded[model]) {
             return id;
           }
 
-          return model;
+          return models[model].id;
         };
 
         const source = determineLinkId(sourceId, c.source.node.modelId);
@@ -671,16 +683,16 @@ export default class Home extends Vue {
     this.nodes = nodes;
   }
 
-  public createActivity() {
+  public addNode() {
     const node: ProvenanceNode = {
       type: 'model-building-activity',
       modelId: 1,
-      id: Math.floor(Math.random() * 10000),
+      id: uniqueId(),
       connections: [],
     };
 
     this.provenanceNodes.push(node);
-    this.nodesToShow[node.type + node.id] = true;
+    this.nodesToShow[node.id] = true;
     this.expanded[node.modelId] = true;
     this.calculateLinksNodes();
   }

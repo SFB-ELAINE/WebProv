@@ -6,8 +6,8 @@ import { Component, Vue, Prop } from 'vue-property-decorator';
 // Called Relationship because <link> is a builtin html tag
 @Component
 export default class Relationship extends Vue {
-  @Prop({ type: Number, required: true }) public target!: number;
-  @Prop({ type: Number, required: true }) public source!: number;
+  @Prop({ type: String, required: true }) public target!: string;
+  @Prop({ type: String, required: true }) public source!: string;
   @Prop({ type: String, required: false }) public color?: string;
 
   public mounted() {

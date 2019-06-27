@@ -6,7 +6,10 @@ import {
   relationshipRules,
   ProvenanceNodeRelationships,
   ModelInformation,
+  ProvenanceNodeLookup,
+  provenanceNodeTypes,
 } from 'specification';
+import uniqueid from 'lodash.uniqueid';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -70,10 +73,7 @@ export function getInformationFields(node: ProvenanceNode, title: string) {
       fields.push(['Version', '' + node.version]);
       break;
     case 'wet-lab-data':
-      const information = node.information ? node.information : {};
-      Object.keys(information).forEach((key) => {
-        fields.push([key, information[key]]);
-      });
+      fields.push(...(node.information || []));
       break;
     case 'simulation-data':
       break;
@@ -114,7 +114,7 @@ export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: Conne
 
   if (doConnection) {
     a.connections.push({
-      id: Math.round(Math.random() * 10000), // TODO JACOB
+      id: uniqueId(),
       type: opts.type,
       target: b,
     });
@@ -209,3 +209,36 @@ export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceN
     return first.relationship;
   }
 };
+
+export const uniqueId = () => {
+  return uniqueid('node_');
+};
+
+export interface FieldInformation<T extends string> {
+  name: T;
+  type: 'string' | 'number';
+  multiple?: boolean;
+  options?: Array<string | number>;
+}
+
+type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
+
+const typeSelect: FieldInformation<'type'> = { name: 'type', type: 'string', options: provenanceNodeTypes };
+
+// TODO Remove this and use io-ts instead!
+// We can infer this information from there instead!
+export const nodeFields: NodeFields = {
+  'model': [typeSelect, { name: 'version', type: 'number' }],
+  'model-building-activity': [typeSelect],
+  'model-exploration-activity': [typeSelect],
+  'simulation-data': [typeSelect, { name: 'name', type: 'string' }],
+  'wet-lab-data': [
+    typeSelect,
+    { name: 'name', type: 'string' },
+    { name: 'information', type: 'string', multiple: true },
+  ],
+};
+
+export function uppercase(s: string) {
+  return s.charAt(0).toUpperCase() + s.substring(1);
+}

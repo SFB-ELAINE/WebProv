@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import * as d3 from 'd3';
 import { EventEmitter } from 'events';
 import TypedEmitter from 'typed-emitter';
@@ -13,14 +12,14 @@ interface MessageEvents {
 }
 
 export interface D3Link {
-  source: number;
-  target: number;
+  source: string;
+  target: string;
   color?: string;
   onDidClick?: (e: MouseEvent) => void;
 }
 
 export interface D3Node {
-  id: number;
+  id: string;
   rx: number;
   height: number;
   width: number;

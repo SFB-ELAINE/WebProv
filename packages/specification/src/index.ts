@@ -152,7 +152,7 @@ export interface WetLabData extends BaseNode {
   /**
    * Just extra information about the wet lab data. For example, this might contain cell line information.
    */
-  information?: { [k: string]: string }
+  information?: Array<[string, string]>
 }
 
 export interface SimulationData extends BaseNode {
@@ -168,16 +168,19 @@ export interface SimulationData extends BaseNode {
 }
 
 export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
-export type ProvenanceNodeType = 
-  ModelBuildingActivity['type'] | 
-  ModelExplorationActivity['type'] | 
-  Model['type'] | 
-  WetLabData['type'] | 
-  SimulationData['type'];
+export type ProvenanceNodeLookup = { 
+  'model': Model;
+  'model-building-activity': ModelBuildingActivity;
+  'model-exploration-activity': ModelExplorationActivity;
+  'wet-lab-data': WetLabData;
+  'simulation-data': SimulationData;
+}
 
-type ProvenanceNodeTypeLookup = { [Type in ProvenanceNodeType]: string }
+export type ProvenanceNodeType = keyof ProvenanceNodeLookup;
 
-export const provenanceNodeTypeDisplayText: ProvenanceNodeTypeLookup = {
+type ProvenanceNodeDisplayTestLookup = { [Type in ProvenanceNodeType]: string }
+
+export const provenanceNodeTypeDisplayText: ProvenanceNodeDisplayTestLookup = {
   'model': 'Model',
   'model-building-activity': 'Model Building Activity',
   'model-exploration-activity': 'Model Exploration Activity',
@@ -186,19 +189,3 @@ export const provenanceNodeTypeDisplayText: ProvenanceNodeTypeLookup = {
 }
 
 export const provenanceNodeTypes = Object.keys(provenanceNodeTypeDisplayText) as ProvenanceNodeType[];
-
-export interface ProvenanceAPI {
-  '/health': {
-    GET: {},
-  };
-
-  '/models/:id': {
-    GET: {
-      response: Model | null,
-      params: {
-        id: string;
-      }
-    },
-  };
-
-}

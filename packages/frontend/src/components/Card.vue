@@ -93,4 +93,8 @@ $header-height: 48px;
 .helper ::v-deep .collapse-content {
   height: calc(100% - 48px);  
 }
+
+.card-header-title {
+  padding: 0.7rem 1.5rem;
+}
 </style>

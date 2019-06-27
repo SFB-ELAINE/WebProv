@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js';
 
 export interface SearchItem {
-  id: number;
+  id: string;
   title: string;
   type: string;
   model: number;

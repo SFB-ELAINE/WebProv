@@ -5,7 +5,7 @@ import { Component, Vue, Prop } from 'vue-property-decorator';
 
 @Component
 export default class Node extends Vue {
-  @Prop({ type: Number, required: true }) public id!: number;
+  @Prop({ type: String, required: true }) public id!: string;
   @Prop({ type: Number, required: true }) public rx!: number;
   @Prop({ type: Number, default: 0 }) public x!: number;
   @Prop({ type: Number, default: 0 }) public y!: number;

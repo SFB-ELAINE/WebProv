@@ -2,12 +2,12 @@
   <card title="Prov DM Legend">
     <div class="legend">
       
-      <div v-for="(type, i) in ['entity', 'activity']" :key="type" class="legend--item">
+      <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
         <d3 :height="25" :width="100">
           <node
             class="legend--block"
             :rx="type === 'entity' ? nodeRadius : 0"
-            :id="i"
+            :id="type"
             :size="25"
             :stroke="nodeOutline"
           ></node>
@@ -20,19 +20,19 @@
           <node
             class="legend--block"
             :rx="item.sourceRadius"
-            :id="1"
+            id="one"
             :size="25"
             :stroke="nodeOutline"
           ></node>
           <relationship
-            :source="1"
-            :target="2"
+            source="one"
+            target="two"
             :color="item.color"
           ></relationship>
           <node
             class="legend--block"
             :rx="item.targetRadius"
-            :id="2"
+            id="two"
             :size="25"
             :x="75"
             :stroke="nodeOutline"
@@ -53,13 +53,12 @@ import Card from '@/components/Card.vue';
 import D3 from '@/components/D3.vue';
 import Relationship from '@/components/Relationship.vue';
 import Node from '@/components/Node.vue';
+import { uppercase } from '@/utils';
 
 @Component({
   components: { Node, Card, Relationship, D3 },
   filters: {
-    uppercase(s: string) {
-      return s.charAt(0).toUpperCase() + s.substring(1);
-    },
+    uppercase,
   },
 })
 export default class ProvLegend extends Vue {
