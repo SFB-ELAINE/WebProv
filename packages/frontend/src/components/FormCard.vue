@@ -6,33 +6,33 @@
       :label="field.name | uppercase"
     >
       <!-- A select option -->
-      <b-select v-if="field.options" v-model="values[i]" expanded>
+      <b-select v-if="field.options" :value="node[field.name]" @input="onInput(field.name, $event)" expanded>
         <option v-for="option in field.options" :key="option" :value="option">{{ option }}</option>
       </b-select>
 
       <!-- The dynamic field with a key, value pair -->
       <div v-else-if="field.multiple">
-        <div v-for="(value, j) in values[i]" :key="value[0]" style="display: flex">
+        <div v-for="(value, j) in node[field.name]" :key="value[0]" style="display: flex">
           <b-field>
-            <b-input placeholder="Key" :value="value[0]" @input="update(value, 0, $event)" @ref="focus"></b-input>
+            <b-input placeholder="Key" :value="value[0]" @input="update(value, 0, $event)"></b-input>
           </b-field>
           <div style="flex: 0 0 10px"></div>
           <b-field>
             <b-input placeholder="Value" :value="value[1]" @input="update(value, 1, $event)"></b-input>
             <p class="control">
-              <button class="button is-primary" @click="deleteField(values[i], i, j)">
+              <button class="button is-primary" @click="deleteField(node[field.name], field.name, j)">
                 <b-icon icon="close"></b-icon>
               </button>
             </p>
           </b-field>
         </div>
-        <b-button class="is-primary" @click="addField(i)">
+        <b-button class="is-primary" @click="addField(field.name)">
           Add Field
         </b-button>
       </div>
 
       <!-- Just a regular field -->
-      <b-input v-else :type="field.type" v-model="values[i]">
+      <b-input v-else :type="field.type" :value="node[i]" @input="onInput(field.name, $event)">
       </b-input>
     
     </b-field>
@@ -45,13 +45,15 @@ import Card from '@/components/Card.vue';
 import { FieldInformation, uppercase } from '../utils';
 
 
+type Values = string | number | Array<[string, string]>;
+
 @Component({
   components: { Card },
   filters: { uppercase },
 })
-export default class FormCard extends Vue {
-  @Prop({ type: Array, required: true }) public fields!: Array<FieldInformation<string>>;
-  @Prop({ type: Array, required: true }) public values!: Array<string | number | Array<[string, string]>>;
+export default class FormCard<T extends { [k: string]: Values | undefined }> extends Vue {
+  @Prop({ type: Array, required: true }) public fields!: Array<FieldInformation<keyof T & string>>;
+  @Prop({ type: Object, required: true }) public node!: T;
   @Prop({ type: String, required: true }) public title!: string;
 
   public update(value: [string, string], i: 0 | 1, newValue: string) {
@@ -61,18 +63,32 @@ export default class FormCard extends Vue {
     value[i] = newValue;
   }
 
-  public addField(i: number) {
-    const value = this.values[i];
-    if (typeof value !== 'object') {
+  public addField(key: string) {
+    let value = this.node[key];
+    if (typeof value === 'string') {
       return;
     }
+
+    if (typeof value === 'number') {
+      return;
+    }
+
+    if (value === undefined) {
+      value = [];
+      Vue.set(this.node, key, value);
+    }
+
 
     value.push(['', '']);
   }
 
-  public deleteField(value: any[], i: number, j: number) {
+  public deleteField(value: any[], key: string, j: number) {
     // TODO THis is gross
-    Vue.set(this.values, i, value.filter((_, index) => index !== j));
+    Vue.set(this.node, key, value.filter((_, index) => index !== j));
+  }
+
+  public onInput(key: string, value: any) {
+    Vue.set(this.node, key, value);
   }
 }
 </script>

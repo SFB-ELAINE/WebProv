@@ -67,19 +67,11 @@
           @delete="deleteRelationship"
         ></card-select>
         <div class="spacer"></div>
-        <!-- <card-select
-          title="Node Type" 
-          v-if="selectedNodeType"
-          :value="selectedNodeType"
-          @input="changeNodeType"
-          :options="possibleNodeTypes"
-          @close="cancelNodeTypeSelection"
-          @delete="deleteNode"
-        ></card-select> -->
         <form-card
           title="Node Information"
-          :fields="fields"
-          :values="values"
+          v-if="selectedNode"
+          :fields="nodeFields[selectedNode.type]"
+          :node="selectedNode"
         ></form-card>
         <!-- <div class="spacer"></div> -->
         <!-- <information-card
@@ -119,6 +111,7 @@ import {
   getDefaultRelationshipType,
   uniqueId,
   nodeFields,
+  FieldInformation,
 } from '@/utils';
 import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -139,7 +132,6 @@ interface GroupNode extends BaseNode {
 interface SingleNode extends BaseNode {
   provenanceNode: ProvenanceNode;
   isGroup: false;
-  isEntity: boolean;
   type: ProvenanceNodeType;
 }
 
@@ -198,9 +190,6 @@ export default class Home extends Vue {
   // constant
   public nodeHeight = 40;
 
-  public fields = nodeFields['wet-lab-data'];
-  public values = ['wet-lab-data', 'Wx_7', []];
-
   // constants
   public nodeOutline: string = 'rgb(22, 89, 136)';
   public validEndpointOutline: string = 'rgb(55, 130, 33)';
@@ -235,25 +224,17 @@ export default class Home extends Vue {
   public possibleRelationships: ProvenanceNodeRelationships[] | null = null;
 
   // used to display information on a card
-  public selectedNode: SingleNode | null = null;
-  public selectedNodeType: ProvenanceNodeType | null = null;
-  public possibleNodeTypes: ProvenanceNodeType[] | null = null;
+  public selectedNode: ProvenanceNode | null = null;
 
   // This lookup is used to cache selected connections
   // When a user change the type of relationship, new relatinoships that are created
   // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
+  public nodeFields = nodeFields;
+
   get nodeLookup() {
     return makeLookup(this.nodes);
-  }
-
-  get informationFields() {
-    if (!this.selectedNode) {
-      return;
-    }
-
-    return getInformationFields(this.selectedNode.provenanceNode, this.selectedNode.text);
   }
 
   get modelInformationLookup() {
@@ -615,10 +596,6 @@ export default class Home extends Vue {
         links.push(link);
       });
 
-      // tslint:disable-next-line:no-console
-      console.debug(links.map((l) => `${l.source} => ${l.target}: ${l.color}`).join('\n'));
-
-
       // don't add nodes that are a model that isn't expanded
       if (!this.expanded[n.modelId]) {
         return;
@@ -634,7 +611,6 @@ export default class Home extends Vue {
       const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data';
       const newNode: SingleNode = {
         isGroup: false,
-        isEntity,
         id: sourceId,
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
@@ -663,12 +639,10 @@ export default class Home extends Vue {
             return;
           }
 
-          if (this.selectedNode === newNode) {
+          if (this.selectedNode === n) {
             this.cancelNodeTypeSelection();
           } else {
-            this.selectedNode = newNode;
-            this.possibleNodeTypes = provenanceNodeTypes;
-            this.selectedNodeType = n.type;
+            this.selectedNode = n;
           }
         },
       };
@@ -743,8 +717,6 @@ export default class Home extends Vue {
 
   public cancelNodeTypeSelection() {
     this.selectedNode = null;
-    this.selectedNodeType = null;
-    this.possibleNodeTypes = null;
   }
 
   public changeNodeType(type: ProvenanceNodeType) {
@@ -753,9 +725,9 @@ export default class Home extends Vue {
     }
 
 
-    this.selectedNodeType = type;
-    this.selectedNode.provenanceNode.type = type;
     this.selectedNode.type = type;
+    Vue.set(this.selectedNode, 'type', type);
+    // TODO
 
     const { outgoing } = this.highLevelNodeLookup[this.selectedNode.id];
 
@@ -764,9 +736,9 @@ export default class Home extends Vue {
       return !isValidConnection(connection.source.node, connection.target.node, connection.relationship);
     }).map(({ id }) => id);
 
-    const connections = this.selectedNode.provenanceNode.connections;
+    const connections = this.selectedNode.connections;
     if (connections) {
-      this.selectedNode.provenanceNode.connections = connections.filter((connection) => {
+      this.selectedNode.connections = connections.filter((connection) => {
         return !invalid.includes(connection.id);
       });
     }

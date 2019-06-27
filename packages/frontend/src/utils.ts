@@ -222,6 +222,7 @@ export interface FieldInformation<T extends string> {
 }
 
 type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
+type J = NodeFields['model'];
 
 const typeSelect: FieldInformation<'type'> = { name: 'type', type: 'string', options: provenanceNodeTypes };
 
