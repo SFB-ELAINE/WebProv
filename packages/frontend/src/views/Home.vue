@@ -304,7 +304,7 @@ export default class Home extends Vue {
   }
 
   public showProvenanceGraph(r: SearchItem) {
-    const showNode = (id: string) => {
+    const showNode = (id: number) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
       this.expanded[info.node.modelId] = true;
@@ -340,14 +340,14 @@ export default class Home extends Vue {
   }
 
   public search(pattern: string) {
-    const items: SearchItem[] =  this.provenanceNodes.map(({ id, original: n }) => {
+    const items: SearchItem[] =  this.provenanceNodes.map((n) => {
       const information =
         n.type === 'wet-lab-data' &&
         n.information ?
         Object.values(n.information) : [];
 
       return {
-        id,
+        id: n.id,
         title: getText(n, this.modelInformationLookup),
         type: n.type,
         model: n.modelId,
@@ -467,7 +467,7 @@ export default class Home extends Vue {
     // OK so, when the user wants to see the incoming connections by clicking "See more",
     // we need to (recursively) expand all outgoing connections for all of the incoming nodes
     // Right now, there is no way for a user to expand outgoing nodes which is why we do this
-    const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
+    const expandDependencies = (id: number, direction: 'incoming' | 'outgoing' = 'incoming') => {
       const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
       this.highLevelNodeLookup[id][direction].forEach((connection) => {
         this.expanded[connection[st].node.modelId] = true;
@@ -504,7 +504,8 @@ export default class Home extends Vue {
     const nodes: Node[] = [];
     const models = new Set<number>();
 
-    this.provenanceNodes.forEach(({ original: n, id: sourceId }) => {
+    this.provenanceNodes.forEach((n) => {
+      const sourceId = n.id;
 
       if (!this.nodesToShow[sourceId]) {
         return;
@@ -512,7 +513,7 @@ export default class Home extends Vue {
 
       if (!this.expanded[n.modelId] && !models.has(n.modelId)) {
         // this bad naming just avoids name shadowing
-        const groupId = '' + n.modelId;
+        const groupId = n.modelId + 1000; // TODO JACOB
         const { x: x1, y: y1 } = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
         const node: GroupNode = {
           isGroup: true,
@@ -542,12 +543,12 @@ export default class Home extends Vue {
           return;
         }
 
-        const determineLinkId = (id: string, model: number) => {
+        const determineLinkId = (id: number, model: number) => {
           if (this.expanded[model]) {
             return id;
           }
 
-          return '' + model;
+          return model;
         };
 
         const source = determineLinkId(sourceId, c.source.node.modelId);
@@ -678,7 +679,7 @@ export default class Home extends Vue {
       connections: [],
     };
 
-    this.provenanceNodes.push({ id: node.type + node.id, original: node });
+    this.provenanceNodes.push(node);
     this.nodesToShow[node.type + node.id] = true;
     this.expanded[node.modelId] = true;
     this.calculateLinksNodes();

@@ -73,7 +73,7 @@ export const relationshipRules: RelationshipRules = {
 };
 
 export interface ProvenanceNodeConnection {
-  id: number;
+  id: string;
   target: ProvenanceNode;
   type: ProvenanceNodeRelationships;
 }
@@ -82,7 +82,7 @@ interface BaseNode {
   /**
    * The unique id.
    */ 
-  id: number;
+  id: string;
 
   /**
    * The model id. This information is what links nodes together.
@@ -113,7 +113,7 @@ export interface ModelInformation {
   /**
    * The unique id.
    */ 
-  id: number;
+  id: string;
   
   /**
    * The model number. This number can be assigned arbitrarily. Should be an integer greater or equal to 1. 

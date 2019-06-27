@@ -241,7 +241,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     let simulation: null | d3.Simulation<D3Node, undefined> = null;
     if (this.force) {
       simulation = d3.forceSimulation(this.allNodes)
-        .force('link', forceLink<D3Node, D3Link>(this.allLinks).id((d) => d.id).strength(0.3))
+        .force('link', forceLink<D3Node, D3Link>(this.allLinks).id((d) => '' + d.id).strength(0.3))
         .velocityDecay(0.5)
         .force('charge', forceManyBody().strength(-1000))
         // .force('group', hullForce())

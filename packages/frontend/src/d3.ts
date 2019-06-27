@@ -13,14 +13,14 @@ interface MessageEvents {
 }
 
 export interface D3Link {
-  source: string;
-  target: string;
+  source: number;
+  target: number;
   color?: string;
   onDidClick?: (e: MouseEvent) => void;
 }
 
 export interface D3Node {
-  id: string;
+  id: number;
   rx: number;
   height: number;
   width: number;

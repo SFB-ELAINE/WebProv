@@ -8,7 +8,7 @@ import {
   ModelInformation,
 } from 'specification';
 
-export const makeLookup = <T extends { id: string }>(array: Iterable<T>) => {
+export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
   for (const item of array) {
     lookup[item.id] = item;

@@ -7,10 +7,11 @@ import {
   ProvenanceNode,
   ModelExplorationActivity,
 } from 'specification';
+import { v4 as uuid } from 'uuid';
 
 // M1
 const WX_7: WetLabData = {
-  id: 1,
+  id: uuid()(),
   modelId: 1,
   name: 'Wx_7',
   type: 'wet-lab-data',
@@ -20,7 +21,7 @@ const WX_7: WetLabData = {
 };
 
 const W1_1: WetLabData = {
-  id: 2,
+  id: uuid(),
   modelId: 1,
   name: 'W1_1',
   type: 'wet-lab-data',
@@ -30,7 +31,7 @@ const W1_1: WetLabData = {
 };
 
 const W1_2: WetLabData = {
-  id: 3,
+  id: uuid(),
   modelId: 1,
   name: 'W1_2',
   type: 'wet-lab-data',
@@ -40,22 +41,22 @@ const W1_2: WetLabData = {
 };
 
 const MBA_3: ModelBuildingActivity = {
-  id: 4,
+  id: uuid(),
   modelId: 1,
   type: 'model-building-activity',
   connections: [
     {
-      id: 0,
+      id: uuid(),
       target: WX_7,
       type: 'used-for-calibration',
     },
     {
-      id: 1,
+      id: uuid(),
       target: W1_1,
       type: 'used-for-calibration',
     },
     {
-      id: -1,
+      id: uuid(),
       target: W1_2,
       type: 'used-for-validation',
     },
@@ -63,13 +64,13 @@ const MBA_3: ModelBuildingActivity = {
 };
 
 const S1_1: SimulationData = {
-  id: 5,
+  id: uuid(),
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_1',
   connections: [
     {
-      id: 2,
+      id: uuid(),
       target: MBA_3,
       type: 'generated-by',
     },
@@ -77,43 +78,43 @@ const S1_1: SimulationData = {
 };
 
 const modelInformation1: ModelInformation = {
-  id: 2,
+  id: uuid(),
   modelId: 1,
   bibInformation: 'Lee et al., PLoS bio. 2003',
 };
 
 const model3: Model = {
-  id: 6,
+  id: uuid(),
   modelId: 1,
   type: 'model',
   version: 1,
-  connections: [{ id: 3, target: MBA_3, type: 'generated-by' }],
+  connections: [{ id: uuid(), target: MBA_3, type: 'generated-by' }],
 };
 
 const MEA: ModelExplorationActivity = {
-  id: 7,
+  id: uuid(),
   modelId: 1,
   type: 'model-exploration-activity',
-  connections: [{ id: 4, target: model3, type: 'used' }],
+  connections: [{ id: uuid(), target: model3, type: 'used' }],
 };
 
 const S1_2: SimulationData = {
-  id: 8,
+  id: uuid(),
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_2',
-  connections: [{ id: 5, target: MEA, type: 'generated-by' }],
+  connections: [{ id: uuid(), target: MEA, type: 'generated-by' }],
 };
 
 // M12
 const modelInformation12: ModelInformation = {
-  id: 1,
+  id: uuid(),
   modelId: 12,
   bibInformation: 'Haack et al., PLoS comp. bio. 2015',
 };
 
 const W12_1: WetLabData = {
-  id: 9,
+  id: uuid(),
   modelId: 12,
   name: 'W12_1',
   type: 'wet-lab-data',
@@ -123,7 +124,7 @@ const W12_1: WetLabData = {
 };
 
 const WX_1: WetLabData = {
-  id: 10,
+  id: uuid(),
   modelId: 12,
   name: 'Wx_1',
   type: 'wet-lab-data',
@@ -133,7 +134,7 @@ const WX_1: WetLabData = {
 };
 
 const WX_2: WetLabData = {
-  id: 11,
+  id: uuid(),
   modelId: 12,
   name: 'Wx_2',
   type: 'wet-lab-data',
@@ -144,27 +145,27 @@ const WX_2: WetLabData = {
 
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
-  id: 12,
+  id: uuid(),
   modelId: 12,
   type: 'model-building-activity',
   connections: [
     {
-      id: 6,
+      id: uuid(),
       target: W12_1,
       type: 'used-for-calibration',
     },
     {
-      id: 7,
+      id: uuid(),
       target: WX_2,
       type: 'used-for-calibration',
     },
     {
-      id: 8,
+      id: uuid(),
       target: WX_1,
       type: 'used-for-calibration',
     },
     {
-      id: 9,
+      id: uuid(),
       target: S1_2,
       type: 'used-for-validation',
     },
@@ -172,23 +173,23 @@ const MBA_1: ModelBuildingActivity = {
 };
 
 const S12_1: SimulationData = {
-  id: 13,
+  id: uuid(),
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_1',
-  connections: [{ id: 10, target: MBA_1, type: 'generated-by' }],
+  connections: [{ id: uuid(), target: MBA_1, type: 'generated-by' }],
 };
 
 const model1: Model = {
-  id: 14,
+  id: uuid(),
   modelId: 12,
   type: 'model',
   version: 1,
-  connections: [{ id: 11, target: MBA_1, type: 'generated-by' }],
+  connections: [{ id: uuid(), target: MBA_1, type: 'generated-by' }],
 };
 
 const W12_2: WetLabData = {
-  id: 15,
+  id: uuid(),
   modelId: 12,
   name: 'W12_2',
   type: 'wet-lab-data',
@@ -198,7 +199,7 @@ const W12_2: WetLabData = {
 };
 
 const W12_3: WetLabData = {
-  id: 16,
+  id: uuid(),
   modelId: 12,
   name: 'W12_3',
   type: 'wet-lab-data',
@@ -208,7 +209,7 @@ const W12_3: WetLabData = {
 };
 
 const WX_3: WetLabData = {
-  id: 17,
+  id: uuid(),
   modelId: 12,
   name: 'Wx_3',
   type: 'wet-lab-data',
@@ -218,27 +219,27 @@ const WX_3: WetLabData = {
 };
 
 const MBA_2: ModelBuildingActivity = {
-  id: 18,
+  id: uuid(),
   modelId: 12,
   type: 'model-building-activity',
   connections: [
     {
-      id: 13,
+      id: uuid(),
       target: WX_3,
       type: 'used-for-calibration',
     },
     {
-      id: 14,
+      id: uuid(),
       target: W12_2,
       type: 'used-for-validation',
     },
     {
-      id: 15,
+      id: uuid(),
       target: W12_3,
       type: 'used-for-validation',
     },
     {
-      id: 16,
+      id: uuid(),
       target: model1,
       type: 'used',
     },
@@ -246,19 +247,19 @@ const MBA_2: ModelBuildingActivity = {
 };
 
 const S12_2: SimulationData = {
-  id: 19,
+  id: uuid(),
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_2',
-  connections: [{ id: 17, target: MBA_2, type: 'generated-by' }],
+  connections: [{ id: uuid(), target: MBA_2, type: 'generated-by' }],
 };
 
 const model2: Model = {
-  id: 20,
+  id: uuid(),
   modelId: 12,
   type: 'model',
   version: 2,
-  connections: [{ id: 18, target: MBA_2, type: 'generated-by' }],
+  connections: [{ id: uuid(), target: MBA_2, type: 'generated-by' }],
 };
 
 export const nodes: ProvenanceNode[] = [
