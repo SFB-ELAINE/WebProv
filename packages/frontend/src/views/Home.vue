@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <!-- This is the main svg animation -->
     <d3
       ref="d3"
       :height="height"
@@ -14,6 +15,8 @@
       :hull-dblclick="hullDblclick"
       :action-click="actionClick"
     ></d3>
+    
+    <!-- This is the dashed line you see when creating new links -->
     <svg
       :height="height"
       :width="width"
@@ -28,7 +31,9 @@
         stroke="black"
       ></line>
     </svg>
+
     <div class="overlay">
+      
       <search
         class="search overlay-child" 
         :results="results"
@@ -38,6 +43,7 @@
         @dependency="showProvenanceGraph"
       ></search>
       <div style="flex: 1"></div>
+      
       <b-button
         class="clear-button overlay-child"
         type="is-text"
@@ -45,6 +51,7 @@
       >
         Add Node
       </b-button>
+      
       <b-button
         class="clear-button overlay-child"
         type="is-text"
@@ -52,9 +59,17 @@
       >
         Reset
       </b-button>
+
       <div class="cards overlay-child">
+
         <prov-legend v-bind="legendProps"></prov-legend>
         <div class="spacer"></div>
+
+        <models-card
+          :models="modelInformation"
+        ></models-card>
+        <div class="spacer"></div>
+        
         <card-select
           title="Relationship" 
           v-if="currentRelationship"
@@ -65,6 +80,7 @@
           @delete="deleteRelationship"
         ></card-select>
         <div class="spacer"></div>
+        
         <form-card
           title="Node Information"
           v-if="selectedNode"
@@ -74,11 +90,7 @@
           @delete="deleteNode"
           @input="checkText"
         ></form-card>
-        <!-- <div class="spacer"></div> -->
-        <!-- <information-card
-          v-if="informationFields"
-          :information-fields="informationFields"
-        ></information-card> -->
+      
       </div>
     </div>
   </div>
@@ -105,7 +117,6 @@ import {
   provenanceNodeTypes,
   ModelInformation,
 } from 'specification';
-import InformationCard from '@/components/InformationCard.vue';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import {
@@ -126,6 +137,7 @@ import {
 import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
 import FormCard from '@/components/FormCard.vue';
+import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
@@ -182,15 +194,12 @@ const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
 };
 
-// TODO
-// 1. Verify connections after type change
-
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
 
 @Component({
-  components: { InformationCard, ProvLegend, D3, Search, CardSelect, FormCard },
+  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
 export default class Home extends Vue {
   public provenanceNodes = data.nodes;
@@ -238,6 +247,7 @@ export default class Home extends Vue {
 
   // TODO
   public nodeFields = nodeFields;
+  public modelInformation = Object.values(data.models);
 
   public $refs!: {
     d3: D3<SingleNode>;
@@ -730,19 +740,6 @@ export default class Home extends Vue {
     this.selectedNode = null;
   }
 
-  public changeNodeType(type: ProvenanceNodeType) {
-    if (!this.selectedNode) {
-      return;
-    }
-
-
-    this.selectedNode.type = type;
-    Vue.set(this.selectedNode, 'type', type);
-    // TODO
-
-    this.calculateLinksNodes();
-  }
-
   public deleteNode() {
     if (!this.selectedNode) {
       return;
@@ -780,6 +777,8 @@ export default class Home extends Vue {
       }
     });
 
+    // Here we are revalidating all of the connections to see if they are still valid
+    // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
 
     let reCalculate = false;

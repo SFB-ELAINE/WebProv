@@ -87,7 +87,7 @@ interface BaseNode {
   /**
    * The model id. This information is what links nodes together.
    */
-  modelId: number;
+  modelId?: number;
 
   /**
    * The connections.
@@ -118,7 +118,7 @@ export interface ModelInformation {
   /**
    * The model number. This number can be assigned arbitrarily. Should be an integer greater or equal to 1. 
    */
-  modelId: number;
+  modelId?: number;
 
   /**
    * The information regarding the source of the model. For example, `Haack et al., PLoS comp. bio. 2015`.

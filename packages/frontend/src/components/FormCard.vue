@@ -12,7 +12,7 @@
 
       <!-- The dynamic field with a key, value pair -->
       <div v-else-if="field.multiple">
-        <div v-for="(value, j) in node[field.name]" :key="value[0]" style="display: flex">
+        <div v-for="(value, j) in node[field.name]" :key="`${field.name}-${j}`" style="display: flex">
           <b-field>
             <b-input placeholder="Key" :value="value[0]" @input="update(value, 0, $event)"></b-input>
           </b-field>
