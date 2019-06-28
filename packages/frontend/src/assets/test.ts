@@ -246,28 +246,28 @@ const model2: Model = {
 
 export const nodes: ProvenanceNode[] = [
   // MODEL 12
-  W12_1,
-  WX_1,
-  WX_2,
-  MBA_1,
-  S12_1,
-  model1,
-  W12_2,
-  W12_3,
-  WX_3,
-  MBA_2,
-  S12_2,
-  model2,
+  // W12_1,
+  // WX_1,
+  // WX_2,
+  // MBA_1,
+  // S12_1,
+  // model1,
+  // W12_2,
+  // W12_3,
+  // WX_3,
+  // MBA_2,
+  // S12_2,
+  // model2,
 
   // MODEL 1
-  WX_7,
-  W1_1,
-  W1_2,
-  MBA_3,
-  S1_1,
-  model3,
-  MEA,
-  S1_2,
+  // WX_7,
+  // W1_1,
+  // W1_2,
+  // MBA_3,
+  // S1_1,
+  // model3,
+  // MEA,
+  // S1_2,
 ];
 
 export const models = {

@@ -28,7 +28,7 @@
         <div style="display: flex">
           <div>
             <h4 class="result--title">{{ result.title }}</h4>
-            <h6 class="result--type">Model {{ result.model }}</h6>
+            <h6 class="result--type">{{ result.model === undefined ? 'No Model' : `Model ${result.model}` }}</h6>
             <p class="result--extra">{{ result.information | format }}</p>
             <hr class="result--break" v-if="i !== results.length - 1">
           </div>

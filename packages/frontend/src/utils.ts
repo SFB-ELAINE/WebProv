@@ -1,5 +1,5 @@
 import { Watch as W } from 'vue-property-decorator';
-import { WatchOptions } from 'vue';
+import Vue, { WatchOptions } from 'vue';
 import {
   ProvenanceNode,
   ProvenanceNodeType,
@@ -91,7 +91,7 @@ interface ConnectionOptions { type: ProvenanceNodeRelationships | undefined; doC
 export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: ConnectionOptions ): boolean => {
   const { doConnection = true } = opts;
   if (!a.connections) {
-    a.connections = [];
+    Vue.set(a, 'connections', []);
   }
 
   const rulesForA = relationshipRules[a.type];
@@ -117,7 +117,7 @@ export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: Conne
   }
 
   if (doConnection) {
-    a.connections.push({
+    a.connections!.push({
       id: uniqueId(),
       type: opts.type,
       target: b,

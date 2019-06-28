@@ -274,6 +274,7 @@ export default class Home extends Vue {
     const nodeLookup: Lookup<HighLevelNode> = {};
 
     const highLevelNodes = this.provenanceNodes.map((n) => {
+      console.log(n.id, n.connections);
       const sourceId = n.id;
 
       const checkAndAdd = (id: string, node: ProvenanceNode) => {
@@ -293,6 +294,7 @@ export default class Home extends Vue {
       if (!n.connections) {
         return;
       }
+
 
       n.connections.forEach((connection) => {
         const targetId = connection.target.id;
@@ -692,9 +694,7 @@ export default class Home extends Vue {
   public addNode() {
     const node: ProvenanceNode = {
       type: 'model-building-activity',
-      modelId: 1,
       id: uniqueId(),
-      connections: [],
     };
 
     this.provenanceNodes.push(node);
@@ -702,6 +702,7 @@ export default class Home extends Vue {
     if (node.modelId !== undefined) {
       this.expanded[node.modelId] = true;
     }
+
     this.calculateLinksNodes();
   }
 

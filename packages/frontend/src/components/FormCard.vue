@@ -6,7 +6,7 @@
       :label="field.name | wordCase"
     >
       <!-- A select option -->
-      <b-select v-if="field.options" :value="node[field.name]" @input="onInput(field.name, $event)" expanded>
+      <b-select v-if="field.options" :value="node[field.name]" @input="onInput(field.name, field.type, $event)" expanded>
         <option v-for="option in field.options" :key="option" :value="option">{{ option }}</option>
       </b-select>
 
@@ -32,7 +32,7 @@
       </div>
 
       <!-- Just a regular field -->
-      <b-input v-else :type="field.type" :value="node[field.name]" @input="onInput(field.name, $event)">
+      <b-input v-else :type="field.type" :value="node[field.name]" @input="onInput(field.name, field.type, $event)">
       </b-input>
     
     </b-field>
@@ -91,7 +91,10 @@ export default class FormCard<T extends { [k: string]: Values | undefined }> ext
     Vue.set(this.node, key, value.filter((_, index) => index !== j));
   }
 
-  public onInput(key: string, value: any) {
+  public onInput(key: string, type: 'string' | 'number', str: string) {
+    // convert the value to a number if possible
+    // if it is a number but the given string is empty, set to undefined
+    const value = type === 'string' ? str : str === '' ? undefined : +str;
     Vue.set(this.node, key, value);
     this.$emit('input', key, value);
   }

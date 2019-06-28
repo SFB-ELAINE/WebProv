@@ -69,8 +69,10 @@ export default class ModelsCard extends Vue {
     });
   }
 
-  public setModel(i: number, value: number) {
-    Vue.set(this.models[i], 'modelId', value);
+  public setModel(i: number, value: string) {
+    // convert the value to a number if possible
+    // if it is a number but the given string is empty, set to undefined
+    Vue.set(this.models[i], 'modelId', value === '' ? undefined : +value);
   }
 
   public setBibInformation(i: number, value: string) {
@@ -83,7 +85,7 @@ export default class ModelsCard extends Vue {
 .model--title {
   font-weight: normal;
   font-size: 1.5em;
-  margin-bottom: 0.5em;
+  margin-bottom: 0em;
 }
 
 .field ::v-deep .label {
