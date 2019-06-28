@@ -4,7 +4,7 @@ export interface SearchItem {
   id: string;
   title: string;
   type: string;
-  model: number;
+  model: number | undefined;
   information: string[];
 }
 

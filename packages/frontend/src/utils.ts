@@ -40,6 +40,10 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
     case 'model-exploration-activity':
       return 'MEA';
     case 'model':
+      if (n.modelId === undefined) {
+        return 'None';
+      }
+
       const modelInformation = lookup[n.modelId];
       let text = `M${modelInformation.modelId}`;
 

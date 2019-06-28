@@ -143,7 +143,7 @@ import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
 
 interface BaseNode extends D3Node {
-  model: number;
+  model?: number;
   text: string;
 }
 
@@ -260,6 +260,10 @@ export default class Home extends Vue {
   get modelInformationLookup() {
     const lookup: { [modelId: number]: ModelInformation } = {};
     Object.values(data.models).forEach((modelInformation) => {
+      if (modelInformation.modelId === undefined) {
+        return;
+      }
+
       lookup[modelInformation.modelId] = modelInformation;
     });
 
@@ -320,7 +324,9 @@ export default class Home extends Vue {
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
-      this.expanded[info.node.modelId] = true;
+      if (info.node.modelId !== undefined) {
+        this.expanded[info.node.modelId] = true;
+      }
 
       info.outgoing.forEach((c) => {
         showNode(c.target.id);
@@ -337,7 +343,9 @@ export default class Home extends Vue {
   }
 
   public openResult(result: SearchItem) {
-    this.expanded[result.model] = true;
+    if (result.model !== undefined) {
+      this.expanded[result.model] = true;
+    }
 
     this.highLevelNodes.forEach(({ node, id }) => {
       if (node.modelId === result.model) {
@@ -372,7 +380,7 @@ export default class Home extends Vue {
   }
 
   public nodeDblclick(d: Node) {
-    if (d.isGroup) {
+    if (d.isGroup && d.model !== undefined) {
       this.expanded[d.model] = true;
       this.pointToPlaceNode = d;
 
@@ -483,7 +491,10 @@ export default class Home extends Vue {
     const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
       const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
       this.highLevelNodeLookup[id][direction].forEach((connection) => {
-        this.expanded[connection[st].node.modelId] = true;
+        const modelId = connection[st].node.modelId;
+        if (modelId !== undefined) {
+          this.expanded[modelId] = true;
+        }
         this.nodesToShow[connection[st].id] = true;
         expandDependencies(connection[st].id, 'outgoing');
       });
@@ -575,7 +586,7 @@ export default class Home extends Vue {
         return;
       }
 
-      if (!this.expanded[n.modelId] && !models[n.modelId]) {
+      if (n.modelId !== undefined && !this.expanded[n.modelId] && !models[n.modelId]) {
         // this bad naming just avoids name shadowing
         const groupId = uniqueId();
         const { x: x1, y: y1 } = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
@@ -607,8 +618,8 @@ export default class Home extends Vue {
           return;
         }
 
-        const determineLinkId = (id: string, model: number) => {
-          if (this.expanded[model]) {
+        const determineLinkId = (id: string, model: number | undefined) => {
+          if (model === undefined || this.expanded[model]) {
             return id;
           }
 
@@ -664,7 +675,7 @@ export default class Home extends Vue {
       });
 
       // don't add nodes that are a model that isn't expanded
-      if (!this.expanded[n.modelId]) {
+      if (n.modelId !== undefined && !this.expanded[n.modelId]) {
         return;
       }
 
@@ -688,7 +699,9 @@ export default class Home extends Vue {
 
     this.provenanceNodes.push(node);
     this.nodesToShow[node.id] = true;
-    this.expanded[node.modelId] = true;
+    if (node.modelId !== undefined) {
+      this.expanded[node.modelId] = true;
+    }
     this.calculateLinksNodes();
   }
 
