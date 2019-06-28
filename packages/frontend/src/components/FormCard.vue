@@ -32,10 +32,14 @@
       </div>
 
       <!-- Just a regular field -->
-      <b-input v-else :type="field.type" :value="node[i]" @input="onInput(field.name, $event)">
+      <b-input v-else :type="field.type" :value="node[field.name]" @input="onInput(field.name, $event)">
       </b-input>
     
     </b-field>
+    <template v-slot:footer>
+      <a class="card-footer-item" @click="$emit('close')">Close</a>
+      <a class="card-footer-item" @click="$emit('delete')">Delete</a>
+    </template>
   </card>
 </template>
 
@@ -89,6 +93,7 @@ export default class FormCard<T extends { [k: string]: Values | undefined }> ext
 
   public onInput(key: string, value: any) {
     Vue.set(this.node, key, value);
+    this.$emit('input', key, value);
   }
 }
 </script>

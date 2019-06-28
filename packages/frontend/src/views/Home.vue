@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <d3
+      ref="d3"
       :height="height"
       :width="width"
       :links="links"
@@ -69,6 +70,9 @@
           v-if="selectedNode"
           :fields="nodeFields[selectedNode.type]"
           :node="selectedNode"
+          @close="cancelNodeTypeSelection"
+          @delete="deleteNode"
+          @input="checkText"
         ></form-card>
         <!-- <div class="spacer"></div> -->
         <!-- <information-card
@@ -89,6 +93,8 @@ import {
   INVALID_ENDPOINT_OUTLINE,
   NODE_HEIGHT,
   NODE_RADIUS,
+  MODEL_STROKE,
+  MODEL_WIDTH,
 } from '@/constants';
 import {
   ProvenanceNodeType,
@@ -176,6 +182,9 @@ const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
 };
 
+// TODO
+// 1. Verify connections after type change
+
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
@@ -227,7 +236,12 @@ export default class Home extends Vue {
   // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
+  // TODO
   public nodeFields = nodeFields;
+
+  public $refs!: {
+    d3: D3<SingleNode>;
+  };
 
   get nodeLookup() {
     return makeLookup(this.nodes);
@@ -488,6 +502,57 @@ export default class Home extends Vue {
     this.calculateLinksNodes();
   }
 
+  public createNewNode(n: ProvenanceNode): SingleNode {
+    const sourceId = n.id;
+
+    const moreLeftToShow = this.highLevelNodeLookup[sourceId].incoming.some((dep) => {
+      return !this.nodesToShow[dep.source.id];
+    });
+
+    const text = getText(n, this.modelInformationLookup);
+    const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
+    const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data' || n.type === 'model';
+    const node: SingleNode = {
+      isGroup: false,
+      id: sourceId,
+      text,
+      actionText: moreLeftToShow ? 'See more' : undefined,
+      type: n.type,
+      model: n.modelId,
+      hullGroup: n.modelId,
+      stroke: NODE_OUTLINE,
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      index: 0,
+      provenanceNode: n,
+      rx: isEntity ? 10 : 0,
+      // width and height are essential
+      // TODO add requirement to type file
+      // they are used in the other js files
+      // ALSO, * 8 just kinda works well and 10 is the padding
+      width: text.length * 8 + 10,
+      height: NODE_HEIGHT,
+      onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
+        this.nodeRightClick(e, node, id3);
+      },
+      onDidClick: () => {
+        if (node.isGroup) {
+          return;
+        }
+
+        if (this.selectedNode === n) {
+          this.cancelNodeTypeSelection();
+        } else {
+          this.selectedNode = n;
+        }
+      },
+    };
+
+    return node;
+  }
+
   public calculateLinksNodes() {
     const links: Link[] = [];
     const nodes: Node[] = [];
@@ -513,10 +578,10 @@ export default class Home extends Vue {
           index: 0,
           vx: 0,
           vy: 0,
-          stroke: 'rgb(0, 0, 0)',
+          stroke: MODEL_STROKE,
           rx: 0,
           text: `M${n.modelId}`,
-          width: 50,
+          width: MODEL_WIDTH,
           height: NODE_HEIGHT,
         };
 
@@ -569,13 +634,9 @@ export default class Home extends Vue {
               return;
             }
 
-            let rules = aRules[b.type];
+            const rules = aRules[b.type];
             if (!rules) {
               return;
-            }
-
-            if (typeof rules === 'string') {
-              rules = [rules];
             }
 
             this.currentRelationship = c.relationship;
@@ -597,53 +658,7 @@ export default class Home extends Vue {
         return;
       }
 
-      const moreLeftToShow = this.highLevelNodeLookup[sourceId].incoming.some((dep) => {
-        return !this.nodesToShow[dep.source.id];
-      });
-
-      const text = getText(n, this.modelInformationLookup);
-      const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
-
-      const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data';
-      const newNode: SingleNode = {
-        isGroup: false,
-        id: sourceId,
-        text,
-        actionText: moreLeftToShow ? 'See more' : undefined,
-        type: n.type,
-        model: n.modelId,
-        hullGroup: n.modelId,
-        stroke: NODE_OUTLINE,
-        x,
-        y,
-        vx: 0,
-        vy: 0,
-        index: 0,
-        provenanceNode: n,
-        rx: isEntity ? 10 : 0,
-        // width and height are essential
-        // TODO add requirement to type file
-        // they are used in the other js files
-        // ALSO, * 8 just kinda works well and 10 is the padding
-        width: text.length * 8 + 10,
-        height: NODE_HEIGHT,
-        onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
-          this.nodeRightClick(e, newNode, id3);
-        },
-        onDidClick: () => {
-          if (newNode.isGroup) {
-            return;
-          }
-
-          if (this.selectedNode === n) {
-            this.cancelNodeTypeSelection();
-          } else {
-            this.selectedNode = n;
-          }
-        },
-      };
-
-      nodes.push(newNode);
+      nodes.push(this.createNewNode(n));
     });
 
     // Make sure to reset this since we are done rendering
@@ -725,20 +740,6 @@ export default class Home extends Vue {
     Vue.set(this.selectedNode, 'type', type);
     // TODO
 
-    const { outgoing } = this.highLevelNodeLookup[this.selectedNode.id];
-
-    const toRemove = [];
-    const invalid = outgoing.filter((connection) => {
-      return !isValidConnection(connection.source.node, connection.target.node, connection.relationship);
-    }).map(({ id }) => id);
-
-    const connections = this.selectedNode.connections;
-    if (connections) {
-      this.selectedNode.connections = connections.filter((connection) => {
-        return !invalid.includes(connection.id);
-      });
-    }
-
     this.calculateLinksNodes();
   }
 
@@ -754,6 +755,52 @@ export default class Home extends Vue {
 
     this.cancelNodeTypeSelection();
     this.calculateLinksNodes();
+  }
+
+  public checkText() {
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const node = this.selectedNode;
+    this.nodes.forEach((n) => {
+      if (n.id !== node.id) {
+        return;
+      }
+
+      if (n.isGroup) {
+        return;
+      }
+
+
+      const newText = getText(node, this.modelInformationLookup);
+      if (newText !== n.text) {
+        const newNode = this.createNewNode(node);
+        this.$refs.d3.replaceNode(newNode);
+      }
+    });
+
+    const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
+
+    let reCalculate = false;
+    [...incoming, ...outgoing].forEach(({ source, target, relationship }) => {
+      if (isValidConnection(source.node, target.node, relationship)) {
+        return;
+      }
+
+      reCalculate = true;
+      if (!source.node.connections) {
+        return;
+      }
+
+      source.node.connections = source.node.connections
+        .filter((connection) => connection.target.id !== target.node.id);
+    });
+
+
+    if (reCalculate) {
+      this.calculateLinksNodes();
+    }
   }
 }
 </script>

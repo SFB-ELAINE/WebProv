@@ -32,11 +32,11 @@ interface ModelInformationLookup {
 export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
   switch (n.type) {
     case 'wet-lab-data':
-      return n.name || 'W';
+      return n.name || 'None';
     case 'model-building-activity':
       return 'MBA';
     case 'simulation-data':
-      return n.name || 'S';
+      return n.name || 'None';
     case 'model-exploration-activity':
       return 'MEA';
     case 'model':

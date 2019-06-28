@@ -111,7 +111,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
   @Prop({ type: Number, default: 100 }) public width!: number;
   @Prop({ type: Number, default: 6 }) public arrowSize!: number;
   @Prop({ type: Number, default: 40 }) public hullOffset!: number;
-  @Prop({ type: Array, default: () => [] }) public nodes!: D3Node[];
+  @Prop({ type: Array, default: () => [] }) public nodes!: N[];
   @Prop({ type: Array, default: () => [] }) public links!: D3Link[];
   @Prop({ type: Function, required: false }) public hullClick?: (node: D3Hull) => void;
   @Prop({ type: Function, required: false }) public hullDblclick?: (node: D3Hull) => void;
@@ -120,9 +120,9 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
 
   public isD3: true = true;
   public addedLinks: MyLink[] = [];
-  public addedNodes: D3Node[] = [];
+  public addedNodes: N[] = [];
 
-  public selection: d3.Selection<any, D3Node, any, any> | null = null;
+  public selection: d3.Selection<any, N, any, any> | null = null;
 
   public curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
 
@@ -157,7 +157,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     });
   }
 
-  public addNode(node: D3Node) {
+  public addNode(node: N) {
     this.allNodes.push(node);
   }
 
@@ -212,6 +212,37 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     return hullset;
   }
 
+  public applyNode(selection: d3.Selection<any, N, any, any>) {
+    selection
+      .attr('id', (d) => d.id)
+      .attr('width', (d) => d.width)
+      .attr('height', (d) => d.height)
+      .attr('fill', (d) => 'white')
+      .style('stroke-width', 3)
+      .attr('rx', (d) => d.rx)
+      // If there is a force, then the position will be set by the force
+      // If this check didn't happen, we would set the position twice which causes issues
+      .attr('x', (d) => this.force ? 0 : d.x)
+      .attr('y', (d) => this.force ? 0 : d.y)
+      .style('stroke', (d) => d.stroke);
+  }
+
+  public applyText(selection: d3.Selection<any, N, any, any>) {
+    selection
+      .filter((d) => d.text !== undefined)
+      .attr('id', (d) => `text-${d.id}`)
+      .attr('x', (d) => d.text!.length * 4 + 5)
+      .attr('y', (d) => d.height / 2 + 5) // the extra 5 is just random
+      .style('stroke-width', 0)
+      .style('font-family', 'monospace')
+      .style('pointer-events', 'none')
+      .style('text-anchor', 'middle')
+      .style('font-size', '12px')
+      .text((d) => {
+        return d.text!;
+      });
+  }
+
   public doRender() {
     const svg = d3.select(this.$refs.svg as Element);
     svg.selectAll('*').remove();
@@ -238,7 +269,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
       hull.on('dblclick', checkAndCall(this.hullDblclick));
     }
 
-    let simulation: null | d3.Simulation<D3Node, undefined> = null;
+    let simulation: null | d3.Simulation<N, undefined> = null;
     if (this.force) {
       simulation = d3.forceSimulation(this.allNodes)
         .force('link', forceLink<D3Node, D3Link>(this.allLinks).id((d) => '' + d.id).strength(0.3))
@@ -306,19 +337,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
       .join('g')
       .attr('class', 'node');
 
-    g
-      .append('rect')
-      .attr('id', (d) => d.id)
-      .attr('width', (d) => d.width)
-      .attr('height', (d) => d.height)
-      .attr('fill', (d) => 'white')
-      .style('stroke-width', 3)
-      .attr('rx', (d) => d.rx)
-      // If there is a force, then the position will be set by the force
-      // If this check didn't happen, we would set the position twice which causes issues
-      .attr('x', (d) => this.force ? 0 : d.x)
-      .attr('y', (d) => this.force ? 0 : d.y)
-      .style('stroke', (d) => d.stroke);
+    this.applyNode(g.append('rect'));
 
     const checkAndCallV2 = (key: D3NodeCallbackKeys) => (d: D3Node) => {
       const cb = d[key];
@@ -354,18 +373,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
       g.call(drag as any);
     }
 
-    g.append('text')
-      .filter((d) => d.text !== undefined)
-      .attr('x', (d) => d.text!.length * 4 + 5)
-      .attr('y', (d) => d.height / 2 + 5) // the extra 5 is just random
-      .style('stroke-width', 0)
-      .style('font-family', 'monospace')
-      .style('pointer-events', 'none')
-      .style('text-anchor', 'middle')
-      .style('font-size', '12px')
-      .text((d) => {
-        return d.text!;
-      });
+    this.applyText(g.append('text'));
 
     g.append('text')
       .filter((d) => d.actionText !== undefined)
@@ -418,11 +426,24 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     id++;
   }
 
-  public setStrokeColor(node: D3Node, color: string) {
+  public setStrokeColor(node: N, color: string) {
     node.stroke = color;
     if (this.selection) {
       this.selection.select(`#${node.id}`)
         .style('stroke', (d) => d.stroke);
+    }
+  }
+
+  public replaceNode(node: N) {
+    this.nodes.forEach((n) => {
+      if (n.id === node.id) {
+        Object.assign(n, node);
+      }
+    });
+
+    if (this.selection) {
+      this.applyNode(this.selection.select(`#${node.id}`));
+      this.applyText(this.selection.select(`#text-${node.id}`));
     }
   }
 
