@@ -8,11 +8,3 @@ declare module '@/link' {
     LinksDatum extends SimulationLinkDatum<NodeDatum>
   >(links: LinksDatum[]): ForceLink<NodeDatum, LinksDatum>;
 }
-
-// declare module '@/manyBody' {
-//   import { ForceManyBody, SimulationNodeDatum } from 'd3';
-
-//   export default function forceManyBody<
-//     NodeDatum extends SimulationNodeDatum
-//   >(): ForceManyBody<NodeDatum>;
-// }

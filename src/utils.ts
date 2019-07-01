@@ -214,8 +214,11 @@ export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceN
   }
 };
 
+
 export const uniqueId = () => {
-  return uniqueid('node_');
+  // HTML IDs must begin with a non numeric character or something like that.
+  // Thus, we prepend 'A'
+  return 'A' + Math.random().toString().substr(2, 9);
 };
 
 export interface FieldInformation<T extends string> {
@@ -249,6 +252,11 @@ export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
 }
 
+/**
+ * Convert a string to word case. ie. "helloHowAreYou" to "Hello How Are You".
+ *
+ * @param s The string to convert.
+ */
 export function wordCase(s: string) {
   return uppercase(
     s.replace(/([A-Z]+)/g, ' $1').replace(/([A-Z][a-z])/g, ' $1'),

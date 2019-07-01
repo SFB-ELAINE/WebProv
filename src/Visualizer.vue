@@ -66,7 +66,7 @@
         <div class="spacer"></div>
 
         <models-card
-          :models="modelInformation"
+          :models="models"
         ></models-card>
         <div class="spacer"></div>
         
@@ -141,6 +141,7 @@ import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue } from 'vue-property-decorator';
+import * as backend from '@/backend';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -202,7 +203,7 @@ const isSingleNode = (node: Node): node is SingleNode => {
   components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
 export default class Visualizer extends Vue {
-  public provenanceNodes = testData.nodes;
+  public provenanceNodes: ProvenanceNode[] = [];
 
   // OK, so for some reason we have to remove 7 here so that there is no overlow......
   public height = window.innerHeight - 7;
@@ -247,7 +248,7 @@ export default class Visualizer extends Vue {
 
   // TODO
   public nodeFields = nodeFields;
-  public modelInformation = Object.values(testData.models);
+  public models: ModelInformation[] = [];
 
   public $refs!: {
     d3: D3<SingleNode>;
@@ -259,7 +260,7 @@ export default class Visualizer extends Vue {
 
   get modelInformationLookup() {
     const lookup: { [modelId: number]: ModelInformation } = {};
-    Object.values(testData.models).forEach((modelInformation) => {
+    this.models.forEach((modelInformation) => {
       if (modelInformation.modelId === undefined) {
         return;
       }
@@ -274,7 +275,6 @@ export default class Visualizer extends Vue {
     const nodeLookup: Lookup<HighLevelNode> = {};
 
     const highLevelNodes = this.provenanceNodes.map((n) => {
-      console.log(n.id, n.connections);
       const sourceId = n.id;
 
       const checkAndAdd = (id: string, node: ProvenanceNode) => {
@@ -287,7 +287,6 @@ export default class Visualizer extends Vue {
           };
         }
       };
-
 
       checkAndAdd(sourceId, n);
       const source = nodeLookup[sourceId];
@@ -814,6 +813,47 @@ export default class Visualizer extends Vue {
     if (reCalculate) {
       this.calculateLinksNodes();
     }
+  }
+
+  public async mounted() {
+    // TODO Remove this
+    // await backend.resetDatabase();
+    const getNodes = async () => {
+      const result = await backend.getProvenanceNodes();
+
+      if (result.result === 'error') {
+        this.$notification.open({
+          duration: 10000,
+          message: result.message,
+          position: 'is-bottom-right',
+          type: 'is-danger',
+        });
+
+        return;
+      }
+
+      this.provenanceNodes = result.items;
+    };
+
+    const getModels = async () => {
+      const result = await backend.getModels();
+
+      if (result.result === 'error') {
+        this.$notification.open({
+          duration: 10000,
+          message: result.message,
+          position: 'is-bottom-right',
+          type: 'is-danger',
+        });
+
+        return;
+      }
+
+      this.models = result.items;
+    };
+
+    await getNodes();
+    await getModels();
   }
 }
 </script>
