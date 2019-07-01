@@ -30,7 +30,6 @@
             <h4 class="result--title">{{ result.title }}</h4>
             <h6 class="result--type">{{ result.model === undefined ? 'No Model' : `Model ${result.model}` }}</h6>
             <p class="result--extra">{{ result.information | format }}</p>
-            <hr class="result--break" v-if="i !== results.length - 1">
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
@@ -51,6 +50,7 @@
             </b-tooltip>
           </div>
         </div>
+        <hr class="result--break" v-if="i !== results.length - 1">
       </div>
     </div>
   </card>
@@ -111,6 +111,6 @@ export default class Search extends Vue {
 }
 
 .result--break {
-  margin: 0.5rem 0;
+  margin: 0.75rem 0;
 }
 </style>

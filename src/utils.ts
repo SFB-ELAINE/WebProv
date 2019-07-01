@@ -9,7 +9,6 @@ import {
   ProvenanceNodeLookup,
   provenanceNodeTypes,
 } from '@/specification';
-import uniqueid from 'lodash.uniqueid';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -120,7 +119,7 @@ export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: Conne
     a.connections!.push({
       id: uniqueId(),
       type: opts.type,
-      target: b,
+      targetId: b.id,
     });
   }
 
@@ -261,4 +260,11 @@ export function wordCase(s: string) {
   return uppercase(
     s.replace(/([A-Z]+)/g, ' $1').replace(/([A-Z][a-z])/g, ' $1'),
   );
+}
+
+export function get<T>(o: { [k: string]: T }, key: keyof typeof o): T | undefined;
+export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue: T): T;
+export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue?: T) {
+  const value: T | undefined = o[key];
+  return value || defaultValue;
 }

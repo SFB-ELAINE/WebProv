@@ -1,6 +1,6 @@
 import * as testData from '@/testData';
 import firebase from 'firebase/app';
-import { ProvenanceNode, ModelInformation, Model } from '@/specification';
+import { ProvenanceNode, ModelInformation } from '@/specification';
 
 export interface SerializedProject {
   name: string;
@@ -18,6 +18,10 @@ export interface Success {
 export interface Items<T> {
   result: 'success';
   items: T[];
+}
+
+export interface NotFound {
+  results: 'not-found';
 }
 
 export interface Schema<T> {
@@ -75,16 +79,29 @@ export const getModels = async () => {
   return await getItems<ModelInformation>('models');
 };
 
-type GenericArgument = { ref: 'models', data: ModelInformation } | { ref: 'nodes', data: ProvenanceNode };
+type GenericArgument = {
+  ref: 'models',
+  data: ModelInformation,
+  keys?: Array<keyof ModelInformation>,
+} | {
+  ref: 'nodes',
+  data: ProvenanceNode,
+  keys?: Array<keyof ProvenanceNode>,
+};
 
+// TODO keys
 const updateOrCreate = async (id: string, arg: GenericArgument) => {
   return await withHandling(async (): Promise<Success> => {
     const ref = getRef(arg.ref).child(id);
     const snapshot = await ref.once('value');
 
     if (!snapshot.exists()) {
+      // tslint:disable-next-line: no-console
+      console.info(`Creating ${id}`);
       ref.set(arg.data);
     } else {
+      // tslint:disable-next-line: no-console
+      console.info(`Updating ${id} using: ${arg.keys}`);
       ref.update(arg.data);
     }
 
@@ -94,12 +111,14 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
   });
 };
 
-export const updateOrCreateModel = async (id: string, model: ModelInformation) => {
-  return await updateOrCreate(id, { ref: 'models', data: model });
+export const updateOrCreateModel = async (
+  id: string, model: ModelInformation, keys?: Array<keyof ModelInformation>,
+) => {
+  return await updateOrCreate(id, { ref: 'models', data: model, keys });
 };
 
-export const updateOrCreateNode = async (id: string, node: ProvenanceNode) => {
-  return await updateOrCreate(id, { ref: 'nodes', data: node });
+export const updateOrCreateNode = async (node: ProvenanceNode, keys?: Array<keyof ProvenanceNode>) => {
+  return await updateOrCreate(node.id, { ref: 'nodes', data: node, keys });
 };
 
 
@@ -108,11 +127,38 @@ export const resetDatabase = async () => {
   await getRef('nodes').set(null);
 
   for (const node of testData.nodes) {
-    console.log('Creating ' + node.id);
-    await updateOrCreateNode(node.id, node);
+    await updateOrCreateNode(node);
   }
 
   for (const model of Object.values(testData.models)) {
     await updateOrCreateModel(model.id, model);
   }
+};
+
+const deleteItem = async (key: NodesModels, id: string) => {
+  return await withHandling(async (): Promise<Success | NotFound> => {
+    const ref = getRef(key).child(id);
+    const snapshot = await ref.once('value');
+
+    if (!snapshot.exists()) {
+      return {
+        results: 'not-found',
+      };
+    }
+
+    // tslint:disable-next-line: no-console
+    console.info(`Deleting ${id}`);
+    ref.remove();
+    return {
+      result: 'success',
+    };
+  });
+};
+
+export const deleteNode = async (id: string) => {
+  return await deleteItem('nodes', id);
+};
+
+export const deleteModel = async (id: string) => {
+  return await deleteItem('models', id);
 };

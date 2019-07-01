@@ -41,17 +41,17 @@ const MBA_3: ModelBuildingActivity = {
   connections: [
     {
       id: uniqueId(),
-      target: WX_7,
+      targetId: WX_7.id,
       type: 'used-for-calibration',
     },
     {
       id: uniqueId(),
-      target: W1_1,
+      targetId: W1_1.id,
       type: 'used-for-calibration',
     },
     {
       id: uniqueId(),
-      target: W1_2,
+      targetId: W1_2.id,
       type: 'used-for-validation',
     },
   ],
@@ -65,7 +65,7 @@ const S1_1: SimulationData = {
   connections: [
     {
       id: uniqueId(),
-      target: MBA_3,
+      targetId: MBA_3.id,
       type: 'generated-by',
     },
   ],
@@ -82,14 +82,14 @@ const model3: Model = {
   modelId: 1,
   type: 'model',
   version: 1,
-  connections: [{ id: uniqueId(), target: MBA_3, type: 'generated-by' }],
+  connections: [{ id: uniqueId(), targetId: MBA_3.id, type: 'generated-by' }],
 };
 
 const MEA: ModelExplorationActivity = {
   id: uniqueId(),
   modelId: 1,
   type: 'model-exploration-activity',
-  connections: [{ id: uniqueId(), target: model3, type: 'used' }],
+  connections: [{ id: uniqueId(), targetId: model3.id, type: 'used' }],
 };
 
 const S1_2: SimulationData = {
@@ -97,7 +97,7 @@ const S1_2: SimulationData = {
   modelId: 1,
   type: 'simulation-data',
   name: 'S1_2',
-  connections: [{ id: uniqueId(), target: MEA, type: 'generated-by' }],
+  connections: [{ id: uniqueId(), targetId: MEA.id, type: 'generated-by' }],
 };
 
 // M12
@@ -139,22 +139,22 @@ const MBA_1: ModelBuildingActivity = {
   connections: [
     {
       id: uniqueId(),
-      target: W12_1,
+      targetId: W12_1.id,
       type: 'used-for-calibration',
     },
     {
       id: uniqueId(),
-      target: WX_2,
+      targetId: WX_2.id,
       type: 'used-for-calibration',
     },
     {
       id: uniqueId(),
-      target: WX_1,
+      targetId: WX_1.id,
       type: 'used-for-calibration',
     },
     {
       id: uniqueId(),
-      target: S1_2,
+      targetId: S1_2.id,
       type: 'used-for-validation',
     },
   ],
@@ -165,7 +165,7 @@ const S12_1: SimulationData = {
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_1',
-  connections: [{ id: uniqueId(), target: MBA_1, type: 'generated-by' }],
+  connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
 const model1: Model = {
@@ -173,7 +173,7 @@ const model1: Model = {
   modelId: 12,
   type: 'model',
   version: 1,
-  connections: [{ id: uniqueId(), target: MBA_1, type: 'generated-by' }],
+  connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
 const W12_2: WetLabData = {
@@ -207,22 +207,22 @@ const MBA_2: ModelBuildingActivity = {
   connections: [
     {
       id: uniqueId(),
-      target: WX_3,
+      targetId: WX_3.id,
       type: 'used-for-calibration',
     },
     {
       id: uniqueId(),
-      target: W12_2,
+      targetId: W12_2.id,
       type: 'used-for-validation',
     },
     {
       id: uniqueId(),
-      target: W12_3,
+      targetId: W12_3.id,
       type: 'used-for-validation',
     },
     {
       id: uniqueId(),
-      target: model1,
+      targetId: model1.id,
       type: 'used',
     },
   ],
@@ -233,7 +233,7 @@ const S12_2: SimulationData = {
   modelId: 12,
   type: 'simulation-data',
   name: 'S12_2',
-  connections: [{ id: uniqueId(), target: MBA_2, type: 'generated-by' }],
+  connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
 };
 
 const model2: Model = {
@@ -241,7 +241,7 @@ const model2: Model = {
   modelId: 12,
   type: 'model',
   version: 2,
-  connections: [{ id: uniqueId(), target: MBA_2, type: 'generated-by' }],
+  connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
 };
 
 export const nodes: ProvenanceNode[] = [

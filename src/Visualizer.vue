@@ -11,9 +11,7 @@
       arrows
       drag
       hulls
-      :node-dblclick="nodeDblclick"
       :hull-dblclick="hullDblclick"
-      :action-click="actionClick"
     ></d3>
     
     <!-- This is the dashed line you see when creating new links -->
@@ -88,7 +86,7 @@
           :node="selectedNode"
           @close="cancelNodeTypeSelection"
           @delete="deleteNode"
-          @input="checkText"
+          @input="onNodeChange"
         ></form-card>
       
       </div>
@@ -133,6 +131,7 @@ import {
   uniqueId,
   nodeFields,
   FieldInformation,
+  get,
 } from '@/utils';
 import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -250,6 +249,8 @@ export default class Visualizer extends Vue {
   public nodeFields = nodeFields;
   public models: ModelInformation[] = [];
 
+  public savedGroupIds: Lookup<string> = {};
+
   public $refs!: {
     d3: D3<SingleNode>;
   };
@@ -273,31 +274,25 @@ export default class Visualizer extends Vue {
 
   get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
+    this.provenanceNodes.forEach((node) => {
+      nodeLookup[node.id] = {
+        id: node.id,
+        node,
+        incoming: [],
+        outgoing: [],
+      };
+    });
 
     const highLevelNodes = this.provenanceNodes.map((n) => {
       const sourceId = n.id;
 
-      const checkAndAdd = (id: string, node: ProvenanceNode) => {
-        if (!nodeLookup.hasOwnProperty(id)) {
-          nodeLookup[id] = {
-            id,
-            node,
-            incoming: [],
-            outgoing: [],
-          };
-        }
-      };
-
-      checkAndAdd(sourceId, n);
       const source = nodeLookup[sourceId];
       if (!n.connections) {
         return;
       }
 
-
       n.connections.forEach((connection) => {
-        const targetId = connection.target.id;
-        checkAndAdd(targetId, connection.target);
+        const targetId = connection.targetId;
         const target = nodeLookup[targetId];
 
         const d3Connection: Connection = {
@@ -378,15 +373,6 @@ export default class Visualizer extends Vue {
     });
 
     this.results = search(items, pattern);
-  }
-
-  public nodeDblclick(d: Node) {
-    if (d.isGroup && d.model !== undefined) {
-      this.expanded[d.model] = true;
-      this.pointToPlaceNode = d;
-
-      this.calculateLinksNodes();
-    }
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
@@ -478,32 +464,12 @@ export default class Visualizer extends Vue {
 
           const madeConnection = makeConnection(a, b, { type: relationship });
           if (madeConnection) {
+            backend.updateOrCreateNode(a, ['connections']);
             this.calculateLinksNodes();
           }
         }
       },
     });
-  }
-
-  public actionClick(d: Node) {
-    // OK so, when the user wants to see the incoming connections by clicking "See more",
-    // we need to (recursively) expand all outgoing connections for all of the incoming nodes
-    // Right now, there is no way for a user to expand outgoing nodes which is why we do this
-    const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
-      const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
-      this.highLevelNodeLookup[id][direction].forEach((connection) => {
-        const modelId = connection[st].node.modelId;
-        if (modelId !== undefined) {
-          this.expanded[modelId] = true;
-        }
-        this.nodesToShow[connection[st].id] = true;
-        expandDependencies(connection[st].id, 'outgoing');
-      });
-    };
-
-    expandDependencies(d.id);
-    this.pointToPlaceNode = d;
-    this.calculateLinksNodes();
   }
 
   public hullDblclick(d: D3Hull) {
@@ -570,14 +536,34 @@ export default class Visualizer extends Vue {
           this.selectedNode = n;
         }
       },
+      onDidActionClick: () => {
+        // OK so, when the user wants to see the incoming connections by clicking "See more",
+        // we need to (recursively) expand all outgoing connections for all of the incoming nodes
+        // Right now, there is no way for a user to expand outgoing nodes which is why we do this
+        const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
+          const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
+          this.highLevelNodeLookup[id][direction].forEach((connection) => {
+            const modelId = connection[st].node.modelId;
+            if (modelId !== undefined) {
+              this.expanded[modelId] = true;
+            }
+            this.nodesToShow[connection[st].id] = true;
+            expandDependencies(connection[st].id, 'outgoing');
+          });
+        };
+
+        expandDependencies(node.id);
+        this.pointToPlaceNode = node;
+        this.calculateLinksNodes();
+      },
     };
 
     return node;
   }
 
   public calculateLinksNodes() {
-    const links: Link[] = [];
-    const nodes: Node[] = [];
+    this.links = [];
+    this.nodes = [];
     const models: { [modelId: number]: GroupNode } = {};
 
     this.provenanceNodes.forEach((n) => {
@@ -588,15 +574,14 @@ export default class Visualizer extends Vue {
       }
 
       if (n.modelId !== undefined && !this.expanded[n.modelId] && !models[n.modelId]) {
-        // this bad naming just avoids name shadowing
-        const groupId = uniqueId();
-        const { x: x1, y: y1 } = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
+        const model = n.modelId;
+        const groupId = this.savedGroupIds[n.modelId] = get(this.savedGroupIds, n.modelId, uniqueId());
+        const point = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
         const node: GroupNode = {
+          ...point,
           isGroup: true,
-          model: n.modelId,
+          model,
           id: groupId,
-          x: x1,
-          y: y1,
           index: 0,
           vx: 0,
           vy: 0,
@@ -605,10 +590,15 @@ export default class Visualizer extends Vue {
           text: `M${n.modelId}`,
           width: MODEL_WIDTH,
           height: NODE_HEIGHT,
+          onDidDblclick: () => {
+            this.expanded[model] = true;
+            this.pointToPlaceNode = node;
+            this.calculateLinksNodes();
+          },
         };
 
         models[n.modelId] = node;
-        nodes.push(node);
+        this.nodes.push(node);
       }
 
       const info = this.highLevelNodeLookup[sourceId];
@@ -629,7 +619,6 @@ export default class Visualizer extends Vue {
 
         const source = determineLinkId(sourceId, c.source.node.modelId);
         const target = determineLinkId(targetId, c.target.node.modelId);
-
 
         // This happens for nodes in the same model that hasn't been expanded
         if (target === source) {
@@ -672,7 +661,7 @@ export default class Visualizer extends Vue {
           },
         };
 
-        links.push(link);
+        this.links.push(link);
       });
 
       // don't add nodes that are a model that isn't expanded
@@ -680,14 +669,11 @@ export default class Visualizer extends Vue {
         return;
       }
 
-      nodes.push(this.createNewNode(n));
+      this.nodes.push(this.createNewNode(n));
     });
 
     // Make sure to reset this since we are done rendering
     this.pointToPlaceNode = { x: 0, y: 0 };
-
-    this.links = links;
-    this.nodes = nodes;
   }
 
   public addNode() {
@@ -697,6 +683,8 @@ export default class Visualizer extends Vue {
     };
 
     this.provenanceNodes.push(node);
+    backend.updateOrCreateNode(node);
+
     this.nodesToShow[node.id] = true;
     if (node.modelId !== undefined) {
       this.expanded[node.modelId] = true;
@@ -728,6 +716,8 @@ export default class Visualizer extends Vue {
     originalConnection.type = relationship;
     this.calculateLinksNodes();
     this.cancelRelationshipSelection();
+
+    backend.updateOrCreateNode(a, ['connections']);
   }
 
   public deleteRelationship() {
@@ -747,6 +737,8 @@ export default class Visualizer extends Vue {
 
     this.calculateLinksNodes();
     this.cancelRelationshipSelection();
+
+    backend.updateOrCreateNode(source.node, ['connections']);
   }
 
   public cancelNodeTypeSelection() {
@@ -762,17 +754,13 @@ export default class Visualizer extends Vue {
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
     });
+    backend.deleteNode(selected.id);
 
     this.cancelNodeTypeSelection();
     this.calculateLinksNodes();
   }
 
-  public checkText() {
-    if (!this.selectedNode) {
-      return;
-    }
-
-    const node = this.selectedNode;
+  public onNodeChange(node: ProvenanceNode, key: keyof ProvenanceNode) {
     this.nodes.forEach((n) => {
       if (n.id !== node.id) {
         return;
@@ -781,7 +769,6 @@ export default class Visualizer extends Vue {
       if (n.isGroup) {
         return;
       }
-
 
       const newText = getText(node, this.modelInformationLookup);
       if (newText !== n.text) {
@@ -794,25 +781,42 @@ export default class Visualizer extends Vue {
     // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
 
-    let reCalculate = false;
-    [...incoming, ...outgoing].forEach(({ source, target, relationship }) => {
+    const nodesToSave: ProvenanceNode[] = [];
+    [...incoming, ...outgoing].forEach((c) => {
+      const { source, target, relationship } = c;
       if (isValidConnection(source.node, target.node, relationship)) {
         return;
       }
 
-      reCalculate = true;
+      nodesToSave.push(source.node);
+      nodesToSave.push(target.node);
       if (!source.node.connections) {
         return;
       }
 
       source.node.connections = source.node.connections
-        .filter((connection) => connection.target.id !== target.node.id);
+        .filter((connection) => connection.targetId !== target.node.id);
     });
 
+    const nodeIds = new Set<string>();
+    const uniqueNodes = nodesToSave.filter((n) => {
+      if (nodeIds.has(n.id)) {
+        return false;
+      }
 
-    if (reCalculate) {
+      nodeIds.add(n.id);
+      return true;
+    });
+
+    if (uniqueNodes.length !== 0) {
       this.calculateLinksNodes();
     }
+
+    backend.updateOrCreateNode(node, [key]);
+
+    uniqueNodes.map((n) => {
+      backend.updateOrCreateNode(node, ['connections']);
+    });
   }
 
   public async mounted() {

@@ -350,7 +350,6 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     g.on('dblclick', checkAndCallV2('onDidDblclick'));
     g.on('mousedown', checkAndCallV2('onDidMousedown'));
     g.on('contextmenu', checkAndCallV2('onDidRightClick'));
-    g.on('dblclick', checkAndCall(this.nodeDblclick)); // TODO FIX THIS
 
     if (this.drag) {
       // I can't get the types to work out for some reason, this definitely works though
@@ -387,7 +386,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
       .text((d) => {
         return d.actionText!;
       })
-      .on('click', checkAndCall(this.actionClick));
+      .on('click', checkAndCallV2('onDidActionClick'));
 
     if (simulation) {
       simulation.on('tick', () => {

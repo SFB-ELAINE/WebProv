@@ -74,7 +74,7 @@ export const relationshipRules: RelationshipRules = {
 
 export interface ProvenanceNodeConnection {
   id: string;
-  target: ProvenanceNode;
+  targetId: string;
   type: ProvenanceNodeRelationships;
 }
 
