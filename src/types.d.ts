@@ -1,5 +1,9 @@
-// Please refer to the d3 index.d.ts file for further documentation
+declare module '*.vue' {
+  import Vue from 'vue';
+  export default Vue;
+}
 
+// Please refer to the d3 index.d.ts file for further documentation
 declare module '@/link' {
   import { SimulationNodeDatum, SimulationLinkDatum, ForceLink } from 'd3';
   

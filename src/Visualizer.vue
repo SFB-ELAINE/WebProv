@@ -133,7 +133,7 @@ import {
   FieldInformation,
   get,
 } from '@/utils';
-import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
+import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
 import FormCard from '@/components/FormCard.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
@@ -376,7 +376,7 @@ export default class Visualizer extends Vue {
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
-  public nodeRightClick(e: MouseEvent, node: SingleNode, action: ID3<SingleNode>) {
+  public nodeRightClick(e: MouseEvent, node: SingleNode) {
     e.preventDefault();
     const setCenter = () => {
       this.lineStart = {
@@ -385,7 +385,7 @@ export default class Visualizer extends Vue {
       };
     };
 
-    action.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
+    this.$refs.d3.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
 
     const getNodesInRange = (ev: MouseEvent) => {
       return this.nodes
@@ -422,7 +422,7 @@ export default class Visualizer extends Vue {
         // reset the color of the previously selected node
         // TODO this will cause a bug if the node was initially colored something else
         if (selectedNode) {
-          action.setStrokeColor(selectedNode, NODE_OUTLINE);
+          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
           selectedNode = null;
         }
 
@@ -437,9 +437,7 @@ export default class Visualizer extends Vue {
         const relationship = getRelationship(a, b);
         const valid = isValidConnection(a, b, relationship);
         const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
-
-        action.setStrokeColor(selectedNode, color);
-
+        this.$refs.d3.setStrokeColor(selectedNode, color);
       },
       mouseup: (ev: MouseEvent) => {
         if (ev.which === 3) { // right click up
@@ -447,9 +445,9 @@ export default class Visualizer extends Vue {
           this.lineStart = null;
           this.lineEnd = null;
 
-          action.setStrokeColor(node, NODE_OUTLINE);
+          this.$refs.d3.setStrokeColor(node, NODE_OUTLINE);
           if (selectedNode) {
-            action.setStrokeColor(selectedNode, NODE_OUTLINE);
+            this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
           }
 
           const nodesInRange = getNodesInRange(ev);
@@ -522,8 +520,8 @@ export default class Visualizer extends Vue {
       // ALSO, * 8 just kinda works well and 10 is the padding
       width: text.length * 8 + 10,
       height: NODE_HEIGHT,
-      onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
-        this.nodeRightClick(e, node, id3);
+      onDidRightClick: (e: MouseEvent) => {
+        this.nodeRightClick(e, node);
       },
       onDidClick: () => {
         if (node.isGroup) {

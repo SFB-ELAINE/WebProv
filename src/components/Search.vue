@@ -2,7 +2,9 @@
   <card>
     <template v-slot:header>
       <b-field style="margin: 1.5rem 1.5rem 0">
-        <b-input placeholder="Search..."
+        <b-input
+          ref="input" 
+          placeholder="Search..."
           type="search"
           icon="magnify"
           expanded
@@ -53,6 +55,10 @@
         <hr class="result--break" v-if="i !== results.length - 1">
       </div>
     </div>
+    <template v-slot:footer>
+      <!-- href="#" allows users to tab to the link -->
+      <a v-if="results.length" href="#" class="card-footer-item" @click="clear">Clear</a>
+    </template>
   </card>
 </template>
 
@@ -74,11 +80,16 @@ export default class Search extends Vue {
 
   public searchText = '';
 
+  public $refs!: {
+    input: Vue & { focus: () => void },
+  };
+
   public checkEnter(e: MouseEvent) {
     if (e.which === 13) { // ENTER
       this.search();
     }
   }
+
 
   public checkEmpty() {
     if (this.searchText === '') {
@@ -93,6 +104,12 @@ export default class Search extends Vue {
 
     setTimeout(() => loadingComponent.close(), 0.5 * 1000);
     this.$emit('search', this.searchText);
+  }
+
+  public clear() {
+    this.$emit('clear');
+    this.searchText = '';
+    this.$refs.input.focus();
   }
 }
 </script>

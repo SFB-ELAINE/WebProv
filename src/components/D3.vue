@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import * as d3 from 'd3';
-import { CB, emitter, ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys } from '@/d3';
+import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
@@ -342,7 +342,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     const checkAndCallV2 = (key: D3NodeCallbackKeys) => (d: D3Node) => {
       const cb = d[key];
       if (cb) {
-        cb(d3.event, this);
+        cb(d3.event);
       }
     };
 

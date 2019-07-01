@@ -16,7 +16,6 @@
     "firebase": "^6.2.4",
     "fuse.js": "^3.4.5",
     "lodash.uniqueid": "^4.0.1",
-    "typed-emitter": "^0.1.0",
     "vue": "^2.6.10",
     "vue-class-component": "^7.1.0",
     "vue-property-decorator": "^8.1.1"

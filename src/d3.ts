@@ -1,16 +1,3 @@
-import * as d3 from 'd3';
-import { EventEmitter } from 'events';
-import TypedEmitter from 'typed-emitter';
-
-type SVG = d3.Selection<any, any, any, any>;
-
-export type CB = (svg: SVG) => void;
-
-interface MessageEvents {
-  mounted: CB;
-  destroyed: CB;
-}
-
 export interface D3Link {
   source: string;
   target: string;
@@ -32,21 +19,17 @@ export interface D3Node {
   x: number;
   y: number;
   hullGroup?: number;
-  onDidClick?: (e: MouseEvent, d3: ID3<this>) => void;
-  onDidActionClick?: (e: MouseEvent, d3: ID3<this>) => void;
-  onDidDblclick?: (e: MouseEvent, d3: ID3<this>) => void;
-  onDidMousedown?: (e: MouseEvent, d3: ID3<this>) => void;
-  onDidRightClick?: (e: MouseEvent, d3: ID3<this>) => void;
+  onDidClick?: (e: MouseEvent) => void;
+  onDidActionClick?: (e: MouseEvent) => void;
+  onDidDblclick?: (e: MouseEvent) => void;
+  onDidMousedown?: (e: MouseEvent) => void;
+  onDidRightClick?: (e: MouseEvent) => void;
 }
 
-export type D3NodeCallbackKeys =
-  'onDidClick' |
-  'onDidMousedown' |
-  'onDidDblclick' |
-  'onDidRightClick' |
-  'onDidActionClick';
+// tslint:disable-next-line: ban-types
+type FunctionPropertyNames<T> = { [K in keyof T]: Exclude<T[K], undefined> extends Function ? K : never }[keyof T];
 
-export const emitter = new EventEmitter() as TypedEmitter<MessageEvents>;
+export type D3NodeCallbackKeys = Exclude<FunctionPropertyNames<D3Node>, undefined>;
 
 export interface ID3<N extends D3Node> {
   isD3: true;
