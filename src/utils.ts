@@ -8,7 +8,7 @@ import {
   ModelInformation,
   ProvenanceNodeLookup,
   provenanceNodeTypes,
-} from 'specification';
+} from '@/specification';
 import uniqueid from 'lodash.uniqueid';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {

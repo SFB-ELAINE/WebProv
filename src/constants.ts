@@ -1,4 +1,4 @@
-import { ProvenanceNodeRelationships } from 'specification';
+import { ProvenanceNodeRelationships } from '@/specification';
 
 export type RelationshipColors = {
   [r in ProvenanceNodeRelationships]: {

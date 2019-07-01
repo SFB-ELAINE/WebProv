@@ -116,7 +116,7 @@ import {
   ProvenanceNodeConnection,
   provenanceNodeTypes,
   ModelInformation,
-} from 'specification';
+} from '@/specification';
 import ProvLegend from '@/components/ProvLegend.vue';
 import D3 from '@/components/D3.vue';
 import {

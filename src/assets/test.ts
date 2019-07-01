@@ -6,7 +6,7 @@ import {
   ModelInformation,
   ProvenanceNode,
   ModelExplorationActivity,
-} from 'specification';
+} from '@/specification';
 import { uniqueId } from '@/utils';
 
 // M1

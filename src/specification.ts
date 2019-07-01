@@ -133,7 +133,7 @@ export interface Model extends BaseNode {
   type: 'model';
 
   /**
-   * The version! This should start at 1 and then increment for each version. A model should never depend on a model that has a higher version number (or itself). 
+   * The version! This should start at 1 and then increment for each version. A model should never depend on a model that has a higher version number (or itself).
    */
   version?: number;
 }
@@ -141,7 +141,7 @@ export interface Model extends BaseNode {
 export interface WetLabData extends BaseNode {
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
-   */ 
+   */
   type: 'wet-lab-data';
 
   /**
@@ -158,7 +158,7 @@ export interface WetLabData extends BaseNode {
 export interface SimulationData extends BaseNode {
   /**
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute to see which type of node we have.
-   */ 
+   */
   type: 'simulation-data';
 
   /**
@@ -168,7 +168,7 @@ export interface SimulationData extends BaseNode {
 }
 
 export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
-export type ProvenanceNodeLookup = { 
+export interface ProvenanceNodeLookup {
   'model': Model;
   'model-building-activity': ModelBuildingActivity;
   'model-exploration-activity': ModelExplorationActivity;
@@ -178,7 +178,7 @@ export type ProvenanceNodeLookup = {
 
 export type ProvenanceNodeType = keyof ProvenanceNodeLookup;
 
-type ProvenanceNodeDisplayTestLookup = { [Type in ProvenanceNodeType]: string }
+type ProvenanceNodeDisplayTestLookup = { [Type in ProvenanceNodeType]: string };
 
 export const provenanceNodeTypeDisplayText: ProvenanceNodeDisplayTestLookup = {
   'model': 'Model',
@@ -186,6 +186,6 @@ export const provenanceNodeTypeDisplayText: ProvenanceNodeDisplayTestLookup = {
   'model-exploration-activity': 'Model Exploration Activity',
   'simulation-data': 'Simulation Data',
   'wet-lab-data': 'Wet Lab Data',
-}
+};
 
 export const provenanceNodeTypes = Object.keys(provenanceNodeTypeDisplayText) as ProvenanceNodeType[];

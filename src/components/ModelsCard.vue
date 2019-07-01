@@ -43,7 +43,7 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { ModelInformation } from 'specification';
+import { ModelInformation } from '@/specification';
 import { uniqueId } from '../utils';
 
 @Component({
