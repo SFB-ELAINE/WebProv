@@ -97,7 +97,7 @@
 </template>
 
 <script lang="ts">
-import * as data from '@/assets/test';
+import * as testData from '@/testData';
 import {
   relationshipColors,
   NODE_OUTLINE,
@@ -201,8 +201,8 @@ const isSingleNode = (node: Node): node is SingleNode => {
 @Component({
   components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
-export default class Home extends Vue {
-  public provenanceNodes = data.nodes;
+export default class Visualizer extends Vue {
+  public provenanceNodes = testData.nodes;
 
   // OK, so for some reason we have to remove 7 here so that there is no overlow......
   public height = window.innerHeight - 7;
@@ -247,7 +247,7 @@ export default class Home extends Vue {
 
   // TODO
   public nodeFields = nodeFields;
-  public modelInformation = Object.values(data.models);
+  public modelInformation = Object.values(testData.models);
 
   public $refs!: {
     d3: D3<SingleNode>;
@@ -259,7 +259,7 @@ export default class Home extends Vue {
 
   get modelInformationLookup() {
     const lookup: { [modelId: number]: ModelInformation } = {};
-    Object.values(data.models).forEach((modelInformation) => {
+    Object.values(testData.models).forEach((modelInformation) => {
       if (modelInformation.modelId === undefined) {
         return;
       }
