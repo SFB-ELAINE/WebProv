@@ -140,6 +140,7 @@ import { SearchItem, search } from '@/search';
 import { Component, Vue, Mixins } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import { RequestMixin } from '@/mixins';
+import debounce from 'lodash.debounce';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -251,6 +252,8 @@ export default class Visualizer extends Mixins(RequestMixin) {
     d3: D3<SingleNode>;
   };
 
+  public debouncedRenderGraph = debounce(this.renderGraph, 500);
+
   get nodeLookup() {
     return makeLookup(this.nodes);
   }
@@ -289,7 +292,16 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
       n.connections.forEach((connection) => {
         const targetId = connection.targetId;
-        const target = nodeLookup[targetId];
+        const target: HighLevelNode | undefined = nodeLookup[targetId];
+        if (!target) {
+          this.$notification.open({
+            duration: 10000,
+            message: `Connection target not found: ${n.type}(${sourceId}) => ${targetId}`,
+            position: 'is-bottom-right',
+            type: 'is-warning',
+          });
+          return;
+        }
 
         const d3Connection: Connection = {
           id: connection.id,
@@ -761,10 +773,25 @@ export default class Visualizer extends Mixins(RequestMixin) {
     }
 
     const selected = this.selectedNode;
+
+    // Remove all incoming connections
+    const { incoming } = this.highLevelNodeLookup[selected.id];
+    incoming.forEach(({ source }) => {
+      if (!source.node.connections) {
+        return;
+      }
+
+      source.node.connections = source.node.connections.filter(({ targetId }) => selected.id !== targetId);
+    });
+
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
     });
+
     this.makeRequest(() => backend.deleteNode(selected.id));
+    incoming.forEach(({ source }) => {
+      backend.updateOrCreateNode(source.node, ['connections']);
+    });
 
     this.cancelNodeTypeSelection();
     this.renderGraph();
@@ -815,15 +842,16 @@ export default class Visualizer extends Mixins(RequestMixin) {
         .filter((connection) => connection.targetId !== target.node.id);
     });
 
-    if (nodesToSave.length !== 0) {
-      this.renderGraph();
-    }
 
     this.makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
     nodesToSave.map((n) => {
       this.makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
     });
+
+    // We are calling the render function since we will likely need to redraw something
+    // We debounce because we don't want to be rerendering all of the time
+    this.debouncedRenderGraph();
   }
 
   public async mounted() {

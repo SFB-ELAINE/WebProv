@@ -10,7 +10,7 @@ export interface SearchItem {
 
 
 const options: Fuse.FuseOptions<SearchItem> = {
-  keys: ['information', 'title'],
+  keys: ['information', 'title', 'id'],
 };
 
 export const search = (items: SearchItem[], pattern: string) => {
