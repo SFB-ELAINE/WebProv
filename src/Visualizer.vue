@@ -553,16 +553,16 @@ export default class Visualizer extends Mixins(RequestMixin) {
   }
 
   public renderGraph() {
-    this.links = [];
-    this.nodes = [];
+    const links: Link[] = [];
+    const nodes: Node[] = [];
     const models: { [modelId: number]: GroupNode } = {};
 
     // We don't care about any nodes that don't need to be shown.
-    const nodes = this.provenanceNodes.filter((n) => this.nodesToShow[n.id]);
+    const filtered = this.provenanceNodes.filter((n) => this.nodesToShow[n.id]);
 
     // First, create all of the model nodes.
     // These are the collapsed nodes. We only need to create one per model.
-    nodes.forEach((n) => {
+    filtered.forEach((n) => {
       if (n.modelId === undefined) {
         return;
       }
@@ -599,11 +599,11 @@ export default class Visualizer extends Mixins(RequestMixin) {
       };
 
       models[n.modelId] = node;
-      this.nodes.push(node);
+      nodes.push(node);
     });
 
     // Now, we add the other nodes that don't have a model or that are in a model that is expanded
-    nodes.forEach((n) => {
+    filtered.forEach((n) => {
       const sourceId = n.id;
 
       const info = this.highLevelNodeLookup[sourceId];
@@ -666,7 +666,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
           },
         };
 
-        this.links.push(link);
+        links.push(link);
       });
 
       // don't add nodes that are a model that isn't expanded
@@ -674,11 +674,16 @@ export default class Visualizer extends Mixins(RequestMixin) {
         return;
       }
 
-      this.nodes.push(this.createNewNode(n));
+      nodes.push(this.createNewNode(n));
     });
 
     // Make sure to reset this since we are done rendering
     this.pointToPlaceNode = { x: 0, y: 0 };
+
+    // This needs to happen at the end since we use the position information of the nodes
+    // If we reset at the beginning, that information wouldn't be there
+    this.nodes = nodes;
+    this.links = links;
   }
 
   public addNode() {
