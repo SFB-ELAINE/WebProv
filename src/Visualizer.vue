@@ -137,7 +137,7 @@ import FormCard from '@/components/FormCard.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
-import { Component, Vue, Mixins } from 'vue-property-decorator';
+import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import { RequestMixin } from '@/mixins';
 import debounce from 'lodash.debounce';
@@ -202,12 +202,10 @@ const isSingleNode = (node: Node): node is SingleNode => {
   components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
 export default class Visualizer extends Mixins(RequestMixin) {
+  @Prop({ type: Number, required: true }) public windowHeight!: number;
+  @Prop({ type: Number, required: true }) public windowWidth!: number;
+
   public provenanceNodes: ProvenanceNode[] = [];
-
-  // OK, so for some reason we have to remove 7 here so that there is no overlow
-  public height = window.innerHeight - 7;
-
-  public width = window.innerWidth;
 
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
@@ -253,6 +251,15 @@ export default class Visualizer extends Mixins(RequestMixin) {
   };
 
   public debouncedRenderGraph = debounce(this.renderGraph, 500);
+
+  get height() {
+    // OK, so for some reason we have to remove 7 here so that there is no overlow
+    return this.windowHeight - 7;
+  }
+
+  get width() {
+    return this.windowWidth;
+  }
 
   get nodeLookup() {
     return makeLookup(this.nodes);
@@ -556,7 +563,6 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
             const modelId = connection[st].node.modelId;
             if (modelId !== undefined) {
-              console.log('Expanding ' + modelId);
               this.expanded[modelId] = true;
             }
             this.nodesToShow[connection[st].id] = true;

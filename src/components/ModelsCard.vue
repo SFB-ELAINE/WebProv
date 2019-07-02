@@ -44,7 +44,7 @@
 import { Vue, Component, Prop, Mixins } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
 import { ModelInformation } from '@/specification';
-import { uniqueId } from '../utils';
+import { uniqueId } from '@/utils';
 import * as backend from '@/backend';
 import { RequestMixin } from '@/mixins';
 

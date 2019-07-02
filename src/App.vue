@@ -1,15 +1,44 @@
 <template>
   <div id="app">
-    <visualizer></visualizer>
+    <visualizer
+      :window-height="windowHeight"
+      :window-width="windowWidth"
+    ></visualizer>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import Visualizer from '@/Visualizer.vue';
+import { createComponent, value, onMounted, onUnmounted } from 'vue-function-api';
 
-export default Vue.extend({
+function useWindowSize() {
+  const windowWidth = value(window.innerWidth);
+  const windowHeight = value(window.innerHeight);
+
+  const update = () => {
+    windowWidth.value = window.innerWidth;
+    windowHeight.value = window.innerHeight;
+  };
+
+  onMounted(() => {
+    window.addEventListener('resize', update);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', update);
+  });
+
+  return { windowWidth, windowHeight };
+}
+
+// This just uses vue-function-api for fun!
+// See https://github.com/vuejs/rfcs/blob/function-apis/active-rfcs/0000-function-api.md
+export default createComponent({
   components: { Visualizer },
+  setup() {
+    return useWindowSize();
+  },
 });
 </script>
 
