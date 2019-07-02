@@ -6,28 +6,13 @@ The first step to setting up your environment involves installing `Node.js` and 
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
 1. Install `Node.js` and `npm` using nvm: `nvm install node`
 
-This project uses [lerna](https://lerna.js.org/) as the repository is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. First, install `lerna`:
-
+Now, the only command you need to run is:
 ```
-npm install
+npm install # or `npm i`
 ```
-
-Then, bootstrap (ie. install external packages and symlink local packages) the repository:
-
-```
-npm run bootstrap
-```
-
-This installs the dependencies for ALL packages in the repository. You have to run one final command to build the libraries (currently there is only one library):
-
-```
-npm run build-libraries
-```
-
-That's it! This command just ran `npm run build` in all of the library folders.
 
 ## Development
-As there is currently no backend, these instructions only detail how to run the frontend. After setting up your environment, navigate to `packages/frontend` and run:
+After setting up your environment, just run the following command:
 
 ```
 npm run serve
@@ -35,17 +20,11 @@ npm run serve
 
 This starts a hot-reload development server. Navigate to the link that is outputted in the console.
 
-## Installing Dependencies
-If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, using the `lerna add` command. For example:
-```
-lerna add the-module-to-install --scope=frontend --dev
-```
-
 ## Contributing
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Deployment
-This application is currently being deployed through `GitHub Pages`. To deploy, all you have to do is place the built application in the `docs` folder and merge your changes to the `master` branch. To build the application, navigate to the `packages/frontend` package and run:
+This application is currently being deployed through `GitHub Pages`. To deploy, all you have to do is place the built application in the `docs` folder and merge your changes to the `master` branch. To build the application, run the following command:
 ```
 npm run build
 ```
