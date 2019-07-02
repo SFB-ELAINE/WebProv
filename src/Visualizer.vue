@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div>
     <!-- This is the main svg animation -->
     <d3
       ref="d3"
@@ -34,9 +34,7 @@
       
       <search
         class="search overlay-child" 
-        :results="results"
-        @search="search"
-        @clear="removeResults"
+        :items="searchItems"
         @open="openResult"
         @dependency="showProvenanceGraph"
       ></search>
@@ -139,8 +137,9 @@ import FormCard from '@/components/FormCard.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Mixins } from 'vue-property-decorator';
 import * as backend from '@/backend';
+import { RequestMixin } from '@/mixins';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -201,10 +200,10 @@ const isSingleNode = (node: Node): node is SingleNode => {
 @Component({
   components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
-export default class Visualizer extends Vue {
+export default class Visualizer extends Mixins(RequestMixin) {
   public provenanceNodes: ProvenanceNode[] = [];
 
-  // OK, so for some reason we have to remove 7 here so that there is no overlow......
+  // OK, so for some reason we have to remove 7 here so that there is no overlow
   public height = window.innerHeight - 7;
 
   public width = window.innerWidth;
@@ -217,9 +216,6 @@ export default class Visualizer extends Vue {
   public links: Link[] = [];
 
   public legendProps = { nodeOutline: NODE_OUTLINE, nodeRadius: NODE_RADIUS };
-
-  // The search results
-  public results: SearchItem[] = [];
 
   // All of the nodes to show
   // If a node is in a group that isn't expanded, it will not actually be shown
@@ -260,7 +256,7 @@ export default class Visualizer extends Vue {
   }
 
   get modelInformationLookup() {
-    const lookup: { [modelId: number]: ModelInformation } = {};
+    const lookup: { [modelId: number]: ModelInformation | undefined } = {};
     this.models.forEach((modelInformation) => {
       if (modelInformation.modelId === undefined) {
         return;
@@ -330,12 +326,12 @@ export default class Visualizer extends Vue {
     };
 
     showNode(r.id);
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public clearNodes() {
     this.nodesToShow = {};
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public openResult(result: SearchItem) {
@@ -349,15 +345,11 @@ export default class Visualizer extends Vue {
       }
     });
 
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
-  public removeResults() {
-    this.results = [];
-  }
-
-  public search(pattern: string) {
-    const items: SearchItem[] =  this.provenanceNodes.map((n) => {
+  get searchItems() {
+    return this.provenanceNodes.map((n): SearchItem => {
       const information =
         n.type === 'wet-lab-data' &&
         n.information ?
@@ -371,8 +363,6 @@ export default class Visualizer extends Vue {
         information,
       };
     });
-
-    this.results = search(items, pattern);
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
@@ -387,13 +377,14 @@ export default class Visualizer extends Vue {
 
     this.$refs.d3.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
 
-    const getNodesInRange = (ev: MouseEvent) => {
+    // Get all nodes that contain the given point
+    const getNodesInRange = (point: MouseEvent) => {
       return this.nodes
-        .filter(isSingleNode)
+        .filter(isSingleNode) // we can't make connections to group nodes
         .filter((n) => {
-          const ul = n;
-          const lr = { x: n.x + n.width, y: n.y + n.height };
-          return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
+          const ul = n; // upper left corner
+          const lr = { x: n.x + n.width, y: n.y + n.height }; // lower right corner
+          return n !== node && point.x > ul.x && point.y > ul.y && lr.x > point.x && lr.y > point.y;
         });
     };
 
@@ -440,31 +431,33 @@ export default class Visualizer extends Vue {
         this.$refs.d3.setStrokeColor(selectedNode, color);
       },
       mouseup: (ev: MouseEvent) => {
-        if (ev.which === 3) { // right click up
-          remove();
-          this.lineStart = null;
-          this.lineEnd = null;
+        if (ev.which !== 3) {
+          return;
+        }
 
-          this.$refs.d3.setStrokeColor(node, NODE_OUTLINE);
-          if (selectedNode) {
-            this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
-          }
+        remove();
+        this.lineStart = null;
+        this.lineEnd = null;
 
-          const nodesInRange = getNodesInRange(ev);
-          if (nodesInRange.length === 0) {
-            return;
-          }
+        this.$refs.d3.setStrokeColor(node, NODE_OUTLINE);
+        if (selectedNode) {
+          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+        }
 
-          const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
-          const a = node.provenanceNode;
-          const b = nodeToMakeConnection.provenanceNode;
-          const relationship = getRelationship(a, b);
+        const nodesInRange = getNodesInRange(ev);
+        if (nodesInRange.length === 0) {
+          return;
+        }
 
-          const madeConnection = makeConnection(a, b, { type: relationship });
-          if (madeConnection) {
-            backend.updateOrCreateNode(a, ['connections']);
-            this.calculateLinksNodes();
-          }
+        const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
+        const a = node.provenanceNode;
+        const b = nodeToMakeConnection.provenanceNode;
+        const relationship = getRelationship(a, b);
+
+        const madeConnection = makeConnection(a, b, { type: relationship });
+        if (madeConnection) {
+          this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+          this.renderGraph();
         }
       },
     });
@@ -485,7 +478,7 @@ export default class Visualizer extends Vue {
 
     this.pointToPlaceNode = point;
 
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public createNewNode(n: ProvenanceNode): SingleNode {
@@ -552,52 +545,66 @@ export default class Visualizer extends Vue {
 
         expandDependencies(node.id);
         this.pointToPlaceNode = node;
-        this.calculateLinksNodes();
+        this.renderGraph();
       },
     };
 
     return node;
   }
 
-  public calculateLinksNodes() {
+  public renderGraph() {
     this.links = [];
     this.nodes = [];
     const models: { [modelId: number]: GroupNode } = {};
 
-    this.provenanceNodes.forEach((n) => {
-      const sourceId = n.id;
+    // We don't care about any nodes that don't need to be shown.
+    const nodes = this.provenanceNodes.filter((n) => this.nodesToShow[n.id]);
 
-      if (!this.nodesToShow[sourceId]) {
+    // First, create all of the model nodes.
+    // These are the collapsed nodes. We only need to create one per model.
+    nodes.forEach((n) => {
+      if (n.modelId === undefined) {
         return;
       }
 
-      if (n.modelId !== undefined && !this.expanded[n.modelId] && !models[n.modelId]) {
-        const model = n.modelId;
-        const groupId = this.savedGroupIds[n.modelId] = get(this.savedGroupIds, n.modelId, uniqueId());
-        const point = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
-        const node: GroupNode = {
-          ...point,
-          isGroup: true,
-          model,
-          id: groupId,
-          index: 0,
-          vx: 0,
-          vy: 0,
-          stroke: MODEL_STROKE,
-          rx: 0,
-          text: `M${n.modelId}`,
-          width: MODEL_WIDTH,
-          height: NODE_HEIGHT,
-          onDidDblclick: () => {
-            this.expanded[model] = true;
-            this.pointToPlaceNode = node;
-            this.calculateLinksNodes();
-          },
-        };
-
-        models[n.modelId] = node;
-        this.nodes.push(node);
+      if (this.expanded[n.modelId]) {
+        return;
       }
+
+      if (models[n.modelId]) {
+        return;
+      }
+
+      const model = n.modelId;
+      const groupId = this.savedGroupIds[n.modelId] = get(this.savedGroupIds, n.modelId, uniqueId());
+      const point = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
+      const node: GroupNode = {
+        ...point,
+        isGroup: true,
+        model,
+        id: groupId,
+        index: 0,
+        vx: 0,
+        vy: 0,
+        stroke: MODEL_STROKE,
+        rx: 0,
+        text: `M${n.modelId}`,
+        width: MODEL_WIDTH,
+        height: NODE_HEIGHT,
+        onDidDblclick: () => {
+          this.expanded[model] = true;
+          this.pointToPlaceNode = node;
+          this.renderGraph();
+        },
+      };
+
+      models[n.modelId] = node;
+      this.nodes.push(node);
+    });
+
+    // Now, we add the other nodes that don't have a model or that are in a model that is expanded
+    nodes.forEach((n) => {
+      const sourceId = n.id;
 
       const info = this.highLevelNodeLookup[sourceId];
       info.outgoing.forEach((c) => {
@@ -618,7 +625,7 @@ export default class Visualizer extends Vue {
         const source = determineLinkId(sourceId, c.source.node.modelId);
         const target = determineLinkId(targetId, c.target.node.modelId);
 
-        // This happens for nodes in the same model that hasn't been expanded
+        // This happens for nodes in the same model when the model hasn't been expanded
         if (target === source) {
           return;
         }
@@ -681,14 +688,14 @@ export default class Visualizer extends Vue {
     };
 
     this.provenanceNodes.push(node);
-    backend.updateOrCreateNode(node);
+    this.makeRequest(() => backend.updateOrCreateNode(node));
 
     this.nodesToShow[node.id] = true;
     if (node.modelId !== undefined) {
       this.expanded[node.modelId] = true;
     }
 
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public cancelRelationshipSelection() {
@@ -712,10 +719,10 @@ export default class Visualizer extends Vue {
 
     this.currentRelationship = relationship;
     originalConnection.type = relationship;
-    this.calculateLinksNodes();
+    this.renderGraph();
     this.cancelRelationshipSelection();
 
-    backend.updateOrCreateNode(a, ['connections']);
+    this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
   }
 
   public deleteRelationship() {
@@ -733,10 +740,10 @@ export default class Visualizer extends Vue {
       return connection.id !== selectedConnection.original.id;
     });
 
-    this.calculateLinksNodes();
+    this.renderGraph();
     this.cancelRelationshipSelection();
 
-    backend.updateOrCreateNode(source.node, ['connections']);
+    this.makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
   }
 
   public cancelNodeTypeSelection() {
@@ -752,13 +759,14 @@ export default class Visualizer extends Vue {
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
     });
-    backend.deleteNode(selected.id);
+    this.makeRequest(() => backend.deleteNode(selected.id));
 
     this.cancelNodeTypeSelection();
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public onNodeChange(node: ProvenanceNode, key: keyof ProvenanceNode) {
+    // This is a bit inefficient
     this.nodes.forEach((n) => {
       if (n.id !== node.id) {
         return;
@@ -780,14 +788,20 @@ export default class Visualizer extends Vue {
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
 
     const nodesToSave: ProvenanceNode[] = [];
+    const addIfNotInArray = <T>(arr: T[], value: T) => {
+      if (!arr.includes(value)) {
+        arr.push(value);
+      }
+    };
+
     [...incoming, ...outgoing].forEach((c) => {
       const { source, target, relationship } = c;
       if (isValidConnection(source.node, target.node, relationship)) {
         return;
       }
 
-      nodesToSave.push(source.node);
-      nodesToSave.push(target.node);
+      addIfNotInArray(nodesToSave, source.node);
+      addIfNotInArray(nodesToSave, target.node);
       if (!source.node.connections) {
         return;
       }
@@ -796,66 +810,28 @@ export default class Visualizer extends Vue {
         .filter((connection) => connection.targetId !== target.node.id);
     });
 
-    const nodeIds = new Set<string>();
-    const uniqueNodes = nodesToSave.filter((n) => {
-      if (nodeIds.has(n.id)) {
-        return false;
-      }
-
-      nodeIds.add(n.id);
-      return true;
-    });
-
-    if (uniqueNodes.length !== 0) {
-      this.calculateLinksNodes();
+    if (nodesToSave.length !== 0) {
+      this.renderGraph();
     }
 
-    backend.updateOrCreateNode(node, [key]);
+    this.makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
-    uniqueNodes.map((n) => {
-      backend.updateOrCreateNode(node, ['connections']);
+    nodesToSave.map((n) => {
+      this.makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
     });
   }
 
   public async mounted() {
     // TODO Remove this
     // await backend.resetDatabase();
-    const getNodes = async () => {
-      const result = await backend.getProvenanceNodes();
 
-      if (result.result === 'error') {
-        this.$notification.open({
-          duration: 10000,
-          message: result.message,
-          position: 'is-bottom-right',
-          type: 'is-danger',
-        });
+    this.makeRequest(backend.getModels, (good) => {
+      this.models = good.items;
+    });
 
-        return;
-      }
-
-      this.provenanceNodes = result.items;
-    };
-
-    const getModels = async () => {
-      const result = await backend.getModels();
-
-      if (result.result === 'error') {
-        this.$notification.open({
-          duration: 10000,
-          message: result.message,
-          position: 'is-bottom-right',
-          type: 'is-danger',
-        });
-
-        return;
-      }
-
-      this.models = result.items;
-    };
-
-    await getNodes();
-    await getModels();
+    this.makeRequest(backend.getProvenanceNodes, (good) => {
+      this.provenanceNodes = good.items;
+    });
   }
 }
 </script>

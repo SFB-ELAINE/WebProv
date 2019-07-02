@@ -25,7 +25,7 @@ export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
 }
 
 interface ModelInformationLookup {
-  [modelId: number]: ModelInformation;
+  [modelId: number]: ModelInformation | undefined;
 }
 
 export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
@@ -43,8 +43,7 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
         return 'None';
       }
 
-      const modelInformation = lookup[n.modelId];
-      let text = `M${modelInformation.modelId}`;
+      let text = `M${n.modelId}`;
 
       if (n.version === undefined || n.version === 1) {
         // Do nothing is the version is 1
@@ -54,6 +53,11 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
       } else {
         // Add an explicit version number if > 2
         text += `v${n.version}`;
+      }
+
+      const modelInformation = lookup[n.modelId];
+      if (!modelInformation) {
+        return text;
       }
 
       return text + ` (${modelInformation.bibInformation})`;

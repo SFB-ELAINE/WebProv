@@ -6,22 +6,22 @@ export interface SerializedProject {
   name: string;
 }
 
-export interface Error {
+export interface BackendError {
   result: 'error';
   message: string;
 }
 
-export interface Success {
+export interface BackendSuccess {
   result: 'success';
 }
 
-export interface Items<T> {
+export interface BackendItems<T> {
   result: 'success';
   items: T[];
 }
 
-export interface NotFound {
-  results: 'not-found';
+export interface BackendNotFound {
+  result: 'not-found';
 }
 
 export interface Schema<T> {
@@ -40,7 +40,7 @@ const getRef = (ref: NodesModels) => {
   return db.ref(ref);
 };
 
-const withHandling = async <T>(f: () => Promise<T>): Promise<T | Error> => {
+const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> => {
   try {
     return await f();
   } catch (e) {
@@ -52,7 +52,7 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | Error> => {
 };
 
 async function getItems<T>(ref: NodesModels) {
-  return withHandling(async (): Promise<Items<T>> => { // Promise<ProvenanceNodes>
+  return withHandling(async (): Promise<BackendItems<T>> => { // Promise<ProvenanceNodes>
     const snapshot = await getRef(ref).once('value');
 
     if (!snapshot.exists()) {
@@ -91,7 +91,7 @@ type GenericArgument = {
 
 // TODO keys
 const updateOrCreate = async (id: string, arg: GenericArgument) => {
-  return await withHandling(async (): Promise<Success> => {
+  return await withHandling(async (): Promise<BackendSuccess> => {
     const ref = getRef(arg.ref).child(id);
     const snapshot = await ref.once('value');
 
@@ -136,13 +136,13 @@ export const resetDatabase = async () => {
 };
 
 const deleteItem = async (key: NodesModels, id: string) => {
-  return await withHandling(async (): Promise<Success | NotFound> => {
+  return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
     const ref = getRef(key).child(id);
     const snapshot = await ref.once('value');
 
     if (!snapshot.exists()) {
       return {
-        results: 'not-found',
+        result: 'not-found',
       };
     }
 

@@ -65,7 +65,7 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { SearchItem } from '@/search';
+import { SearchItem, search } from '@/search';
 
 @Component({
   components: { Card },
@@ -76,7 +76,8 @@ import { SearchItem } from '@/search';
   },
 })
 export default class Search extends Vue {
-  @Prop({ type: Array, required: true }) public results!: SearchItem[];
+  @Prop({ type: Array, required: true }) public items!: SearchItem[];
+  public results: SearchItem[] = [];
 
   public searchText = '';
 
@@ -93,7 +94,7 @@ export default class Search extends Vue {
 
   public checkEmpty() {
     if (this.searchText === '') {
-      this.$emit('clear');
+      this.results = [];
     }
   }
 
@@ -103,11 +104,11 @@ export default class Search extends Vue {
     });
 
     setTimeout(() => loadingComponent.close(), 0.5 * 1000);
-    this.$emit('search', this.searchText);
+    this.results = search(this.items, this.searchText);
   }
 
   public clear() {
-    this.$emit('clear');
+    this.results = [];
     this.searchText = '';
     this.$refs.input.focus();
   }
