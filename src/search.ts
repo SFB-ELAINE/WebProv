@@ -14,6 +14,10 @@ const options: Fuse.FuseOptions<SearchItem> = {
 };
 
 export const search = (items: SearchItem[], pattern: string) => {
+  if (pattern.trim() === '') {
+    return items;
+  }
+
   const fuse = new Fuse(items, options);
   return fuse.search(pattern);
 };

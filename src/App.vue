@@ -1,13 +1,15 @@
 <template>
   <div id="app">
-    <router-view/>
+    <visualizer></visualizer>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-export default Vue.extend({
+import Visualizer from '@/Visualizer.vue';
 
+export default Vue.extend({
+  components: { Visualizer },
 });
 </script>
 
@@ -19,15 +21,5 @@ export default Vue.extend({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-#nav {
-  padding: 30px;
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
 }
 </style>

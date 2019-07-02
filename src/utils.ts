@@ -9,7 +9,6 @@ import {
   ProvenanceNodeLookup,
   provenanceNodeTypes,
 } from '@/specification';
-import uniqueid from 'lodash.uniqueid';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -26,7 +25,7 @@ export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
 }
 
 interface ModelInformationLookup {
-  [modelId: number]: ModelInformation;
+  [modelId: number]: ModelInformation | undefined;
 }
 
 export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
@@ -44,8 +43,7 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
         return 'None';
       }
 
-      const modelInformation = lookup[n.modelId];
-      let text = `M${modelInformation.modelId}`;
+      let text = `M${n.modelId}`;
 
       if (n.version === undefined || n.version === 1) {
         // Do nothing is the version is 1
@@ -55,6 +53,11 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
       } else {
         // Add an explicit version number if > 2
         text += `v${n.version}`;
+      }
+
+      const modelInformation = lookup[n.modelId];
+      if (!modelInformation) {
+        return text;
       }
 
       return text + ` (${modelInformation.bibInformation})`;
@@ -120,7 +123,7 @@ export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: Conne
     a.connections!.push({
       id: uniqueId(),
       type: opts.type,
-      target: b,
+      targetId: b.id,
     });
   }
 
@@ -214,8 +217,11 @@ export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceN
   }
 };
 
+
 export const uniqueId = () => {
-  return uniqueid('node_');
+  // HTML IDs must begin with a non numeric character or something like that.
+  // Thus, we prepend 'A'
+  return 'A' + Math.random().toString().substr(2, 9);
 };
 
 export interface FieldInformation<T extends string> {
@@ -249,8 +255,20 @@ export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
 }
 
+/**
+ * Convert a string to word case. ie. "helloHowAreYou" to "Hello How Are You".
+ *
+ * @param s The string to convert.
+ */
 export function wordCase(s: string) {
   return uppercase(
     s.replace(/([A-Z]+)/g, ' $1').replace(/([A-Z][a-z])/g, ' $1'),
   );
+}
+
+export function get<T>(o: { [k: string]: T }, key: keyof typeof o): T | undefined;
+export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue: T): T;
+export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue?: T) {
+  const value: T | undefined = o[key];
+  return value || defaultValue;
 }

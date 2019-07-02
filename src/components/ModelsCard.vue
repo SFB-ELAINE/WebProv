@@ -41,15 +41,17 @@
 
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator';
+import { Vue, Component, Prop, Mixins } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
 import { ModelInformation } from '@/specification';
 import { uniqueId } from '../utils';
+import * as backend from '@/backend';
+import { RequestMixin } from '@/mixins';
 
 @Component({
   components: { Card },
 })
-export default class ModelsCard extends Vue {
+export default class ModelsCard extends Mixins(RequestMixin) {
   @Prop({ type: Array, required: true }) public models!: ModelInformation[];
 
   public expanded: boolean[] = [];
@@ -59,24 +61,30 @@ export default class ModelsCard extends Vue {
   }
 
   public deleteModel(i: number) {
+    const model = this.models[i];
     this.models.splice(i, 1);
     this.expanded.splice(i, 1);
+    this.makeRequest(() => backend.deleteModel(model.id));
   }
 
   public addModel() {
     this.models.push({
       id: uniqueId(),
     });
+    const model = this.models[this.models.length - 1];
+    this.makeRequest(() => backend.updateOrCreateModel(model.id, model));
   }
 
   public setModel(i: number, value: string) {
     // convert the value to a number if possible
     // if it is a number but the given string is empty, set to undefined
     Vue.set(this.models[i], 'modelId', value === '' ? undefined : +value);
+    this.makeRequest(() => backend.updateOrCreateModel(this.models[i].id, this.models[i], ['modelId']));
   }
 
   public setBibInformation(i: number, value: string) {
     Vue.set(this.models[i], 'bibInformation', value);
+    this.makeRequest(() => backend.updateOrCreateModel(this.models[i].id, this.models[i], ['bibInformation']));
   }
 }
 </script>

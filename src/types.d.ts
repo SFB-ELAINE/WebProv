@@ -1,5 +1,9 @@
-// Please refer to the d3 index.d.ts file for further documentation
+declare module '*.vue' {
+  import Vue from 'vue';
+  export default Vue;
+}
 
+// Please refer to the d3 index.d.ts file for further documentation
 declare module '@/link' {
   import { SimulationNodeDatum, SimulationLinkDatum, ForceLink } from 'd3';
   
@@ -8,11 +12,3 @@ declare module '@/link' {
     LinksDatum extends SimulationLinkDatum<NodeDatum>
   >(links: LinksDatum[]): ForceLink<NodeDatum, LinksDatum>;
 }
-
-// declare module '@/manyBody' {
-//   import { ForceManyBody, SimulationNodeDatum } from 'd3';
-
-//   export default function forceManyBody<
-//     NodeDatum extends SimulationNodeDatum
-//   >(): ForceManyBody<NodeDatum>;
-// }

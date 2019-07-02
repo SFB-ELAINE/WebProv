@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div>
     <!-- This is the main svg animation -->
     <d3
       ref="d3"
@@ -11,9 +11,7 @@
       arrows
       drag
       hulls
-      :node-dblclick="nodeDblclick"
       :hull-dblclick="hullDblclick"
-      :action-click="actionClick"
     ></d3>
     
     <!-- This is the dashed line you see when creating new links -->
@@ -36,9 +34,7 @@
       
       <search
         class="search overlay-child" 
-        :results="results"
-        @search="search"
-        @clear="removeResults"
+        :items="searchItems"
         @open="openResult"
         @dependency="showProvenanceGraph"
       ></search>
@@ -66,7 +62,7 @@
         <div class="spacer"></div>
 
         <models-card
-          :models="modelInformation"
+          :models="models"
         ></models-card>
         <div class="spacer"></div>
         
@@ -88,7 +84,7 @@
           :node="selectedNode"
           @close="cancelNodeTypeSelection"
           @delete="deleteNode"
-          @input="checkText"
+          @input="onNodeChange"
         ></form-card>
       
       </div>
@@ -97,7 +93,7 @@
 </template>
 
 <script lang="ts">
-import * as data from '@/assets/test';
+import * as testData from '@/testData';
 import {
   relationshipColors,
   NODE_OUTLINE,
@@ -133,14 +129,17 @@ import {
   uniqueId,
   nodeFields,
   FieldInformation,
+  get,
 } from '@/utils';
-import { D3Hull, D3Node, ID3, D3Link } from '@/d3';
+import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
 import FormCard from '@/components/FormCard.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Mixins } from 'vue-property-decorator';
+import * as backend from '@/backend';
+import { RequestMixin } from '@/mixins';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -201,10 +200,10 @@ const isSingleNode = (node: Node): node is SingleNode => {
 @Component({
   components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
-export default class Home extends Vue {
-  public provenanceNodes = data.nodes;
+export default class Visualizer extends Mixins(RequestMixin) {
+  public provenanceNodes: ProvenanceNode[] = [];
 
-  // OK, so for some reason we have to remove 7 here so that there is no overlow......
+  // OK, so for some reason we have to remove 7 here so that there is no overlow
   public height = window.innerHeight - 7;
 
   public width = window.innerWidth;
@@ -217,9 +216,6 @@ export default class Home extends Vue {
   public links: Link[] = [];
 
   public legendProps = { nodeOutline: NODE_OUTLINE, nodeRadius: NODE_RADIUS };
-
-  // The search results
-  public results: SearchItem[] = [];
 
   // All of the nodes to show
   // If a node is in a group that isn't expanded, it will not actually be shown
@@ -247,7 +243,9 @@ export default class Home extends Vue {
 
   // TODO
   public nodeFields = nodeFields;
-  public modelInformation = Object.values(data.models);
+  public models: ModelInformation[] = [];
+
+  public savedGroupIds: Lookup<string> = {};
 
   public $refs!: {
     d3: D3<SingleNode>;
@@ -258,8 +256,8 @@ export default class Home extends Vue {
   }
 
   get modelInformationLookup() {
-    const lookup: { [modelId: number]: ModelInformation } = {};
-    Object.values(data.models).forEach((modelInformation) => {
+    const lookup: { [modelId: number]: ModelInformation | undefined } = {};
+    this.models.forEach((modelInformation) => {
       if (modelInformation.modelId === undefined) {
         return;
       }
@@ -272,33 +270,25 @@ export default class Home extends Vue {
 
   get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
+    this.provenanceNodes.forEach((node) => {
+      nodeLookup[node.id] = {
+        id: node.id,
+        node,
+        incoming: [],
+        outgoing: [],
+      };
+    });
 
     const highLevelNodes = this.provenanceNodes.map((n) => {
-      console.log(n.id, n.connections);
       const sourceId = n.id;
 
-      const checkAndAdd = (id: string, node: ProvenanceNode) => {
-        if (!nodeLookup.hasOwnProperty(id)) {
-          nodeLookup[id] = {
-            id,
-            node,
-            incoming: [],
-            outgoing: [],
-          };
-        }
-      };
-
-
-      checkAndAdd(sourceId, n);
       const source = nodeLookup[sourceId];
       if (!n.connections) {
         return;
       }
 
-
       n.connections.forEach((connection) => {
-        const targetId = connection.target.id;
-        checkAndAdd(targetId, connection.target);
+        const targetId = connection.targetId;
         const target = nodeLookup[targetId];
 
         const d3Connection: Connection = {
@@ -336,12 +326,12 @@ export default class Home extends Vue {
     };
 
     showNode(r.id);
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public clearNodes() {
     this.nodesToShow = {};
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public openResult(result: SearchItem) {
@@ -355,15 +345,11 @@ export default class Home extends Vue {
       }
     });
 
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
-  public removeResults() {
-    this.results = [];
-  }
-
-  public search(pattern: string) {
-    const items: SearchItem[] =  this.provenanceNodes.map((n) => {
+  get searchItems() {
+    return this.provenanceNodes.map((n): SearchItem => {
       const information =
         n.type === 'wet-lab-data' &&
         n.information ?
@@ -377,21 +363,10 @@ export default class Home extends Vue {
         information,
       };
     });
-
-    this.results = search(items, pattern);
-  }
-
-  public nodeDblclick(d: Node) {
-    if (d.isGroup && d.model !== undefined) {
-      this.expanded[d.model] = true;
-      this.pointToPlaceNode = d;
-
-      this.calculateLinksNodes();
-    }
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
-  public nodeRightClick(e: MouseEvent, node: SingleNode, action: ID3<SingleNode>) {
+  public nodeRightClick(e: MouseEvent, node: SingleNode) {
     e.preventDefault();
     const setCenter = () => {
       this.lineStart = {
@@ -400,15 +375,16 @@ export default class Home extends Vue {
       };
     };
 
-    action.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
+    this.$refs.d3.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
 
-    const getNodesInRange = (ev: MouseEvent) => {
+    // Get all nodes that contain the given point
+    const getNodesInRange = (point: MouseEvent) => {
       return this.nodes
-        .filter(isSingleNode)
+        .filter(isSingleNode) // we can't make connections to group nodes
         .filter((n) => {
-          const ul = n;
-          const lr = { x: n.x + n.width, y: n.y + n.height };
-          return n !== node && ev.x > ul.x && ev.y > ul.y && lr.x > ev.x && lr.y > ev.y;
+          const ul = n; // upper left corner
+          const lr = { x: n.x + n.width, y: n.y + n.height }; // lower right corner
+          return n !== node && point.x > ul.x && point.y > ul.y && lr.x > point.x && lr.y > point.y;
         });
     };
 
@@ -437,7 +413,7 @@ export default class Home extends Vue {
         // reset the color of the previously selected node
         // TODO this will cause a bug if the node was initially colored something else
         if (selectedNode) {
-          action.setStrokeColor(selectedNode, NODE_OUTLINE);
+          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
           selectedNode = null;
         }
 
@@ -452,59 +428,39 @@ export default class Home extends Vue {
         const relationship = getRelationship(a, b);
         const valid = isValidConnection(a, b, relationship);
         const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
-
-        action.setStrokeColor(selectedNode, color);
-
+        this.$refs.d3.setStrokeColor(selectedNode, color);
       },
       mouseup: (ev: MouseEvent) => {
-        if (ev.which === 3) { // right click up
-          remove();
-          this.lineStart = null;
-          this.lineEnd = null;
+        if (ev.which !== 3) {
+          return;
+        }
 
-          action.setStrokeColor(node, NODE_OUTLINE);
-          if (selectedNode) {
-            action.setStrokeColor(selectedNode, NODE_OUTLINE);
-          }
+        remove();
+        this.lineStart = null;
+        this.lineEnd = null;
 
-          const nodesInRange = getNodesInRange(ev);
-          if (nodesInRange.length === 0) {
-            return;
-          }
+        this.$refs.d3.setStrokeColor(node, NODE_OUTLINE);
+        if (selectedNode) {
+          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+        }
 
-          const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
-          const a = node.provenanceNode;
-          const b = nodeToMakeConnection.provenanceNode;
-          const relationship = getRelationship(a, b);
+        const nodesInRange = getNodesInRange(ev);
+        if (nodesInRange.length === 0) {
+          return;
+        }
 
-          const madeConnection = makeConnection(a, b, { type: relationship });
-          if (madeConnection) {
-            this.calculateLinksNodes();
-          }
+        const nodeToMakeConnection = nodesInRange[nodesInRange.length - 1];
+        const a = node.provenanceNode;
+        const b = nodeToMakeConnection.provenanceNode;
+        const relationship = getRelationship(a, b);
+
+        const madeConnection = makeConnection(a, b, { type: relationship });
+        if (madeConnection) {
+          this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+          this.renderGraph();
         }
       },
     });
-  }
-
-  public actionClick(d: Node) {
-    // OK so, when the user wants to see the incoming connections by clicking "See more",
-    // we need to (recursively) expand all outgoing connections for all of the incoming nodes
-    // Right now, there is no way for a user to expand outgoing nodes which is why we do this
-    const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
-      const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
-      this.highLevelNodeLookup[id][direction].forEach((connection) => {
-        const modelId = connection[st].node.modelId;
-        if (modelId !== undefined) {
-          this.expanded[modelId] = true;
-        }
-        this.nodesToShow[connection[st].id] = true;
-        expandDependencies(connection[st].id, 'outgoing');
-      });
-    };
-
-    expandDependencies(d.id);
-    this.pointToPlaceNode = d;
-    this.calculateLinksNodes();
   }
 
   public hullDblclick(d: D3Hull) {
@@ -522,7 +478,7 @@ export default class Home extends Vue {
 
     this.pointToPlaceNode = point;
 
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public createNewNode(n: ProvenanceNode): SingleNode {
@@ -557,8 +513,8 @@ export default class Home extends Vue {
       // ALSO, * 8 just kinda works well and 10 is the padding
       width: text.length * 8 + 10,
       height: NODE_HEIGHT,
-      onDidRightClick: (e: MouseEvent, id3: ID3<SingleNode>) => {
-        this.nodeRightClick(e, node, id3);
+      onDidRightClick: (e: MouseEvent) => {
+        this.nodeRightClick(e, node);
       },
       onDidClick: () => {
         if (node.isGroup) {
@@ -571,46 +527,84 @@ export default class Home extends Vue {
           this.selectedNode = n;
         }
       },
+      onDidActionClick: () => {
+        // OK so, when the user wants to see the incoming connections by clicking "See more",
+        // we need to (recursively) expand all outgoing connections for all of the incoming nodes
+        // Right now, there is no way for a user to expand outgoing nodes which is why we do this
+        const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
+          const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
+          this.highLevelNodeLookup[id][direction].forEach((connection) => {
+            const modelId = connection[st].node.modelId;
+            if (modelId !== undefined) {
+              this.expanded[modelId] = true;
+            }
+            this.nodesToShow[connection[st].id] = true;
+            expandDependencies(connection[st].id, 'outgoing');
+          });
+        };
+
+        expandDependencies(node.id);
+        this.pointToPlaceNode = node;
+        this.renderGraph();
+      },
     };
 
     return node;
   }
 
-  public calculateLinksNodes() {
-    const links: Link[] = [];
-    const nodes: Node[] = [];
+  public renderGraph() {
+    this.links = [];
+    this.nodes = [];
     const models: { [modelId: number]: GroupNode } = {};
 
-    this.provenanceNodes.forEach((n) => {
-      const sourceId = n.id;
+    // We don't care about any nodes that don't need to be shown.
+    const nodes = this.provenanceNodes.filter((n) => this.nodesToShow[n.id]);
 
-      if (!this.nodesToShow[sourceId]) {
+    // First, create all of the model nodes.
+    // These are the collapsed nodes. We only need to create one per model.
+    nodes.forEach((n) => {
+      if (n.modelId === undefined) {
         return;
       }
 
-      if (n.modelId !== undefined && !this.expanded[n.modelId] && !models[n.modelId]) {
-        // this bad naming just avoids name shadowing
-        const groupId = uniqueId();
-        const { x: x1, y: y1 } = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
-        const node: GroupNode = {
-          isGroup: true,
-          model: n.modelId,
-          id: groupId,
-          x: x1,
-          y: y1,
-          index: 0,
-          vx: 0,
-          vy: 0,
-          stroke: MODEL_STROKE,
-          rx: 0,
-          text: `M${n.modelId}`,
-          width: MODEL_WIDTH,
-          height: NODE_HEIGHT,
-        };
-
-        models[n.modelId] = node;
-        nodes.push(node);
+      if (this.expanded[n.modelId]) {
+        return;
       }
+
+      if (models[n.modelId]) {
+        return;
+      }
+
+      const model = n.modelId;
+      const groupId = this.savedGroupIds[n.modelId] = get(this.savedGroupIds, n.modelId, uniqueId());
+      const point = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
+      const node: GroupNode = {
+        ...point,
+        isGroup: true,
+        model,
+        id: groupId,
+        index: 0,
+        vx: 0,
+        vy: 0,
+        stroke: MODEL_STROKE,
+        rx: 0,
+        text: `M${n.modelId}`,
+        width: MODEL_WIDTH,
+        height: NODE_HEIGHT,
+        onDidDblclick: () => {
+          this.expanded[model] = true;
+          this.pointToPlaceNode = node;
+          this.renderGraph();
+        },
+      };
+
+      models[n.modelId] = node;
+      this.nodes.push(node);
+    });
+
+    // Now, we add the other nodes that don't have a model or that are in a model that is expanded
+    nodes.forEach((n) => {
+      const sourceId = n.id;
 
       const info = this.highLevelNodeLookup[sourceId];
       info.outgoing.forEach((c) => {
@@ -631,8 +625,7 @@ export default class Home extends Vue {
         const source = determineLinkId(sourceId, c.source.node.modelId);
         const target = determineLinkId(targetId, c.target.node.modelId);
 
-
-        // This happens for nodes in the same model that hasn't been expanded
+        // This happens for nodes in the same model when the model hasn't been expanded
         if (target === source) {
           return;
         }
@@ -673,7 +666,7 @@ export default class Home extends Vue {
           },
         };
 
-        links.push(link);
+        this.links.push(link);
       });
 
       // don't add nodes that are a model that isn't expanded
@@ -681,14 +674,11 @@ export default class Home extends Vue {
         return;
       }
 
-      nodes.push(this.createNewNode(n));
+      this.nodes.push(this.createNewNode(n));
     });
 
     // Make sure to reset this since we are done rendering
     this.pointToPlaceNode = { x: 0, y: 0 };
-
-    this.links = links;
-    this.nodes = nodes;
   }
 
   public addNode() {
@@ -698,12 +688,14 @@ export default class Home extends Vue {
     };
 
     this.provenanceNodes.push(node);
+    this.makeRequest(() => backend.updateOrCreateNode(node));
+
     this.nodesToShow[node.id] = true;
     if (node.modelId !== undefined) {
       this.expanded[node.modelId] = true;
     }
 
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
   public cancelRelationshipSelection() {
@@ -727,8 +719,10 @@ export default class Home extends Vue {
 
     this.currentRelationship = relationship;
     originalConnection.type = relationship;
-    this.calculateLinksNodes();
+    this.renderGraph();
     this.cancelRelationshipSelection();
+
+    this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
   }
 
   public deleteRelationship() {
@@ -746,8 +740,10 @@ export default class Home extends Vue {
       return connection.id !== selectedConnection.original.id;
     });
 
-    this.calculateLinksNodes();
+    this.renderGraph();
     this.cancelRelationshipSelection();
+
+    this.makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
   }
 
   public cancelNodeTypeSelection() {
@@ -763,17 +759,14 @@ export default class Home extends Vue {
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
     });
+    this.makeRequest(() => backend.deleteNode(selected.id));
 
     this.cancelNodeTypeSelection();
-    this.calculateLinksNodes();
+    this.renderGraph();
   }
 
-  public checkText() {
-    if (!this.selectedNode) {
-      return;
-    }
-
-    const node = this.selectedNode;
+  public onNodeChange(node: ProvenanceNode, key: keyof ProvenanceNode) {
+    // This is a bit inefficient
     this.nodes.forEach((n) => {
       if (n.id !== node.id) {
         return;
@@ -782,7 +775,6 @@ export default class Home extends Vue {
       if (n.isGroup) {
         return;
       }
-
 
       const newText = getText(node, this.modelInformationLookup);
       if (newText !== n.text) {
@@ -795,25 +787,51 @@ export default class Home extends Vue {
     // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
 
-    let reCalculate = false;
-    [...incoming, ...outgoing].forEach(({ source, target, relationship }) => {
+    const nodesToSave: ProvenanceNode[] = [];
+    const addIfNotInArray = <T>(arr: T[], value: T) => {
+      if (!arr.includes(value)) {
+        arr.push(value);
+      }
+    };
+
+    [...incoming, ...outgoing].forEach((c) => {
+      const { source, target, relationship } = c;
       if (isValidConnection(source.node, target.node, relationship)) {
         return;
       }
 
-      reCalculate = true;
+      addIfNotInArray(nodesToSave, source.node);
+      addIfNotInArray(nodesToSave, target.node);
       if (!source.node.connections) {
         return;
       }
 
       source.node.connections = source.node.connections
-        .filter((connection) => connection.target.id !== target.node.id);
+        .filter((connection) => connection.targetId !== target.node.id);
     });
 
-
-    if (reCalculate) {
-      this.calculateLinksNodes();
+    if (nodesToSave.length !== 0) {
+      this.renderGraph();
     }
+
+    this.makeRequest(() => backend.updateOrCreateNode(node, [key]));
+
+    nodesToSave.map((n) => {
+      this.makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
+    });
+  }
+
+  public async mounted() {
+    // TODO Remove this
+    // await backend.resetDatabase();
+
+    this.makeRequest(backend.getModels, (good) => {
+      this.models = good.items;
+    });
+
+    this.makeRequest(backend.getProvenanceNodes, (good) => {
+      this.provenanceNodes = good.items;
+    });
   }
 }
 </script>

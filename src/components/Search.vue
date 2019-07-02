@@ -2,7 +2,9 @@
   <card>
     <template v-slot:header>
       <b-field style="margin: 1.5rem 1.5rem 0">
-        <b-input placeholder="Search..."
+        <b-input
+          ref="input" 
+          placeholder="Search..."
           type="search"
           icon="magnify"
           expanded
@@ -30,7 +32,6 @@
             <h4 class="result--title">{{ result.title }}</h4>
             <h6 class="result--type">{{ result.model === undefined ? 'No Model' : `Model ${result.model}` }}</h6>
             <p class="result--extra">{{ result.information | format }}</p>
-            <hr class="result--break" v-if="i !== results.length - 1">
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
@@ -51,15 +52,20 @@
             </b-tooltip>
           </div>
         </div>
+        <hr class="result--break" v-if="i !== results.length - 1">
       </div>
     </div>
+    <template v-slot:footer>
+      <!-- href="#" allows users to tab to the link -->
+      <a v-if="results.length" href="#" class="card-footer-item" @click="clear">Clear</a>
+    </template>
   </card>
 </template>
 
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { SearchItem } from '@/search';
+import { SearchItem, search } from '@/search';
 
 @Component({
   components: { Card },
@@ -70,9 +76,14 @@ import { SearchItem } from '@/search';
   },
 })
 export default class Search extends Vue {
-  @Prop({ type: Array, required: true }) public results!: SearchItem[];
+  @Prop({ type: Array, required: true }) public items!: SearchItem[];
+  public results: SearchItem[] = [];
 
   public searchText = '';
+
+  public $refs!: {
+    input: Vue & { focus: () => void },
+  };
 
   public checkEnter(e: MouseEvent) {
     if (e.which === 13) { // ENTER
@@ -80,9 +91,10 @@ export default class Search extends Vue {
     }
   }
 
+
   public checkEmpty() {
     if (this.searchText === '') {
-      this.$emit('clear');
+      this.results = [];
     }
   }
 
@@ -92,7 +104,13 @@ export default class Search extends Vue {
     });
 
     setTimeout(() => loadingComponent.close(), 0.5 * 1000);
-    this.$emit('search', this.searchText);
+    this.results = search(this.items, this.searchText);
+  }
+
+  public clear() {
+    this.results = [];
+    this.searchText = '';
+    this.$refs.input.focus();
   }
 }
 </script>
@@ -111,6 +129,6 @@ export default class Search extends Vue {
 }
 
 .result--break {
-  margin: 0.5rem 0;
+  margin: 0.75rem 0;
 }
 </style>
