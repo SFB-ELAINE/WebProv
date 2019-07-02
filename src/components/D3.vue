@@ -396,7 +396,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
               .attr('d', (d) => this.curve(d.path));
           }
 
-        // Unfortunently, it seems like I need to add these weird type –cast statements here
+        // Unfortunently, it seems like I need to add these weird type cast statements here
         // The following code is perfectly fine so the d3 typings must be wrong
         link
           .attr('x1', (d) => {
