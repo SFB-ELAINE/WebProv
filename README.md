@@ -21,7 +21,7 @@ npm run bootstrap
 This installs the dependencies for ALL packages in the repository. You have to run one final command to build the libraries (currently there is only one library):
 
 ```
-npm run build
+npm run build-libraries
 ```
 
 That's it! This command just ran `npm run build` in all of the library folders.
