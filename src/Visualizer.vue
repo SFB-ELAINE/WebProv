@@ -540,14 +540,23 @@ export default class Visualizer extends Mixins(RequestMixin) {
         }
       },
       onDidActionClick: () => {
+        const seen = new Set<string>();
+
         // OK so, when the user wants to see the incoming connections by clicking "See more",
         // we need to (recursively) expand all outgoing connections for all of the incoming nodes
         // Right now, there is no way for a user to expand outgoing nodes which is why we do this
         const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
+          seen.add(id);
+
           const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
           this.highLevelNodeLookup[id][direction].forEach((connection) => {
+            if (seen.has(connection[st].id)) {
+              return;
+            }
+
             const modelId = connection[st].node.modelId;
             if (modelId !== undefined) {
+              console.log('Expanding ' + modelId);
               this.expanded[modelId] = true;
             }
             this.nodesToShow[connection[st].id] = true;
