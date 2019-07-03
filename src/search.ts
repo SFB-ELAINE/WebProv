@@ -4,13 +4,13 @@ export interface SearchItem {
   id: string;
   title: string;
   type: string;
-  model: number | undefined;
+  model: string | undefined;
   information: string[];
 }
 
 
 const options: Fuse.FuseOptions<SearchItem> = {
-  keys: ['information', 'title', 'id'],
+  keys: ['information', 'title', 'id', 'model'],
 };
 
 export const search = (items: SearchItem[], pattern: string) => {

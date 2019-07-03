@@ -378,7 +378,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
         id: n.id,
         title: getText(n, this.modelInformationLookup),
         type: n.type,
-        model: n.modelId,
+        model: n.modelId !== undefined ? `Model ${n.modelId}` : undefined,
         information,
       };
     });
