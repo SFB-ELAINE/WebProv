@@ -40,6 +40,14 @@
         @open-model="openModel"
       ></search>
       <div style="flex: 1"></div>
+
+      <b-button
+        class="clear-button overlay-child"
+        type="is-text"
+        @click="addModel"
+      >
+        Add Model
+      </b-button>
       
       <b-button
         class="clear-button overlay-child"
@@ -65,6 +73,8 @@
         <models-card
           v-if="selectedModel"
           :model="selectedModel"
+          @cancel="cancelSelectedModel"
+          @save="saveSelectedModel"
         ></models-card>
         <div v-if="selectedModel" class="spacer"></div>
         
@@ -343,6 +353,19 @@ export default class Visualizer extends Vue {
     this.renderGraph();
   }
 
+  public cancelSelectedModel() {
+    this.selectedModel = null;
+  }
+
+  public saveSelectedModel() {
+    if (!this.selectedModel) {
+      return;
+    }
+
+    const model = this.selectedModel;
+    makeRequest(() => backend.updateOrCreateModel(model, ['id', 'bibInformation']));
+  }
+
   public openModel(result: SearchItem) {
     if (result.modelId === undefined) {
       this.$notification.open({
@@ -390,6 +413,13 @@ export default class Visualizer extends Vue {
         information,
       };
     });
+  }
+
+  public addModel() {
+    this.selectedModel = {
+      id: 0,
+      bibInformation: '',
+    };
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this

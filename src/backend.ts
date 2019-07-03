@@ -116,7 +116,8 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
         if (arg.data[key] === undefined) {
           ref.child(key).remove();
         } else {
-          ref.update({ key: arg.data[key] });
+          console.info(`Setting ${key} -> ${arg.data[key]}`);
+          await ref.update({ key: arg.data[key] });
         }
       }
     }
