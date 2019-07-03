@@ -37,6 +37,7 @@
         :items="searchItems"
         @open="openResult"
         @dependency="showProvenanceGraph"
+        @open-model="openModel"
       ></search>
       <div style="flex: 1"></div>
       
@@ -62,9 +63,10 @@
         <div class="spacer"></div>
 
         <models-card
-          :models="models"
+          v-if="selectedModel"
+          :model="selectedModel"
         ></models-card>
-        <div class="spacer"></div>
+        <div v-if="selectedModel" class="spacer"></div>
         
         <card-select
           title="Relationship" 
@@ -130,6 +132,7 @@ import {
   nodeFields,
   FieldInformation,
   get,
+  makeRequest,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -139,7 +142,6 @@ import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
-import { RequestMixin } from '@/mixins';
 import debounce from 'lodash.debounce';
 
 interface BaseNode extends D3Node {
@@ -201,7 +203,7 @@ const isSingleNode = (node: Node): node is SingleNode => {
 @Component({
   components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
 })
-export default class Visualizer extends Mixins(RequestMixin) {
+export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowHeight!: number;
   @Prop({ type: Number, required: true }) public windowWidth!: number;
 
@@ -244,6 +246,8 @@ export default class Visualizer extends Mixins(RequestMixin) {
   public nodeFields = nodeFields;
   public models: ModelInformation[] = [];
 
+  public selectedModel: ModelInformation | null = null;
+
   public savedGroupIds: Lookup<string> = {};
 
   public $refs!: {
@@ -263,19 +267,6 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
   get nodeLookup() {
     return makeLookup(this.nodes);
-  }
-
-  get modelInformationLookup() {
-    const lookup: { [modelId: number]: ModelInformation | undefined } = {};
-    this.models.forEach((modelInformation) => {
-      if (modelInformation.modelId === undefined) {
-        return;
-      }
-
-      lookup[modelInformation.modelId] = modelInformation;
-    });
-
-    return lookup;
   }
 
   get highLevelNodes(): HighLevelNode[] {
@@ -331,6 +322,10 @@ export default class Visualizer extends Mixins(RequestMixin) {
     return makeLookup(this.highLevelNodes);
   }
 
+  get modelInformationLookup() {
+    return makeLookup(this.models);
+  }
+
   public showProvenanceGraph(r: SearchItem) {
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
@@ -346,6 +341,18 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
     showNode(r.id);
     this.renderGraph();
+  }
+
+  public openModel(result: SearchItem) {
+    if (result.modelId === undefined) {
+      this.$notification.open({
+        message: 'Please assign a model first.',
+      });
+
+      return;
+    }
+
+    this.selectedModel = this.modelInformationLookup[result.modelId];
   }
 
   public clearNodes() {
@@ -378,6 +385,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
         id: n.id,
         title: getText(n, this.modelInformationLookup),
         type: n.type,
+        modelId: n.modelId,
         model: n.modelId !== undefined ? `Model ${n.modelId}` : undefined,
         information,
       };
@@ -475,7 +483,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
         const madeConnection = makeConnection(a, b, { type: relationship });
         if (madeConnection) {
-          this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+          makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
           this.renderGraph();
         }
       },
@@ -720,7 +728,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
     };
 
     this.provenanceNodes.push(node);
-    this.makeRequest(() => backend.updateOrCreateNode(node));
+    makeRequest(() => backend.updateOrCreateNode(node));
 
     this.nodesToShow[node.id] = true;
     if (node.modelId !== undefined) {
@@ -754,7 +762,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
     this.renderGraph();
     this.cancelRelationshipSelection();
 
-    this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+    makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
   }
 
   public deleteRelationship() {
@@ -775,7 +783,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
     this.renderGraph();
     this.cancelRelationshipSelection();
 
-    this.makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
+    makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
   }
 
   public cancelNodeTypeSelection() {
@@ -803,7 +811,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
       return n.id !== selected.id;
     });
 
-    this.makeRequest(() => backend.deleteNode(selected.id));
+    makeRequest(() => backend.deleteNode(selected.id));
     incoming.forEach(({ source }) => {
       backend.updateOrCreateNode(source.node, ['connections']);
     });
@@ -858,10 +866,10 @@ export default class Visualizer extends Mixins(RequestMixin) {
     });
 
 
-    this.makeRequest(() => backend.updateOrCreateNode(node, [key]));
+    makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
     nodesToSave.map((n) => {
-      this.makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
+      makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
     });
 
     // We are calling the render function since we will likely need to redraw something
@@ -873,11 +881,11 @@ export default class Visualizer extends Mixins(RequestMixin) {
     // TODO Remove this
     // await backend.resetDatabase();
 
-    this.makeRequest(backend.getModels, (good) => {
+    makeRequest(backend.getModels, (good) => {
       this.models = good.items;
     });
 
-    this.makeRequest(backend.getProvenanceNodes, (good) => {
+    makeRequest(backend.getProvenanceNodes, (good) => {
       this.provenanceNodes = good.items;
     });
   }

@@ -72,8 +72,7 @@ const S1_1: SimulationData = {
 };
 
 const modelInformation1: ModelInformation = {
-  id: uniqueId(),
-  modelId: 1,
+  id: 1,
   bibInformation: 'Lee et al., PLoS bio. 2003',
 };
 
@@ -102,8 +101,7 @@ const S1_2: SimulationData = {
 
 // M12
 const modelInformation12: ModelInformation = {
-  id: uniqueId(),
-  modelId: 12,
+  id: 12,
   bibInformation: 'Haack et al., PLoS comp. bio. 2015',
 };
 

@@ -12,3 +12,7 @@ declare module '@/link' {
     LinksDatum extends SimulationLinkDatum<NodeDatum>
   >(links: LinksDatum[]): ForceLink<NodeDatum, LinksDatum>;
 }
+
+declare module 'buefy/dist/components/notification' {
+  export { NotificationProgrammatic } from 'buefy';
+}

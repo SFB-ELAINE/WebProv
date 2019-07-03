@@ -20,6 +20,11 @@ export interface BackendItems<T> {
   items: T[];
 }
 
+export interface BackendItem<T> {
+  result: 'success';
+  item: T;
+}
+
 export interface BackendNotFound {
   result: 'not-found';
 }
@@ -123,9 +128,9 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
 };
 
 export const updateOrCreateModel = async (
-  id: string, model: ModelInformation, keys?: Array<keyof ModelInformation>,
+  model: ModelInformation, keys?: Array<keyof ModelInformation>,
 ) => {
-  return await updateOrCreate(id, { ref: 'models', data: model, keys });
+  return await updateOrCreate('' + model.id, { ref: 'models', data: model, keys });
 };
 
 export const updateOrCreateNode = async (node: ProvenanceNode, keys?: Array<keyof ProvenanceNode>) => {
@@ -142,8 +147,28 @@ export const resetDatabase = async () => {
   }
 
   for (const model of Object.values(testData.models)) {
-    await updateOrCreateModel(model.id, model);
+    await updateOrCreateModel(model);
   }
+};
+
+export const findModel = async (id: number) => {
+  return await withHandling(async (): Promise<BackendItem<ModelInformation> | BackendNotFound> => {
+    const ref = getRef('models').child('' + id);
+    const snapshot = await ref.once('value');
+
+    if (!snapshot.exists()) {
+      return {
+        result: 'not-found',
+      };
+    }
+
+    // tslint:disable-next-line: no-console
+    console.info(snapshot.val());
+    return {
+      result: 'success',
+      item: snapshot.val(),
+    };
+  });
 };
 
 const deleteItem = async (key: NodesModels, id: string) => {
@@ -170,6 +195,6 @@ export const deleteNode = async (id: string) => {
   return await deleteItem('nodes', id);
 };
 
-export const deleteModel = async (id: string) => {
-  return await deleteItem('models', id);
+export const deleteModel = async (id: number) => {
+  return await deleteItem('models', '' + id);
 };
