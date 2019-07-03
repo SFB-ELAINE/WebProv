@@ -10,7 +10,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import Visualizer from '@/Visualizer.vue';
-import { createComponent, value, onMounted, onUnmounted } from 'vue-function-api';
+import { value, onMounted, onUnmounted } from 'vue-function-api';
+import { PropsDefinition, ComponentOptions } from 'vue/types/options';
+import { Context } from 'vue-function-api/dist/types/vue';
 
 function useWindowSize() {
   const windowWidth = value(window.innerWidth);
@@ -32,11 +34,47 @@ function useWindowSize() {
   return { windowWidth, windowHeight };
 }
 
+// type FullPropType<T> = T extends { required: boolean } ? T : T | undefined;
+type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+type ComponentOptionsWithSetup<Props> = Omit<ComponentOptions<Vue>, 'props' | 'setup'> & {
+  props?: PropsDefinition<Props>;
+  setup?: (
+    this: undefined,
+    props: Readonly<Props>,
+    context: Context,
+  ) => object | null | undefined | void;
+};
+
+// when props is an object
+export function createComponent<Props>(
+  compOpions: ComponentOptionsWithSetup<Props>,
+): ComponentOptions<Vue>;
+
+// when props is an array
+export function createComponent<Props extends string = never>(
+  compOpions: ComponentOptionsWithSetup<Record<Props, any>>,
+): ComponentOptions<Vue>;
+
+export function createComponent<Props>(
+  compOpions: ComponentOptionsWithSetup<Props>,
+): ComponentOptions<Vue> {
+  return (compOpions as any) as ComponentOptions<Vue>;
+}
+
 // This just uses vue-function-api for fun!
 // See https://github.com/vuejs/rfcs/blob/function-apis/active-rfcs/0000-function-api.md
 export default createComponent({
   components: { Visualizer },
-  setup() {
+  props: {
+    foo: {
+      type: String,
+      required: true,
+    },
+    bar: {
+      type: String,
+    },
+  } as const,
+  setup(props) {
     return useWindowSize();
   },
 });

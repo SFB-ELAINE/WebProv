@@ -354,17 +354,17 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     if (this.drag) {
       // I can't get the types to work out for some reason, this definitely works though
       // you can see that I cast as `any` at the end
-      const drag = d3.drag()
-        .on('start', (d: d3.SimulationNodeDatum) => {
+      const drag = d3.drag<any, d3.SimulationNodeDatum>()
+        .on('start', (d) => {
           if (simulation && !d3.event.active) { simulation.alphaTarget(0.3).restart(); }
           d.fx = d.x;
           d.fy = d.y;
         })
-        .on('drag', (d: d3.SimulationNodeDatum) => {
+        .on('drag', (d) => {
           d.fx = d3.event.x;
           d.fy = d3.event.y;
         })
-        .on('end', (d: d3.SimulationNodeDatum) => {
+        .on('end', (d) => {
           if (simulation && !d3.event.active) { simulation.alphaTarget(0); }
           d.fx = null;
           d.fy = null;

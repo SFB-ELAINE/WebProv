@@ -30,7 +30,7 @@
     "babel-core": "7.0.0-bridge.0",
     "sass": "^1.18.0",
     "sass-loader": "^7.1.0",
-    "typescript": "^3.4.3",
+    "typescript": "^3.5.2",
     "vue-template-compiler": "^2.6.10"
   }
 }
