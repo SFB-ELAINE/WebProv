@@ -176,7 +176,6 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
         return;
       }
 
-      // eslint-disable-next-line
       const i = n.hullGroup;
       const l = hulls[i] || (hulls[i] = { points: [], nodes: [] });
 

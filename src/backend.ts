@@ -102,7 +102,18 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
     } else {
       // tslint:disable-next-line: no-console
       console.info(`Updating ${id} using: ${arg.keys}`);
-      ref.update(arg.data);
+
+      for (let key of arg.keys || []) {
+        key = key as keyof typeof arg.data;
+
+        // You can't just set a value to undefined
+        // Instead, you have to explicitly remove it :)
+        if (arg.data[key] === undefined) {
+          ref.child(key).remove();
+        } else {
+          ref.update({ key: arg.data[key] });
+        }
+      }
     }
 
     return {

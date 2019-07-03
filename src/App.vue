@@ -65,15 +65,6 @@ export function createComponent<Props>(
 // See https://github.com/vuejs/rfcs/blob/function-apis/active-rfcs/0000-function-api.md
 export default createComponent({
   components: { Visualizer },
-  props: {
-    foo: {
-      type: String,
-      required: true,
-    },
-    bar: {
-      type: String,
-    },
-  } as const,
   setup(props) {
     return useWindowSize();
   },
