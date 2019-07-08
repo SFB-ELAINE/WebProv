@@ -116,8 +116,9 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
         if (arg.data[key] === undefined) {
           ref.child(key).remove();
         } else {
+          // tslint:disable-next-line: no-console
           console.info(`Setting ${key} -> ${arg.data[key]}`);
-          await ref.update({ key: arg.data[key] });
+          await ref.update({ [key]: arg.data[key] });
         }
       }
     }

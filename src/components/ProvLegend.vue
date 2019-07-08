@@ -19,8 +19,8 @@
         <d3 :height="25" :width="100" arrows :arrow-size="5">
           <node
             class="legend--block"
-            :rx="item.sourceRadius"
-            id="one"
+            :rx="item.targetRadius"
+            id="two"
             :size="25"
             :stroke="nodeOutline"
           ></node>
@@ -31,8 +31,8 @@
           ></relationship>
           <node
             class="legend--block"
-            :rx="item.targetRadius"
-            id="two"
+            :rx="item.sourceRadius"
+            id="one"
             :size="25"
             :x="75"
             :stroke="nodeOutline"

@@ -62,7 +62,7 @@
         type="is-text"
         @click="clearNodes"
       >
-        Reset
+        Clear
       </b-button>
 
       <div class="cards overlay-child">
@@ -74,6 +74,7 @@
           v-if="selectedModel"
           :model="selectedModel"
           @cancel="cancelSelectedModel"
+          @delete="deleteSelectedModel"
           @save="saveSelectedModel"
         ></models-card>
         <div v-if="selectedModel" class="spacer"></div>
@@ -366,10 +367,25 @@ export default class Visualizer extends Vue {
     makeRequest(() => backend.updateOrCreateModel(model, ['id', 'bibInformation']));
   }
 
+  public deleteSelectedModel() {
+    if (!this.selectedModel) {
+      return;
+    }
+
+    const model = this.selectedModel;
+    makeRequest(() => backend.deleteModel(model.id));
+  }
+
   public openModel(result: SearchItem) {
     if (result.modelId === undefined) {
       this.$notification.open({
         message: 'Please assign a model first.',
+      });
+
+      this.$notification.open({
+        message: 'Please assign a model first.',
+        position: 'is-bottom-right',
+        type: 'is-warning',
       });
 
       return;
@@ -384,12 +400,12 @@ export default class Visualizer extends Vue {
   }
 
   public openResult(result: SearchItem) {
-    if (result.model !== undefined) {
-      this.expanded[result.model] = true;
+    if (result.modelId !== undefined) {
+      this.expanded[result.modelId] = true;
     }
 
     this.highLevelNodes.forEach(({ node, id }) => {
-      if (node.modelId === result.model) {
+      if (node.modelId === result.modelId) {
         this.nodesToShow[id] = true;
       }
     });
@@ -895,7 +911,7 @@ export default class Visualizer extends Vue {
         .filter((connection) => connection.targetId !== target.node.id);
     });
 
-
+    console.log(node, key, node[key]);
     makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
     nodesToSave.map((n) => {

@@ -42,45 +42,37 @@ export default createComponent({
   setup(props, context) {
     const searchModel = value('');
 
-    function cancel() {
+    const cancel = () => {
       context.emit('cancel');
-    }
+    };
 
-    function deleteModel() {
-      makeRequest(() => backend.deleteModel(props.model.id));
+    const deleteModel = () => {
+      context.emit('delete');
       cancel();
-    }
+    };
 
-    function addModel() {
-      // TODO
-      // this.models.push({
-      //   id: uniqueId(),
-      // });
-      // const model = this.models[this.models.length - 1];
-      // this.makeRequest(() => backend.updateOrCreateModel(model.id, model));
-    }
-
-    function setModel(model: string) {
+    const setModel = (model: string) => {
       // convert the model to a number if possible
       // if it is a number but the given string is empty, set to undefined
       setVue(props.model, 'id', model === '' ? undefined : +model);
-    }
+    };
 
-    function setBibInformation(source: string) {
+    const setBibInformation = (source: string) => {
       setVue(props.model, 'bibInformation', source);
-    }
+    };
+
+    const save = () => {
+      context.emit('save');
+      cancel();
+    };
 
     return {
       deleteModel,
-      addModel,
       setModel,
       searchModel,
       setBibInformation,
       cancel,
-      save() {
-        // TODO
-        context.emit('save');
-      },
+      save,
     };
   },
 });

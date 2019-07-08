@@ -311,9 +311,18 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     });
 
     if (!simulation) {
+
+      // This function only works for hotizontal arrows
+      // It can be generialized for vertical arrows though if neccessary
       const calcPosition = (xy: 'x' | 'y', st: 'source' | 'target') => (d: D3Link) => {
+        const source = this.nodeLookup[d.source];
+        const target = this.nodeLookup[d.target];
+        const sourcePosition = source[xy];
+        const targetPosition = target[xy];
+        const greater = targetPosition > sourcePosition;
+
         const node = this.nodeLookup[d[st]];
-        const toAdd = xy === 'y' ? node.height / 2 : st === 'source' ? node.width : 0;
+        const toAdd = xy === 'y' ? node.height / 2 : !greater ? node.width : 0;
         return node[xy] + toAdd;
       };
 
