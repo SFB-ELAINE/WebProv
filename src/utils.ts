@@ -334,3 +334,43 @@ export async function makeRequest<T extends { result: 'success' }>(
     }
   }
 }
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End: Point) {
+  // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and
+  // booleans for whether line segment 1 or line segment 2 contain the point
+  const denominator =
+    ((l2End.y - l2Start.y) * (l1End.x - l1Start.x)) -
+    ((l2End.x - l2Start.x) * (l1End.y - l1Start.y));
+
+  if (denominator === 0) {
+    return null;
+  }
+
+  let a = l1Start.y - l2Start.y;
+  let b = l1Start.x - l2Start.x;
+  const numerator1 = ((l2End.x - l2Start.x) * a) - ((l2End.y - l2Start.y) * b);
+  const numerator2 = ((l1End.x - l1Start.x) * a) - ((l1End.y - l1Start.y) * b);
+  a = numerator1 / denominator;
+  b = numerator2 / denominator;
+
+  // It is worth noting that this should be the same as:
+  // x = l2Start.x + (b * (l2End.x - l2Start.x));
+  // y = l2Start.x + (b * (l2End.y - l2Start.y));
+  // if we cast these lines infinitely in both directions, they intersect here:
+  return {
+    x: l1Start.x + (a * (l1End.x - l1Start.x)),
+    y: l1Start.y + (a * (l1End.y - l1Start.y)),
+    // if line2 is a segment and line1 is infinite, they intersect if:
+    onLine1: a > 0 && a < 1,
+
+    // if line1 is a segment and line2 is infinite, they intersect if:
+    onLine2: b > 0 && b < 1,
+
+    // if line1 and line2 are segments, they intersect if both of the above are true
+  };
+}

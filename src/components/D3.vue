@@ -13,7 +13,7 @@ import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys } from '@/d3';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { makeLookup, Lookup, Watch } from '@/utils';
+import { makeLookup, Lookup, Watch, intersection } from '@/utils';
 
 interface MyLink extends D3Link {
   color: string;
@@ -24,81 +24,6 @@ const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 // This id is used to ensure that the ID atttribute doesn't conflict with others
 // Since id is global
 let id = 0;
-let factor = 10;
-
-const hullForce = () => {
-  interface Point {
-    x: number;
-    y: number;
-  }
-
-  interface PointWithCenter extends Point {
-    count: number;
-  }
-
-  let nodes: D3Node[] = [];
-
-  const force = () => {
-    const centers: Lookup<PointWithCenter> = {};
-
-    nodes.forEach(({ x, y, hullGroup }) => {
-      if (hullGroup === undefined) {
-        return;
-      }
-
-      if (!centers.hasOwnProperty(hullGroup)) {
-        centers[hullGroup] = { x: 0, y: 0, count: 0 };
-      }
-
-      const center = centers[hullGroup];
-      center.y += y;
-      center.x += x;
-      center.count++;
-    });
-
-    Object.values(centers).forEach((center) => {
-      center.x /= center.count;
-      center.y /= center.count;
-    });
-
-
-    const calcChangeInSpeed = (from: Point, to: Point) => {
-      let x = to.x - from.x;
-      let y = to.y - from.y;
-      const distance = (x ** 2 + y ** 2) ** 0.5;
-      if (distance !== 0) {
-        x /= distance ** 2;
-        y /= distance ** 2;
-      }
-
-      return {
-        vx: x * factor,
-        vy: y * factor,
-      };
-    };
-
-    nodes.forEach((node, i) => {
-      if (node.hullGroup === undefined) {
-        return;
-      }
-
-      const v = calcChangeInSpeed(node, centers[node.hullGroup]);
-      // node.vx += v.vx;
-      // node.vy += v.vy;
-    });
-  };
-
-  force.initialize = (_: D3Node[]) => {
-    nodes = _;
-  };
-
-  force.factor = (_: number) => {
-    factor = _;
-  };
-
-
-  return force;
-};
 
 @Component
 export default class D3<N extends D3Node> extends Vue implements ID3<N> {
@@ -159,11 +84,6 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
 
   public addNode(node: N) {
     this.allNodes.push(node);
-  }
-
-  public calcWidth(text?: string) {
-    // 8 just kinda works well (10 is the padding)
-    return (text === undefined ? 0 : text.length * 8) + 10;
   }
 
   public convexHulls() {
@@ -399,10 +319,61 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     if (simulation) {
       simulation.on('tick', () => {
         if (hull && !hull.empty()) {
-            hull
-              .data(this.convexHulls())
-              .attr('d', (d) => this.curve(d.path));
+          hull
+            .data(this.convexHulls())
+            .attr('d', (d) => this.curve(d.path));
+        }
+
+        const middle = (node: D3Node) => {
+          return {
+            x: node.x + node.width / 2,
+            y: node.y + node.height / 2,
+          };
+        };
+
+        const getIntersection = (source: D3Node, target: D3Node) => {
+          const tl = { x: target.x, y: target.y };
+          const tr = { x: target.x + target.width, y: target.y };
+          const bl = { x: target.x, y: target.y + target.height };
+          const br = { x: target.x + target.width, y: target.y + target.height };
+
+          const middleOfTarget = middle(target);
+          const middleOfSource = middle(source);
+
+          // Only one of these should be true
+          // We can also optmize, we should only ever have to do two intersection calculations
+          const p1 = intersection(middleOfTarget, middleOfSource, tl, tr);
+          const p2 = intersection(middleOfTarget, middleOfSource, tr, br);
+          const p3 = intersection(middleOfTarget, middleOfSource, br, bl);
+          const p4 = intersection(middleOfTarget, middleOfSource, bl, tl);
+
+          const toAdd = 0;
+          let i = -1;
+          for (const p of [p1, p2 , p3, p4]) {
+            i++;
+
+            if (!p) {
+              continue;
+            }
+
+            if (!p.onLine1 || !p.onLine2) {
+              continue;
+            }
+
+            // tslint:disable-next-line:no-console
+            // console.log(`Found interesction on ${['top', 'right', 'bottom', 'left'][i]} side`);
+
+            return {
+              center: middleOfTarget,
+              point: p,
+            };
+            // break because we found what we were looking for
+            // There should only ever be one intersection
+            break;
           }
+
+          throw Error;
+        };
 
         // Unfortunently, it seems like I need to add these weird type cast statements here
         // The following code is perfectly fine so the d3 typings must be wrong
@@ -410,18 +381,19 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
           .attr('x1', (d) => {
             const source = d.source as any as D3Node;
             return source.x;
+            // return add(link.source, radiusVector(link, this.radius)).x, this.radius)
           })
           .attr('y1', (d) => {
             const source = d.source as any as D3Node;
             return source.y + source.height / 2;
           })
           .attr('x2', (d) => {
-            const target = d.target as any as D3Node;
-            return target.x + this.calcWidth(target.text);
+            const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+            return center.x + point.x - center.x;
           })
           .attr('y2', (d) => {
-            const target = d.target as any as D3Node;
-            return target.y + target.height / 2;
+            const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+            return center.y + point.y - center.y;
           });
 
         g
