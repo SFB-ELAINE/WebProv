@@ -60,6 +60,14 @@
       <b-button
         class="clear-button overlay-child"
         type="is-text"
+        @click="renderGraph"
+      >
+        Refresh
+      </b-button>
+
+      <b-button
+        class="clear-button overlay-child"
+        type="is-text"
         @click="clearNodes"
       >
         Clear
@@ -102,6 +110,20 @@
       
       </div>
     </div>
+
+    <b-button
+      rounded
+      type="is-text"
+      style="position: absolute; left: 20px; bottom: 20px"
+      @click="openHelp"
+    >
+      <b-icon icon="information-outline"></b-icon>
+    </b-button>
+
+    <information-modal
+      v-model="showHelp"
+    ></information-modal>
+
   </div>
 </template>
 
@@ -127,6 +149,7 @@ import {
   ModelInformation,
 } from '@/specification';
 import ProvLegend from '@/components/ProvLegend.vue';
+import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';
 import {
   Lookup,
@@ -212,7 +235,7 @@ const isSingleNode = (node: Node): node is SingleNode => {
 // the models that use that data.
 
 @Component({
-  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
+  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard, InformationModal },
 })
 export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowHeight!: number;
@@ -253,9 +276,10 @@ export default class Visualizer extends Vue {
   // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
-  // TODO
   public nodeFields = nodeFields;
   public models: ModelInformation[] = [];
+
+  public showHelp = false;
 
   public selectedModel: ModelInformation | null = null;
 
@@ -335,6 +359,10 @@ export default class Visualizer extends Vue {
 
   get modelInformationLookup() {
     return makeLookup(this.models);
+  }
+
+  public openHelp() {
+    this.showHelp = true;
   }
 
   public showProvenanceGraph(r: SearchItem) {
@@ -774,6 +802,7 @@ export default class Visualizer extends Vue {
     };
 
     this.provenanceNodes.push(node);
+    this.selectedNode = node;
     makeRequest(() => backend.updateOrCreateNode(node));
 
     this.nodesToShow[node.id] = true;
@@ -945,7 +974,8 @@ export default class Visualizer extends Vue {
 
 .search {
   width: 450px;
-  max-height: calc(100vh - 40px);
+  // 40 px for margin/padding and 60px for the information button
+  max-height: calc(100vh - 100px);
 }
 
 .spacer {

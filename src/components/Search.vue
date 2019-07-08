@@ -98,7 +98,6 @@ export default class Search extends Vue {
     }
   }
 
-
   public checkEmpty() {
     if (this.searchText === '') {
       this.results = [];
