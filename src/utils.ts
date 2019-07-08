@@ -1,5 +1,5 @@
 import { Watch as W } from 'vue-property-decorator';
-import Vue, { WatchOptions } from 'vue';
+import Vue, { WatchOptions, ComponentOptions } from 'vue';
 import {
   ProvenanceNode,
   ProvenanceNodeType,
@@ -9,6 +9,10 @@ import {
   ProvenanceNodeLookup,
   provenanceNodeTypes,
 } from '@/specification';
+import { PropsDefinition } from 'vue/types/options';
+import { Context } from 'vue-function-api/dist/types/vue';
+import { NotificationProgrammatic } from 'buefy/dist/components/notification';
+import * as backend from '@/backend';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -60,7 +64,7 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
         return text;
       }
 
-      return text + ` (${modelInformation.bibInformation})`;
+      return text + ` (${modelInformation.source})`;
   }
 }
 
@@ -271,4 +275,102 @@ export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue:
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue?: T) {
   const value: T | undefined = o[key];
   return value || defaultValue;
+}
+
+export const setVue = <T extends object>(o: T, k: keyof T & string, v: T[typeof k]) => {
+  Vue.set(o, k, v);
+};
+
+// FIXME Remove when https://github.com/vuejs/vue-function-api/issues/15 is resolved
+type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+type ComponentOptionsWithSetup<Props> = Omit<ComponentOptions<Vue>, 'props' | 'setup'> & {
+  props?: PropsDefinition<Props>;
+  setup?: (
+    this: undefined,
+    props: Readonly<Props>,
+    context: Context,
+  ) => object | null | undefined | void;
+};
+
+// when props is an object
+export function createComponent<Props>(
+  compOptions: ComponentOptionsWithSetup<Props>,
+): ComponentOptions<Vue>;
+// when props is an array
+export function createComponent<Props extends string = never>(
+  compOptions: ComponentOptionsWithSetup<Record<Props, any>>,
+): ComponentOptions<Vue>;
+
+export function createComponent<Props>(
+  compOptions: ComponentOptionsWithSetup<Props>,
+): ComponentOptions<Vue> {
+  return (compOptions as any) as ComponentOptions<Vue>;
+}
+
+// Remove until here
+
+export async function makeRequest<T extends { result: 'success' }>(
+  f: () => Promise<T | backend.BackendError | backend.BackendNotFound>, cb?: (result: T) => void,
+) {
+  const result = await f();
+
+  if (result.result === 'error') {
+    NotificationProgrammatic.open({
+      duration: 10000,
+      message: result.message,
+      position: 'is-bottom-right',
+      type: 'is-danger',
+    });
+  } else if (result.result === 'not-found') {
+    NotificationProgrammatic.open({
+      duration: 10000,
+      message: 'Item not found in database',
+      position: 'is-bottom-right',
+      type: 'is-danger',
+    });
+  } else {
+    if (cb) {
+      cb(result);
+    }
+  }
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End: Point) {
+  // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and
+  // booleans for whether line segment 1 or line segment 2 contain the point
+  const denominator =
+    ((l2End.y - l2Start.y) * (l1End.x - l1Start.x)) -
+    ((l2End.x - l2Start.x) * (l1End.y - l1Start.y));
+
+  if (denominator === 0) {
+    return null;
+  }
+
+  let a = l1Start.y - l2Start.y;
+  let b = l1Start.x - l2Start.x;
+  const numerator1 = ((l2End.x - l2Start.x) * a) - ((l2End.y - l2Start.y) * b);
+  const numerator2 = ((l1End.x - l1Start.x) * a) - ((l1End.y - l1Start.y) * b);
+  a = numerator1 / denominator;
+  b = numerator2 / denominator;
+
+  // It is worth noting that this should be the same as:
+  // x = l2Start.x + (b * (l2End.x - l2Start.x));
+  // y = l2Start.x + (b * (l2End.y - l2Start.y));
+  // if we cast these lines infinitely in both directions, they intersect here:
+  return {
+    x: l1Start.x + (a * (l1End.x - l1Start.x)),
+    y: l1Start.y + (a * (l1End.y - l1Start.y)),
+    // if line2 is a segment and line1 is infinite, they intersect if:
+    onLine1: a > 0 && a < 1,
+
+    // if line1 is a segment and line2 is infinite, they intersect if:
+    onLine2: b > 0 && b < 1,
+
+    // if line1 and line2 are segments, they intersect if both of the above are true
+  };
 }

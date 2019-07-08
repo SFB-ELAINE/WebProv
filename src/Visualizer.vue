@@ -37,8 +37,17 @@
         :items="searchItems"
         @open="openResult"
         @dependency="showProvenanceGraph"
+        @open-model="openModel"
       ></search>
       <div style="flex: 1"></div>
+
+      <b-button
+        class="clear-button overlay-child"
+        type="is-text"
+        @click="addModel"
+      >
+        Add Model
+      </b-button>
       
       <b-button
         class="clear-button overlay-child"
@@ -51,9 +60,17 @@
       <b-button
         class="clear-button overlay-child"
         type="is-text"
+        @click="renderGraph"
+      >
+        Refresh
+      </b-button>
+
+      <b-button
+        class="clear-button overlay-child"
+        type="is-text"
         @click="clearNodes"
       >
-        Reset
+        Clear
       </b-button>
 
       <div class="cards overlay-child">
@@ -62,9 +79,13 @@
         <div class="spacer"></div>
 
         <models-card
-          :models="models"
+          v-if="selectedModel"
+          :model="selectedModel"
+          @cancel="cancelSelectedModel"
+          @delete="deleteSelectedModel"
+          @save="saveSelectedModel"
         ></models-card>
-        <div class="spacer"></div>
+        <div v-if="selectedModel" class="spacer"></div>
         
         <card-select
           title="Relationship" 
@@ -89,6 +110,20 @@
       
       </div>
     </div>
+
+    <b-button
+      rounded
+      type="is-text"
+      style="position: absolute; left: 20px; bottom: 20px"
+      @click="openHelp"
+    >
+      <b-icon icon="information-outline"></b-icon>
+    </b-button>
+
+    <information-modal
+      v-model="showHelp"
+    ></information-modal>
+
   </div>
 </template>
 
@@ -114,6 +149,7 @@ import {
   ModelInformation,
 } from '@/specification';
 import ProvLegend from '@/components/ProvLegend.vue';
+import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';
 import {
   Lookup,
@@ -130,6 +166,7 @@ import {
   nodeFields,
   FieldInformation,
   get,
+  makeRequest,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -137,9 +174,8 @@ import FormCard from '@/components/FormCard.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
-import { Component, Vue, Mixins } from 'vue-property-decorator';
+import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
-import { RequestMixin } from '@/mixins';
 import debounce from 'lodash.debounce';
 
 interface BaseNode extends D3Node {
@@ -199,15 +235,13 @@ const isSingleNode = (node: Node): node is SingleNode => {
 // the models that use that data.
 
 @Component({
-  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard },
+  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard, InformationModal },
 })
-export default class Visualizer extends Mixins(RequestMixin) {
+export default class Visualizer extends Vue {
+  @Prop({ type: Number, required: true }) public windowHeight!: number;
+  @Prop({ type: Number, required: true }) public windowWidth!: number;
+
   public provenanceNodes: ProvenanceNode[] = [];
-
-  // OK, so for some reason we have to remove 7 here so that there is no overlow
-  public height = window.innerHeight - 7;
-
-  public width = window.innerWidth;
 
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
@@ -242,9 +276,12 @@ export default class Visualizer extends Mixins(RequestMixin) {
   // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
-  // TODO
   public nodeFields = nodeFields;
   public models: ModelInformation[] = [];
+
+  public showHelp = false;
+
+  public selectedModel: ModelInformation | null = null;
 
   public savedGroupIds: Lookup<string> = {};
 
@@ -254,21 +291,17 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
   public debouncedRenderGraph = debounce(this.renderGraph, 500);
 
-  get nodeLookup() {
-    return makeLookup(this.nodes);
+  get height() {
+    // OK, so for some reason we have to remove 7 here so that there is no overlow
+    return this.windowHeight - 7;
   }
 
-  get modelInformationLookup() {
-    const lookup: { [modelId: number]: ModelInformation | undefined } = {};
-    this.models.forEach((modelInformation) => {
-      if (modelInformation.modelId === undefined) {
-        return;
-      }
+  get width() {
+    return this.windowWidth;
+  }
 
-      lookup[modelInformation.modelId] = modelInformation;
-    });
-
-    return lookup;
+  get nodeLookup() {
+    return makeLookup(this.nodes);
   }
 
   get highLevelNodes(): HighLevelNode[] {
@@ -324,7 +357,18 @@ export default class Visualizer extends Mixins(RequestMixin) {
     return makeLookup(this.highLevelNodes);
   }
 
+  get modelInformationLookup() {
+    return makeLookup(this.models);
+  }
+
+  public openHelp() {
+    this.showHelp = true;
+  }
+
   public showProvenanceGraph(r: SearchItem) {
+    // Reset every time this function is called
+    this.nodesToShow = {};
+
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
@@ -341,18 +385,61 @@ export default class Visualizer extends Mixins(RequestMixin) {
     this.renderGraph();
   }
 
+  public cancelSelectedModel() {
+    this.selectedModel = null;
+  }
+
+  public saveSelectedModel() {
+    if (!this.selectedModel) {
+      return;
+    }
+
+    const model = this.selectedModel;
+    makeRequest(() => backend.updateOrCreateModel(model, ['id', 'source', 'signalingPathway']));
+  }
+
+  public deleteSelectedModel() {
+    if (!this.selectedModel) {
+      return;
+    }
+
+    const model = this.selectedModel;
+    makeRequest(() => backend.deleteModel(model.id));
+  }
+
+  public openModel(result: SearchItem) {
+    if (result.modelId === undefined) {
+      this.$notification.open({
+        message: 'Please assign a model first.',
+      });
+
+      this.$notification.open({
+        message: 'Please assign a model first.',
+        position: 'is-bottom-right',
+        type: 'is-warning',
+      });
+
+      return;
+    }
+
+    this.selectedModel = this.modelInformationLookup[result.modelId];
+  }
+
   public clearNodes() {
     this.nodesToShow = {};
     this.renderGraph();
   }
 
   public openResult(result: SearchItem) {
-    if (result.model !== undefined) {
-      this.expanded[result.model] = true;
+    // Reset every time this function is called.
+    this.nodesToShow = {};
+
+    if (result.modelId !== undefined) {
+      this.expanded[result.modelId] = true;
     }
 
     this.highLevelNodes.forEach(({ node, id }) => {
-      if (node.modelId === result.model) {
+      if (node.modelId === result.modelId) {
         this.nodesToShow[id] = true;
       }
     });
@@ -371,10 +458,18 @@ export default class Visualizer extends Mixins(RequestMixin) {
         id: n.id,
         title: getText(n, this.modelInformationLookup),
         type: n.type,
-        model: n.modelId,
+        modelId: n.modelId,
+        model: n.modelId !== undefined ? `Model ${n.modelId}` : undefined,
         information,
       };
     });
+  }
+
+  public addModel() {
+    this.selectedModel = {
+      id: 0,
+      source: '',
+    };
   }
 
   // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
@@ -468,7 +563,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
         const madeConnection = makeConnection(a, b, { type: relationship });
         if (madeConnection) {
-          this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+          makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
           this.renderGraph();
         }
       },
@@ -556,7 +651,6 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
             const modelId = connection[st].node.modelId;
             if (modelId !== undefined) {
-              console.log('Expanding ' + modelId);
               this.expanded[modelId] = true;
             }
             this.nodesToShow[connection[st].id] = true;
@@ -714,7 +808,8 @@ export default class Visualizer extends Mixins(RequestMixin) {
     };
 
     this.provenanceNodes.push(node);
-    this.makeRequest(() => backend.updateOrCreateNode(node));
+    this.selectedNode = node;
+    makeRequest(() => backend.updateOrCreateNode(node));
 
     this.nodesToShow[node.id] = true;
     if (node.modelId !== undefined) {
@@ -748,7 +843,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
     this.renderGraph();
     this.cancelRelationshipSelection();
 
-    this.makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+    makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
   }
 
   public deleteRelationship() {
@@ -769,7 +864,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
     this.renderGraph();
     this.cancelRelationshipSelection();
 
-    this.makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
+    makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
   }
 
   public cancelNodeTypeSelection() {
@@ -797,7 +892,7 @@ export default class Visualizer extends Mixins(RequestMixin) {
       return n.id !== selected.id;
     });
 
-    this.makeRequest(() => backend.deleteNode(selected.id));
+    makeRequest(() => backend.deleteNode(selected.id));
     incoming.forEach(({ source }) => {
       backend.updateOrCreateNode(source.node, ['connections']);
     });
@@ -851,11 +946,10 @@ export default class Visualizer extends Mixins(RequestMixin) {
         .filter((connection) => connection.targetId !== target.node.id);
     });
 
-
-    this.makeRequest(() => backend.updateOrCreateNode(node, [key]));
+    makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
     nodesToSave.map((n) => {
-      this.makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
+      makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
     });
 
     // We are calling the render function since we will likely need to redraw something
@@ -867,11 +961,11 @@ export default class Visualizer extends Mixins(RequestMixin) {
     // TODO Remove this
     // await backend.resetDatabase();
 
-    this.makeRequest(backend.getModels, (good) => {
+    makeRequest(backend.getModels, (good) => {
       this.models = good.items;
     });
 
-    this.makeRequest(backend.getProvenanceNodes, (good) => {
+    makeRequest(backend.getProvenanceNodes, (good) => {
       this.provenanceNodes = good.items;
     });
   }
@@ -885,7 +979,8 @@ export default class Visualizer extends Mixins(RequestMixin) {
 
 .search {
   width: 450px;
-  max-height: calc(100vh - 40px);
+  // 40 px for margin/padding and 60px for the information button
+  max-height: calc(100vh - 100px);
 }
 
 .spacer {

@@ -72,9 +72,8 @@ const S1_1: SimulationData = {
 };
 
 const modelInformation1: ModelInformation = {
-  id: uniqueId(),
-  modelId: 1,
-  bibInformation: 'Lee et al., PLoS bio. 2003',
+  id: 1,
+  source: 'Lee et al., PLoS bio. 2003',
 };
 
 const model3: Model = {
@@ -102,9 +101,8 @@ const S1_2: SimulationData = {
 
 // M12
 const modelInformation12: ModelInformation = {
-  id: uniqueId(),
-  modelId: 12,
-  bibInformation: 'Haack et al., PLoS comp. bio. 2015',
+  id: 12,
+  source: 'Haack et al., PLoS comp. bio. 2015',
 };
 
 const W12_1: WetLabData = {

@@ -73,8 +73,19 @@ export const relationshipRules: RelationshipRules = {
 };
 
 export interface ProvenanceNodeConnection {
+  /**
+   * The connection ID.
+   */
   id: string;
+
+  /**
+   * The ID of the target node.
+   */
   targetId: string;
+
+  /**
+   * The type of relationship.
+   */
   type: ProvenanceNodeRelationships;
 }
 
@@ -113,19 +124,19 @@ export interface ModelExplorationActivity extends BaseNode {
 
 export interface ModelInformation {
   /**
-   * The unique id.
+   * The unique id. This number corresponds to the model number. Should >= 1.
    */
-  id: string;
+  id: number;
 
   /**
-   * The model number. This number can be assigned arbitrarily. Should be an integer greater or equal to 1.
+   * The signaling pathway information.
    */
-  modelId?: number;
+  signalingPathway?: string;
 
   /**
    * The information regarding the source of the model. For example, `Haack et al., PLoS comp. bio. 2015`.
    */
-  bibInformation?: string;
+  source?: string;
 }
 
 export interface Model extends BaseNode {

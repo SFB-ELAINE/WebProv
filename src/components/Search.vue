@@ -27,14 +27,21 @@
         v-for="(result, i) in results"
         :key="i"
       >
-        <div style="display: flex">
+        <div style="display: flex; align-items: flex-start">
           <div>
             <h4 class="result--title">{{ result.title }}</h4>
-            <h6 class="result--type">{{ result.model === undefined ? 'No Model' : `Model ${result.model}` }}</h6>
+            <h6 class="result--type">{{ result.model === undefined ? 'No Model' : result.model }}</h6>
             <p class="result--extra">{{ result.information | format }}</p>
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
+            <b-tooltip label="Open Model Information" position="is-left">
+              <b-button
+                type="is-text"
+                icon-right="information-outline"
+                @click="$emit('open-model', result)"
+              ></b-button>
+            </b-tooltip>
             <b-tooltip label="Show Provenance Graph" position="is-left">
               <b-button
                 style="transform: rotate(-90deg)"
@@ -90,7 +97,6 @@ export default class Search extends Vue {
       this.search();
     }
   }
-
 
   public checkEmpty() {
     if (this.searchText === '') {

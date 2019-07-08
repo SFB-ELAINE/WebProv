@@ -1,101 +1,88 @@
 <template>
-  <card>
-    <div v-for="(model, i) in models" :key="i">
-      <div style="display: flex">
-        <h4 class="model--title">Model {{ model.modelId }}</h4>
-        <div style="flex: 1"></div>
-        <b-button rounded type="is-text" @click="clickChevron(i)">
-          <b-icon :icon="expanded[i] ? 'chevron-up' : 'chevron-down'"></b-icon>
-        </b-button>
-      </div>
-      <div v-if="expanded[i]">
-        <b-field class="field" label="Model">
-          <b-input 
-            type="number" 
-            :value="model.modelId"
-            @input="setModel(i, $event)"
-          ></b-input>
-        </b-field>
-        <b-field class="field" label="Source">
-          <b-input 
-            :value="model.bibInformation"
-            @input="setBibInformation(i, $event)"
-          ></b-input>
-        </b-field>
-        <b-button 
-          type="is-primary" 
-          outlined 
-          style="margin-top: 5px"
-          @click="deleteModel(i)"
-        >
-          Delete 
-        </b-button>
-      </div>
-      <hr class="result--break" v-if="i !== models.length - 1">
+  <card title="Edit Model">
+    <div>
+      <b-field class="field" label="Model">
+        <b-input 
+          type="number" 
+          :value="model.id"
+          @input="setModel"
+        ></b-input>
+      </b-field>
+      <b-field class="field" label="Source">
+        <b-input 
+          :value="model.source"
+          @input="setSource"
+        ></b-input>
+      </b-field>
     </div>
     <template v-slot:footer>
-      <a class="card-footer-item" @click="addModel">Add Model</a>
+      <a class="card-footer-item" @click="cancel">Cancel</a>
+      <a class="card-footer-item" @click="deleteModel">Delete</a>
+      <a class="card-footer-item" @click="save">Save</a>
     </template>
   </card>
 </template>
 
 
 <script lang="ts">
-import { Vue, Component, Prop, Mixins } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
 import { ModelInformation } from '@/specification';
-import { uniqueId } from '../utils';
+import { uniqueId, setVue, createComponent, makeRequest } from '@/utils';
 import * as backend from '@/backend';
-import { RequestMixin } from '@/mixins';
+import { value } from 'vue-function-api';
 
-@Component({
+export default createComponent({
   components: { Card },
-})
-export default class ModelsCard extends Mixins(RequestMixin) {
-  @Prop({ type: Array, required: true }) public models!: ModelInformation[];
+  props: {
+    model: {
+      type: Object as () => ModelInformation,
+      required: true,
+    },
+  },
+  setup(props, context) {
+    const searchModel = value('');
 
-  public expanded: boolean[] = [];
+    const cancel = () => {
+      context.emit('cancel');
+    };
 
-  public clickChevron(i: number) {
-    Vue.set(this.expanded, i, !this.expanded[i]);
-  }
+    const deleteModel = () => {
+      context.emit('delete');
+      cancel();
+    };
 
-  public deleteModel(i: number) {
-    const model = this.models[i];
-    this.models.splice(i, 1);
-    this.expanded.splice(i, 1);
-    this.makeRequest(() => backend.deleteModel(model.id));
-  }
+    const setModel = (model: string) => {
+      // convert the model to a number if possible
+      // if it is a number but the given string is empty, set to undefined
+      setVue(props.model, 'id', model === '' ? undefined : +model);
+    };
 
-  public addModel() {
-    this.models.push({
-      id: uniqueId(),
-    });
-    const model = this.models[this.models.length - 1];
-    this.makeRequest(() => backend.updateOrCreateModel(model.id, model));
-  }
+    const setSource = (source: string) => {
+      setVue(props.model, 'source', source);
+    };
 
-  public setModel(i: number, value: string) {
-    // convert the value to a number if possible
-    // if it is a number but the given string is empty, set to undefined
-    Vue.set(this.models[i], 'modelId', value === '' ? undefined : +value);
-    this.makeRequest(() => backend.updateOrCreateModel(this.models[i].id, this.models[i], ['modelId']));
-  }
+    const setSignalingPathway = (signalingPathway: string) => {
+      setVue(props.model, 'signalingPathway', signalingPathway);
+    };
 
-  public setBibInformation(i: number, value: string) {
-    Vue.set(this.models[i], 'bibInformation', value);
-    this.makeRequest(() => backend.updateOrCreateModel(this.models[i].id, this.models[i], ['bibInformation']));
-  }
-}
+    const save = () => {
+      context.emit('save');
+      cancel();
+    };
+
+    return {
+      deleteModel,
+      setModel,
+      searchModel,
+      setSource,
+      cancel,
+      save,
+    };
+  },
+});
 </script>
 
 <style lang="scss" scoped>
-.model--title {
-  font-weight: normal;
-  font-size: 1.5em;
-  margin-bottom: 0em;
-}
-
 .field ::v-deep .label {
   margin-bottom: 0.1em!important;
 }

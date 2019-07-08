@@ -4,9 +4,11 @@ import Buefy from 'buefy';
 import 'buefy/dist/buefy.css';
 import firebase from 'firebase/app';
 import 'firebase/database';
+import { plugin } from 'vue-function-api';
 
 Vue.config.productionTip = false;
 
+Vue.use(plugin);
 Vue.use(Buefy);
 
 firebase.initializeApp({

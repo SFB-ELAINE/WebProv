@@ -42,6 +42,10 @@ export default function(links) {
         
         // The only link that is different from the d3-force implementation is the following line which adds
         // the target.width to target.x
+        // This means that the link will be from the left-hand side of the source to the ride-hand side of the target
+        // This helps give the graph a right-to-left feeling
+        // We also need to take into account the width the of node or else it will look weird
+        // To see what I mean, add `target.width / 2` instead of just `target.width`
         x = target.x + target.width + target.vx - source.x - source.vx || jiggle();
         y = target.y + target.vy - source.y - source.vy || jiggle();
         l = Math.sqrt(x * x + y * y);
