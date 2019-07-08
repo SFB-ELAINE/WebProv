@@ -10,8 +10,8 @@
       </b-field>
       <b-field class="field" label="Source">
         <b-input 
-          :value="model.bibInformation"
-          @input="setBibInformation"
+          :value="model.source"
+          @input="setSource"
         ></b-input>
       </b-field>
     </div>
@@ -57,8 +57,12 @@ export default createComponent({
       setVue(props.model, 'id', model === '' ? undefined : +model);
     };
 
-    const setBibInformation = (source: string) => {
-      setVue(props.model, 'bibInformation', source);
+    const setSource = (source: string) => {
+      setVue(props.model, 'source', source);
+    };
+
+    const setSignalingPathway = (signalingPathway: string) => {
+      setVue(props.model, 'signalingPathway', signalingPathway);
     };
 
     const save = () => {
@@ -70,7 +74,7 @@ export default createComponent({
       deleteModel,
       setModel,
       searchModel,
-      setBibInformation,
+      setSource,
       cancel,
       save,
     };

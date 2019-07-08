@@ -129,9 +129,14 @@ export interface ModelInformation {
   id: number;
 
   /**
+   * The signaling pathway information.
+   */
+  signalingPathway?: string;
+
+  /**
    * The information regarding the source of the model. For example, `Haack et al., PLoS comp. bio. 2015`.
    */
-  bibInformation?: string;
+  source?: string;
 }
 
 export interface Model extends BaseNode {

@@ -64,7 +64,7 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
         return text;
       }
 
-      return text + ` (${modelInformation.bibInformation})`;
+      return text + ` (${modelInformation.source})`;
   }
 }
 

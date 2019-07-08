@@ -366,6 +366,9 @@ export default class Visualizer extends Vue {
   }
 
   public showProvenanceGraph(r: SearchItem) {
+    // Reset every time this function is called
+    this.nodesToShow = {};
+
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
@@ -392,7 +395,7 @@ export default class Visualizer extends Vue {
     }
 
     const model = this.selectedModel;
-    makeRequest(() => backend.updateOrCreateModel(model, ['id', 'bibInformation']));
+    makeRequest(() => backend.updateOrCreateModel(model, ['id', 'source', 'signalingPathway']));
   }
 
   public deleteSelectedModel() {
@@ -428,6 +431,9 @@ export default class Visualizer extends Vue {
   }
 
   public openResult(result: SearchItem) {
+    // Reset every time this function is called.
+    this.nodesToShow = {};
+
     if (result.modelId !== undefined) {
       this.expanded[result.modelId] = true;
     }
@@ -462,7 +468,7 @@ export default class Visualizer extends Vue {
   public addModel() {
     this.selectedModel = {
       id: 0,
-      bibInformation: '',
+      source: '',
     };
   }
 
@@ -940,7 +946,6 @@ export default class Visualizer extends Vue {
         .filter((connection) => connection.targetId !== target.node.id);
     });
 
-    console.log(node, key, node[key]);
     makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
     nodesToSave.map((n) => {

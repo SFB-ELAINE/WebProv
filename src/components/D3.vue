@@ -372,7 +372,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
             break;
           }
 
-          throw Error;
+          throw Error('Not intersection found... this should not happen');
         };
 
         // Unfortunently, it seems like I need to add these weird type cast statements here
