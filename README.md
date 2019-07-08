@@ -1,6 +1,8 @@
 # Web Provenance
 The goal of this project is the create a web platform to automatically visualize a provenance model. The data required to create these visualizations should be stored in a graph database. The web platform will also feature an editor to allow users to manually create provenance models that can be stored within the database.
 
+[Link to Demo](https://sfb-elaine.github.io/WebProv/)
+
 ## Environment Setup
 The first step to setting up your environment involves installing `Node.js` and `npm` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
