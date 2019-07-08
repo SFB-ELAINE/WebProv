@@ -372,7 +372,14 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
             break;
           }
 
-          throw Error('Not intersection found... this should not happen');
+          // This occurs if the target is within the source
+          return {
+            center: middleOfTarget,
+            point: {
+              x: middleOfTarget.x,
+              y: middleOfTarget.y,
+            },
+          };
         };
 
         // Unfortunently, it seems like I need to add these weird type cast statements here
@@ -380,7 +387,7 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
         link
           .attr('x1', (d) => {
             const source = d.source as any as D3Node;
-            return source.x;
+            return source.x + source.width / 2;
             // return add(link.source, radiusVector(link, this.radius)).x, this.radius)
           })
           .attr('y1', (d) => {
