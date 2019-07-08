@@ -221,14 +221,23 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
       .selectAll('line')
       .data(this.allLinks)
       .join('line')
+      .style('point-events', 'none')
       .attr('stroke-width', (d) => 3)
       .attr('stroke', (d) => d.color);
 
-    link.on('click', (d) => {
-      if (d.onDidClick) {
-        d.onDidClick(d3.event);
-      }
-    });
+    svg.append('g')
+      .attr('stroke-opacity', 0.6)
+      .selectAll('line')
+      .data(this.allLinks)
+      .join('line')
+      .attr('stroke-width', (d) => 6)
+      .attr('stroke', (d) => d.color)
+      .style('visibility', 'hidden')
+      .on('click', (d) => {
+        if (d.onDidClick) {
+          d.onDidClick(d3.event);
+        }
+      });
 
     if (!simulation) {
 

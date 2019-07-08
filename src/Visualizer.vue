@@ -103,7 +103,7 @@
           v-if="selectedNode"
           :fields="nodeFields[selectedNode.type]"
           :node="selectedNode"
-          @close="cancelNodeTypeSelection"
+          @close="deselectNode"
           @delete="deleteNode"
           @input="onNodeChange"
         ></form-card>
@@ -138,6 +138,7 @@ import {
   NODE_RADIUS,
   MODEL_STROKE,
   MODEL_WIDTH,
+  SELECTED_NODE_OUTLINE,
 } from '@/constants';
 import {
   ProvenanceNodeType,
@@ -624,12 +625,17 @@ export default class Visualizer extends Vue {
         this.nodeRightClick(e, node);
       },
       onDidClick: () => {
-        if (node.isGroup) {
-          return;
+        this.$refs.d3.setStrokeColor(node, SELECTED_NODE_OUTLINE);
+
+        if (this.selectedNode) {
+          const selectedNode = this.nodeLookup[this.selectedNode.id];
+          if (selectedNode && !selectedNode.isGroup) {
+            this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+          }
         }
 
         if (this.selectedNode === n) {
-          this.cancelNodeTypeSelection();
+          this.selectedNode = null;
         } else {
           this.selectedNode = n;
         }
@@ -867,7 +873,7 @@ export default class Visualizer extends Vue {
     makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
   }
 
-  public cancelNodeTypeSelection() {
+  public deselectNode() {
     this.selectedNode = null;
   }
 
@@ -897,7 +903,7 @@ export default class Visualizer extends Vue {
       backend.updateOrCreateNode(source.node, ['connections']);
     });
 
-    this.cancelNodeTypeSelection();
+    this.selectedNode = null;
     this.renderGraph();
   }
 
