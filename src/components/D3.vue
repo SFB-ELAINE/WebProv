@@ -216,19 +216,27 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
         .attr('d', 'M0,-5L10,0L0,5');
     }
 
+    const bigLinks = svg.append('g')
+      .attr('stroke-opacity', 0)
+      .selectAll('line')
+      .data(this.allLinks)
+      .join('line')
+      .attr('stroke-width', (d) => 6)
+      .attr('stroke', (d) => d.color)
+      .on('click', (d) => {
+        if (d.onDidClick) {
+          d.onDidClick(d3.event);
+        }
+      });
+
     const link = svg.append('g')
       .attr('stroke-opacity', 0.6)
       .selectAll('line')
       .data(this.allLinks)
       .join('line')
+      .style('pointer-events', 'none')
       .attr('stroke-width', (d) => 3)
       .attr('stroke', (d) => d.color);
-
-    link.on('click', (d) => {
-      if (d.onDidClick) {
-        d.onDidClick(d3.event);
-      }
-    });
 
     if (!simulation) {
 
@@ -340,18 +348,25 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
           const middleOfTarget = middle(target);
           const middleOfSource = middle(source);
 
-          // Only one of these should be true
-          // We can also optmize, we should only ever have to do two intersection calculations
           const p1 = intersection(middleOfTarget, middleOfSource, tl, tr);
           const p2 = intersection(middleOfTarget, middleOfSource, tr, br);
           const p3 = intersection(middleOfTarget, middleOfSource, br, bl);
           const p4 = intersection(middleOfTarget, middleOfSource, bl, tl);
 
-          const toAdd = 0;
-          let i = -1;
-          for (const p of [p1, p2 , p3, p4]) {
-            i++;
+          // We only ever need to check two points depending on the relative location of the source node compared to
+          // target node.
+          let points: Array<ReturnType<typeof intersection>>;
+          if (middleOfTarget.x > middleOfSource.x && middleOfTarget.y > middleOfSource.y) {
+            points = [p1, p4];
+          } else if (middleOfTarget.x < middleOfSource.x && middleOfTarget.y > middleOfSource.y) {
+            points = [p1, p2];
+          } else if (middleOfTarget.x > middleOfSource.x && middleOfTarget.y < middleOfSource.y) {
+            points = [p3, p4];
+          } else {
+            points = [p2, p3];
+          }
 
+          for (const p of points) {
             if (!p) {
               continue;
             }
@@ -360,16 +375,10 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
               continue;
             }
 
-            // tslint:disable-next-line:no-console
-            // console.log(`Found interesction on ${['top', 'right', 'bottom', 'left'][i]} side`);
-
             return {
               center: middleOfTarget,
               point: p,
             };
-            // break because we found what we were looking for
-            // There should only ever be one intersection
-            break;
           }
 
           // This occurs if the target is within the source
@@ -388,7 +397,26 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
           .attr('x1', (d) => {
             const source = d.source as any as D3Node;
             return source.x + source.width / 2;
-            // return add(link.source, radiusVector(link, this.radius)).x, this.radius)
+          })
+          .attr('y1', (d) => {
+            const source = d.source as any as D3Node;
+            return source.y + source.height / 2;
+          })
+          .attr('x2', (d) => {
+            const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+            return center.x + point.x - center.x;
+          })
+          .attr('y2', (d) => {
+            const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+            return center.y + point.y - center.y;
+          });
+
+        // We are duplicating the calculations/logic from above
+        // We could easily optimize if neccessary
+        bigLinks
+          .attr('x1', (d) => {
+            const source = d.source as any as D3Node;
+            return source.x + source.width / 2;
           })
           .attr('y1', (d) => {
             const source = d.source as any as D3Node;
