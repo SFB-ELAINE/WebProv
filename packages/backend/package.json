@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "description": "The backend for the web provenance web platform.",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "prod": "tsc && node ./dist/index.js"
+  },
+  "author": "",
+  "dependencies": {
+    "@types/dotenv": "^6.1.1",
+    "dotenv": "^8.0.0",
+    "neo4j-driver": "^1.7.5",
+    "common": "^0.1.0",
+    "express": "^4.17.1",
+    "@types/cors": "^2.8.5",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "restyped-express-async": "^0.6.1"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^1.0.0-pre.32",
+    "typescript": "^3.5.2"
+  }
+}
