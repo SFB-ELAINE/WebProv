@@ -348,18 +348,25 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
           const middleOfTarget = middle(target);
           const middleOfSource = middle(source);
 
-          // Only one of these should be true
-          // We can also optmize, we should only ever have to do two intersection calculations
           const p1 = intersection(middleOfTarget, middleOfSource, tl, tr);
           const p2 = intersection(middleOfTarget, middleOfSource, tr, br);
           const p3 = intersection(middleOfTarget, middleOfSource, br, bl);
           const p4 = intersection(middleOfTarget, middleOfSource, bl, tl);
 
-          const toAdd = 0;
-          let i = -1;
-          for (const p of [p1, p2 , p3, p4]) {
-            i++;
+          // We only ever need to check two points depending on the relative location of the source node compared to
+          // target node.
+          let points: Array<ReturnType<typeof intersection>>;
+          if (middleOfTarget.x > middleOfSource.x && middleOfTarget.y > middleOfSource.y) {
+            points = [p1, p4];
+          } else if (middleOfTarget.x < middleOfSource.x && middleOfTarget.y > middleOfSource.y) {
+            points = [p1, p2];
+          } else if (middleOfTarget.x > middleOfSource.x && middleOfTarget.y < middleOfSource.y) {
+            points = [p3, p4];
+          } else {
+            points = [p2, p3];
+          }
 
+          for (const p of points) {
             if (!p) {
               continue;
             }
@@ -368,16 +375,10 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
               continue;
             }
 
-            // tslint:disable-next-line:no-console
-            // console.log(`Found interesction on ${['top', 'right', 'bottom', 'left'][i]} side`);
-
             return {
               center: middleOfTarget,
               point: p,
             };
-            // break because we found what we were looking for
-            // There should only ever be one intersection
-            break;
           }
 
           // This occurs if the target is within the source
