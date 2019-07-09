@@ -216,28 +216,27 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
         .attr('d', 'M0,-5L10,0L0,5');
     }
 
-    const link = svg.append('g')
-      .attr('stroke-opacity', 0.6)
-      .selectAll('line')
-      .data(this.allLinks)
-      .join('line')
-      .style('point-events', 'none')
-      .attr('stroke-width', (d) => 3)
-      .attr('stroke', (d) => d.color);
-
-    svg.append('g')
-      .attr('stroke-opacity', 0.6)
+    const bigLinks = svg.append('g')
+      .attr('stroke-opacity', 0)
       .selectAll('line')
       .data(this.allLinks)
       .join('line')
       .attr('stroke-width', (d) => 6)
       .attr('stroke', (d) => d.color)
-      .style('visibility', 'hidden')
       .on('click', (d) => {
         if (d.onDidClick) {
           d.onDidClick(d3.event);
         }
       });
+
+    const link = svg.append('g')
+      .attr('stroke-opacity', 0.6)
+      .selectAll('line')
+      .data(this.allLinks)
+      .join('line')
+      .style('pointer-events', 'none')
+      .attr('stroke-width', (d) => 3)
+      .attr('stroke', (d) => d.color);
 
     if (!simulation) {
 
@@ -397,7 +396,26 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
           .attr('x1', (d) => {
             const source = d.source as any as D3Node;
             return source.x + source.width / 2;
-            // return add(link.source, radiusVector(link, this.radius)).x, this.radius)
+          })
+          .attr('y1', (d) => {
+            const source = d.source as any as D3Node;
+            return source.y + source.height / 2;
+          })
+          .attr('x2', (d) => {
+            const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+            return center.x + point.x - center.x;
+          })
+          .attr('y2', (d) => {
+            const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+            return center.y + point.y - center.y;
+          });
+
+        // We are duplicating the calculations/logic from above
+        // We could easily optimize if neccessary
+        bigLinks
+          .attr('x1', (d) => {
+            const source = d.source as any as D3Node;
+            return source.x + source.width / 2;
           })
           .attr('y1', (d) => {
             const source = d.source as any as D3Node;
