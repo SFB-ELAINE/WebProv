@@ -30,44 +30,44 @@ type RelationshipRules = {
 };
 
 export const relationshipRules: RelationshipRules = {
-  'model-building-activity': {
-    'wet-lab-data': [
+  'ModelBuildingActivity': {
+    'WetLabData': [
       'used-for-validation',
       'used-for-calibration',
     ],
-    'simulation-data': [
+    'SimulationData': [
       'used-for-validation',
       'used-for-calibration',
     ],
-    'model': ['used'],
+    'Model': ['used'],
   },
-  'model': {
-    'model': [{
+  'Model': {
+    'Model': [{
       relationship: 'derived-from',
       single: true,
     }],
-    'model-building-activity': [{
+    'ModelBuildingActivity': [{
       relationship: 'generated-by',
       single: true,
     }],
   },
-  'model-exploration-activity': {
-    model: [{
+  'ModelExplorationActivity': {
+    Model: [{
       relationship: 'used',
       single: true,
     }],
   },
-  'simulation-data': {
-    'model-building-activity': [{
+  'SimulationData': {
+    'ModelBuildingActivity': [{
       relationship: 'generated-by',
       single: true,
     }],
-    'model-exploration-activity': [{
+    'ModelExplorationActivity': [{
       relationship: 'generated-by',
       single: true,
     }],
   },
-  'wet-lab-data': {
+  'WetLabData': {
     // no possible relationships
   },
 };
@@ -111,7 +111,7 @@ export interface ModelBuildingActivity extends BaseNode {
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
    * to see which type of node we have.
    */
-  type: 'model-building-activity';
+  type: 'ModelBuildingActivity';
 }
 
 export interface ModelExplorationActivity extends BaseNode {
@@ -119,7 +119,7 @@ export interface ModelExplorationActivity extends BaseNode {
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
    * to see which type of node we have.
    */
-  type: 'model-exploration-activity';
+  type: 'ModelExplorationActivity';
 }
 
 export interface ModelInformation {
@@ -144,7 +144,7 @@ export interface Model extends BaseNode {
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
    * to see which type of node we have.
    */
-  type: 'model';
+  type: 'Model';
 
   /**
    * The version! This should start at 1 and then increment for each version. A model should never depend
@@ -158,7 +158,7 @@ export interface WetLabData extends BaseNode {
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
    * to see which type of node we have.
    */
-  type: 'wet-lab-data';
+  type: 'WetLabData';
 
   /**
    * The name of the wet lab experiment.
@@ -176,7 +176,7 @@ export interface SimulationData extends BaseNode {
    * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
    * to see which type of node we have.
    */
-  type: 'simulation-data';
+  type: 'SimulationData';
 
   /**
    * The name of the simulation.
@@ -186,11 +186,11 @@ export interface SimulationData extends BaseNode {
 
 export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
 export interface ProvenanceNodeLookup {
-  'model': Model;
-  'model-building-activity': ModelBuildingActivity;
-  'model-exploration-activity': ModelExplorationActivity;
-  'wet-lab-data': WetLabData;
-  'simulation-data': SimulationData;
+  'Model': Model;
+  'ModelBuildingActivity': ModelBuildingActivity;
+  'ModelExplorationActivity': ModelExplorationActivity;
+  'WetLabData': WetLabData;
+  'SimulationData': SimulationData;
 }
 
 export type ProvenanceNodeType = keyof ProvenanceNodeLookup;
@@ -198,11 +198,11 @@ export type ProvenanceNodeType = keyof ProvenanceNodeLookup;
 type ProvenanceNodeDisplayTestLookup = { [Type in ProvenanceNodeType]: string };
 
 export const provenanceNodeTypeDisplayText: ProvenanceNodeDisplayTestLookup = {
-  'model': 'Model',
-  'model-building-activity': 'Model Building Activity',
-  'model-exploration-activity': 'Model Exploration Activity',
-  'simulation-data': 'Simulation Data',
-  'wet-lab-data': 'Wet Lab Data',
+  'Model': 'Model',
+  'ModelBuildingActivity': 'Model Building Activity',
+  'ModelExplorationActivity': 'Model Exploration Activity',
+  'SimulationData': 'Simulation Data',
+  'WetLabData': 'Wet Lab Data',
 };
 
 export const provenanceNodeTypes = Object.keys(provenanceNodeTypeDisplayText) as ProvenanceNodeType[];
