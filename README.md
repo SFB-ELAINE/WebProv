@@ -32,3 +32,5 @@ npm run build
 ```
 
 This will automatically place the application in the `docs` folder. Then, all you have to do is create a PR for your branch. Once the branch is merged, the new application will automatically be deployed.
+
+TODO UPDATE INSTRUCTIONS

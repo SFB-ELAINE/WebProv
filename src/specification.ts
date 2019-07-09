@@ -161,7 +161,7 @@ export interface WetLabData extends BaseNode {
   type: 'wet-lab-data';
 
   /**
-   * The name of the wet lab experiment. This might be broken up into more specific information.
+   * The name of the wet lab experiment.
    */
   name?: string;
 

@@ -280,10 +280,14 @@ export default class Visualizer extends Vue {
   public nodeFields = nodeFields;
   public models: ModelInformation[] = [];
 
+  // Whether to show the help information
   public showHelp = false;
 
+  // The selected model. This is set automatically when a new model is created or it can be opened from the search.
   public selectedModel: ModelInformation | null = null;
 
+  // Used so find group IDs for group nodes that have already been created.
+  // We don't want to use a different ID every time we render.
   public savedGroupIds: Lookup<string> = {};
 
   public $refs!: {
