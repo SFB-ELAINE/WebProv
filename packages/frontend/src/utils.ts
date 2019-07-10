@@ -8,7 +8,7 @@ import {
   ModelInformation,
   ProvenanceNodeLookup,
   provenanceNodeTypes,
-} from '@/specification';
+} from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
@@ -219,13 +219,6 @@ export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceN
   } else {
     return first.relationship;
   }
-};
-
-
-export const uniqueId = () => {
-  // HTML IDs must begin with a non numeric character or something like that.
-  // Thus, we prepend 'A'
-  return 'A' + Math.random().toString().substr(2, 9);
 };
 
 export interface FieldInformation<T extends string> {

@@ -148,7 +148,7 @@ import {
   ProvenanceNodeConnection,
   provenanceNodeTypes,
   ModelInformation,
-} from '@/specification';
+} from 'common';
 import ProvLegend from '@/components/ProvLegend.vue';
 import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';

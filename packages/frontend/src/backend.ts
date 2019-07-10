@@ -1,6 +1,6 @@
 import * as testData from '@/testData';
 import firebase from 'firebase/app';
-import { ProvenanceNode, ModelInformation } from '@/specification';
+import { ProvenanceNode, ModelInformation } from 'common';
 
 export interface SerializedProject {
   name: string;

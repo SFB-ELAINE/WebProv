@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { ModelInformation } from '@/specification';
+import { ModelInformation } from 'common';
 import { uniqueId, setVue, createComponent, makeRequest } from '@/utils';
 import * as backend from '@/backend';
 import { value } from 'vue-function-api';

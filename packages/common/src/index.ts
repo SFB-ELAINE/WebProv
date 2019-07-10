@@ -1,3 +1,5 @@
+export { uniqueId } from './utils';
+
 // All possible relationships types. The values can be used for display purposes.
 export const provenanceNodeRelationshipsMap = {
   'used': 'Used',

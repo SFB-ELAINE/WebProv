@@ -61,14 +61,23 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
   }
 };
 
-type NodesModels = 'nodes' | 'models';
+export interface BackendItems<T> {
+  result: 'success';
+  items: T[];
+}
+
+export interface BackendNotFound {
+  result: 'not-found';
+}
+
+type Label = 'Node' | 'SimulationStudy';
 
 type GenericArgument = {
-  ref: 'models',
+  label: 'SimulationStudy',
   data: ModelInformation,
   keys?: Array<keyof ModelInformation>,
 } | {
-  ref: 'nodes',
+  label: 'Node',
   data: ProvenanceNode,
   keys?: Array<keyof ProvenanceNode>,
 };
@@ -77,7 +86,7 @@ type GenericArgument = {
 
 const updateOrCreate = async (id: string, arg: GenericArgument) => {
   return await withHandling(async (): Promise<BackendSuccess> => {
-    const nodeName = arg.ref === 'models' ? 'SimulationStudy' : arg.data.type;
+    const nodeName = arg.label;
 
     const object = arg.data;
     const partial: Partial<typeof arg.data> = {};
@@ -95,7 +104,7 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
     console.info(`Updating or creating ${id} using: ${arg.keys}`);
     session.run(
       `
-      MERGE (n:${nodeName} { id: $id })
+      MERGE (n:${arg.label} { id: $id })
       ON CREATE SET n = $object
       ON MATCH  SET n += $partial
       `, 
@@ -132,40 +141,75 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
 export const updateOrCreateModel = async (
   model: ModelInformation, keys?: Array<keyof ModelInformation>,
 ) => {
-  return await updateOrCreate('' + model.id, { ref: 'models', data: model, keys });
+  return await updateOrCreate('' + model.id, { label: 'SimulationStudy', data: model, keys });
 };
 
 export const updateOrCreateNode = async (node: ProvenanceNode, keys?: Array<keyof ProvenanceNode>) => {
-  return await updateOrCreate(node.id, { ref: 'nodes', data: node, keys });
+  return await updateOrCreate(node.id, { label: 'Node', data: node, keys });
 };
 
 
-async function getItems<T>(ref: NodesModels) {
+async function getItems<T>(label: Label) {
   return withHandling(async (): Promise<BackendItems<T>> => {
-    const nodeName = ref === 'models' ? 'SimulationStudy' : provenanceNodeTypes;
     const session = driver.session();
-    
+    const result = await session.run(`
+    MATCH (n:${label})
+    RETURN n
+    `)
 
-    if (!snapshot.exists()) {
-      return {
-        result: 'success',
-        items: [],
-      };
-    }
+    const items = result.records.map(record => record.get(0));
 
-    const projects: Schema<T> = snapshot.val();
+    session.close();
 
     return {
       result: 'success',
-      items: Object.values(projects),
+      items,
     };
   });
 }
 
 export const getProvenanceNodes = async () => {
-  return await getItems<ProvenanceNode>('nodes');
+  return await getItems<ProvenanceNode>('Node');
 };
 
 export const getModels = async () => {
-  return await getItems<ModelInformation>('models');
+  return await getItems<ModelInformation>('SimulationStudy');
+};
+
+export const resetDatabase = async () => {
+  const session = driver.session();
+  await session.run(`
+  MATCH (n)
+  DETACH DELETE n
+  `)
+  session.close();
+};
+
+const deleteItem = async (label: Label, id: string) => {
+  return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
+    const session = driver.session();
+    
+    // tslint:disable-next-line: no-console
+    console.info(`Deleting ${id}`);
+    const result = await session.run(`
+    MATCH (n:${label} { id: $id })
+    DELETE n
+    `, { id })
+    console.log(result.records);
+    console.log(result.summary);
+
+    session.close();
+
+    return {
+      result: 'success',
+    };
+  });
+};
+
+export const deleteNode = async (id: string) => {
+  return await deleteItem('Node', id);
+};
+
+export const deleteModel = async (id: number) => {
+  return await deleteItem('SimulationStudy', '' + id);
 };
