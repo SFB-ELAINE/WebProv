@@ -32,44 +32,44 @@ type RelationshipRules = {
 };
 
 export const relationshipRules: RelationshipRules = {
-  'ModelBuildingActivity': {
-    'WetLabData': [
+  ModelBuildingActivity: {
+    WetLabData: [
       'used-for-validation',
       'used-for-calibration',
     ],
-    'SimulationData': [
+    SimulationData: [
       'used-for-validation',
       'used-for-calibration',
     ],
-    'Model': ['used'],
+    Model: ['used'],
   },
-  'Model': {
-    'Model': [{
+  Model: {
+    Model: [{
       relationship: 'derived-from',
       single: true,
     }],
-    'ModelBuildingActivity': [{
+    ModelBuildingActivity: [{
       relationship: 'generated-by',
       single: true,
     }],
   },
-  'ModelExplorationActivity': {
+  ModelExplorationActivity: {
     Model: [{
       relationship: 'used',
       single: true,
     }],
   },
-  'SimulationData': {
-    'ModelBuildingActivity': [{
+  SimulationData: {
+    ModelBuildingActivity: [{
       relationship: 'generated-by',
       single: true,
     }],
-    'ModelExplorationActivity': [{
+    ModelExplorationActivity: [{
       relationship: 'generated-by',
       single: true,
     }],
   },
-  'WetLabData': {
+  WetLabData: {
     // no possible relationships
   },
 };
@@ -91,42 +91,9 @@ export interface ProvenanceNodeConnection {
   type: ProvenanceNodeRelationships;
 }
 
-interface BaseNode {
+export interface SimulationStudy {
   /**
    * The unique id.
-   */
-  id: string;
-
-  /**
-   * The model id. This information is what links nodes together.
-   */
-  modelId?: number;
-
-  /**
-   * The connections.
-   */
-  connections?: ProvenanceNodeConnection[];
-}
-
-export interface ModelBuildingActivity extends BaseNode {
-  /**
-   * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
-   * to see which type of node we have.
-   */
-  type: 'ModelBuildingActivity';
-}
-
-export interface ModelExplorationActivity extends BaseNode {
-  /**
-   * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
-   * to see which type of node we have.
-   */
-  type: 'ModelExplorationActivity';
-}
-
-export interface ModelInformation {
-  /**
-   * The unique id. This number corresponds to the model number. Should >= 1.
    */
   id: number;
 
@@ -141,29 +108,19 @@ export interface ModelInformation {
   source?: string;
 }
 
-export interface Model extends BaseNode {
+interface BaseNode {
   /**
-   * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
-   * to see which type of node we have.
+   * The unique id.
    */
-  type: 'Model';
+  id: string;
 
   /**
-   * The version! This should start at 1 and then increment for each version. A model should never depend
-   * on a model that has a higher version number (or itself).
+   * The model id. This information is what links nodes together.
    */
-  version?: number;
-}
-
-export interface WetLabData extends BaseNode {
-  /**
-   * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
-   * to see which type of node we have.
-   */
-  type: 'WetLabData';
+  studyId?: number;
 
   /**
-   * The name of the wet lab experiment.
+   * The optional label.
    */
   name?: string;
 
@@ -171,19 +128,71 @@ export interface WetLabData extends BaseNode {
    * Just extra information about the wet lab data. For example, this might contain cell line information.
    */
   information?: Array<[string, string]>;
+
+  /**
+   * The connections.
+   */
+  connections?: ProvenanceNodeConnection[];
+}
+
+export interface ModelBuildingActivity extends BaseNode {
+  /**
+   * The node type.
+   */
+  type: 'ModelBuildingActivity';
+
+  /**
+   * The classification of the node.
+   */
+  classification: 'activity';
+}
+
+export interface ModelExplorationActivity extends BaseNode {
+  /**
+   * The node type.
+   */
+  type: 'ModelExplorationActivity';
+
+  /**
+   * The classification of the node.
+   */
+  classification: 'activity';
+}
+
+export interface Model extends BaseNode {
+  /**
+   * The node type.
+   */
+  type: 'Model';
+
+  /**
+   * The classification of the node.
+   */
+  classification: 'entity';
+}
+
+export interface WetLabData extends BaseNode {
+  /**
+   * The node type.
+   */
+  type: 'WetLabData';
+
+  /**
+   * The classification of the node.
+   */
+  classification: 'entity';
 }
 
 export interface SimulationData extends BaseNode {
   /**
-   * The node identifier. Very useful since JavaScript doesn't really have classes so we use this attribute
-   * to see which type of node we have.
+   * The node type.
    */
   type: 'SimulationData';
 
   /**
-   * The name of the simulation.
+   * The classification of the node.
    */
-  name?: string;
+  classification: 'entity';
 }
 
 export type ProvenanceNode = ModelBuildingActivity | ModelExplorationActivity | Model | WetLabData | SimulationData;
@@ -200,11 +209,11 @@ export type ProvenanceNodeType = keyof ProvenanceNodeLookup;
 type ProvenanceNodeDisplayTestLookup = { [Type in ProvenanceNodeType]: string };
 
 export const provenanceNodeTypeDisplayText: ProvenanceNodeDisplayTestLookup = {
-  'Model': 'Model',
-  'ModelBuildingActivity': 'Model Building Activity',
-  'ModelExplorationActivity': 'Model Exploration Activity',
-  'SimulationData': 'Simulation Data',
-  'WetLabData': 'Wet Lab Data',
+  Model: 'Model',
+  ModelBuildingActivity: 'Model Building Activity',
+  ModelExplorationActivity: 'Model Exploration Activity',
+  SimulationData: 'Simulation Data',
+  WetLabData: 'Wet Lab Data',
 };
 
 export const provenanceNodeTypes = Object.keys(provenanceNodeTypeDisplayText) as ProvenanceNodeType[];

@@ -3,7 +3,7 @@ import {
   ModelBuildingActivity,
   SimulationData,
   Model,
-  ModelInformation,
+  SimulationStudy,
   ProvenanceNode,
   ModelExplorationActivity,
   uniqueId,
@@ -12,32 +12,36 @@ import {
 // M1
 const WX_7: WetLabData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   name: 'Wx_7',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'Xenopus egg extract']],
 };
 
 const W1_1: WetLabData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   name: 'W1_1',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'Xenopus egg extract']],
 };
 
 const W1_2: WetLabData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   name: 'W1_2',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'Xenopus egg extract']],
 };
 
 const MBA_3: ModelBuildingActivity = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'ModelBuildingActivity',
+  classification: 'activity',
   connections: [
     {
       id: uniqueId(),
@@ -59,8 +63,9 @@ const MBA_3: ModelBuildingActivity = {
 
 const S1_1: SimulationData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'SimulationData',
+  classification: 'entity',
   name: 'S1_1',
   connections: [
     {
@@ -71,69 +76,75 @@ const S1_1: SimulationData = {
   ],
 };
 
-const modelInformation1: ModelInformation = {
+const study1: SimulationStudy = {
   id: 1,
   source: 'Lee et al., PLoS bio. 2003',
 };
 
 const model3: Model = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'Model',
-  version: 1,
+  classification: 'entity',
   connections: [{ id: uniqueId(), targetId: MBA_3.id, type: 'generated-by' }],
 };
 
 const MEA: ModelExplorationActivity = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'ModelExplorationActivity',
+  classification: 'activity',
   connections: [{ id: uniqueId(), targetId: model3.id, type: 'used' }],
 };
 
 const S1_2: SimulationData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'SimulationData',
+  classification: 'entity',
   name: 'S1_2',
   connections: [{ id: uniqueId(), targetId: MEA.id, type: 'generated-by' }],
 };
 
 // M12
-const modelInformation12: ModelInformation = {
+const study12: SimulationStudy = {
   id: 12,
   source: 'Haack et al., PLoS comp. bio. 2015',
 };
 
 const W12_1: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'W12_1',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'hNPCs']],
 };
 
 const WX_1: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'Wx_1',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'HEK293T']],
 };
 
 const WX_2: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'Wx_2',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
 };
 
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'ModelBuildingActivity',
+  classification: 'activity',
   connections: [
     {
       id: uniqueId(),
@@ -160,48 +171,53 @@ const MBA_1: ModelBuildingActivity = {
 
 const S12_1: SimulationData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'SimulationData',
+  classification: 'entity',
   name: 'S12_1',
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
 const model1: Model = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'Model',
-  version: 1,
+  classification: 'entity',
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
 const W12_2: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'W12_2',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'hNPCs']],
 };
 
 const W12_3: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'W12_3',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
 };
 
 const WX_3: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'Wx_3',
   type: 'WetLabData',
+  classification: 'entity',
   information: [['Cell line', 'hNPCs']],
 };
 
 const MBA_2: ModelBuildingActivity = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'ModelBuildingActivity',
+  classification: 'activity',
   connections: [
     {
       id: uniqueId(),
@@ -228,17 +244,18 @@ const MBA_2: ModelBuildingActivity = {
 
 const S12_2: SimulationData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'SimulationData',
+  classification: 'entity',
   name: 'S12_2',
   connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
 };
 
 const model2: Model = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'Model',
-  version: 2,
+  classification: 'entity',
   connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
 };
 
@@ -268,9 +285,9 @@ export const nodes: ProvenanceNode[] = [
   S1_2,
 ];
 
-export const models = {
-  modelInformation1,
-  modelInformation12,
+export const studies = {
+  study1,
+  study12,
 };
 
 

@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
-import { ProvenanceNode, ModelInformation, provenanceNodeTypes } from 'common';
+import { ProvenanceNode, SimulationStudy } from 'common';
 
 dotenv.config();
 
@@ -74,8 +74,8 @@ type Label = 'Node' | 'SimulationStudy';
 
 type GenericArgument = {
   label: 'SimulationStudy',
-  data: ModelInformation,
-  keys?: Array<keyof ModelInformation>,
+  data: SimulationStudy,
+  keys?: Array<keyof SimulationStudy>,
 } | {
   label: 'Node',
   data: ProvenanceNode,
@@ -139,7 +139,7 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
 };
 
 export const updateOrCreateModel = async (
-  model: ModelInformation, keys?: Array<keyof ModelInformation>,
+  model: SimulationStudy, keys?: Array<keyof SimulationStudy>,
 ) => {
   return await updateOrCreate('' + model.id, { label: 'SimulationStudy', data: model, keys });
 };
@@ -173,7 +173,7 @@ export const getProvenanceNodes = async () => {
 };
 
 export const getModels = async () => {
-  return await getItems<ModelInformation>('SimulationStudy');
+  return await getItems<SimulationStudy>('SimulationStudy');
 };
 
 export const resetDatabase = async () => {

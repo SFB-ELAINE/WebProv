@@ -59,7 +59,7 @@ export const resetDatabase = async () => {
     await updateOrCreateNode(node);
   }
 
-  for (const model of Object.values(data.models)) {
+  for (const model of Object.values(data.studies)) {
     await updateOrCreateModel(model);
   }
 }
