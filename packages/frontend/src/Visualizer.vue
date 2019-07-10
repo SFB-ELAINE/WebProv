@@ -128,7 +128,6 @@
 </template>
 
 <script lang="ts">
-import * as testData from '@/testData';
 import {
   relationshipColors,
   NODE_OUTLINE,
@@ -148,6 +147,7 @@ import {
   ProvenanceNodeConnection,
   provenanceNodeTypes,
   SimulationStudy,
+  uniqueId,
 } from 'common';
 import ProvLegend from '@/components/ProvLegend.vue';
 import InformationModal from '@/components/InformationModal.vue';
@@ -162,7 +162,6 @@ import {
   isValidConnection,
   Watch,
   getDefaultRelationshipType,
-  uniqueId,
   nodeFields,
   FieldInformation,
   get,
@@ -601,7 +600,6 @@ export default class Visualizer extends Vue {
 
     const text = getText(n, this.SimulationStudyLookup);
     const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
-    const isEntity = n.type === 'WetLabData' || n.type === 'SimulationData' || n.type === 'model';
     const node: SingleNode = {
       isGroup: false,
       id: sourceId,
@@ -617,7 +615,7 @@ export default class Visualizer extends Vue {
       vy: 0,
       index: 0,
       provenanceNode: n,
-      rx: isEntity ? 10 : 0,
+      rx: n.classification === 'entity' ? 10 : 0,
       // width and height are essential
       // TODO add requirement to type file
       // they are used in the other js files
@@ -813,6 +811,7 @@ export default class Visualizer extends Vue {
   public addNode() {
     const node: ProvenanceNode = {
       type: 'ModelBuildingActivity',
+      classification: 'activity',
       id: uniqueId(),
     };
 
@@ -967,15 +966,12 @@ export default class Visualizer extends Vue {
   }
 
   public async mounted() {
-    // TODO Remove this
-    // await backend.resetDatabase();
-
-    makeRequest(backend.getModels, (good) => {
-      this.models = good.items;
+    makeRequest(backend.getStudies, (result) => {
+      this.models = result.items;
     });
 
-    makeRequest(backend.getProvenanceNodes, (good) => {
-      this.provenanceNodes = good.items;
+    makeRequest(backend.getNodes, (result) => {
+      this.provenanceNodes = result.items;
     });
   }
 }

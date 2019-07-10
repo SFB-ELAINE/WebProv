@@ -26,5 +26,5 @@ export {
   BackendError,
   BackendItems,
   BackendNotFound,
-  BackupAPI,
+  ProvenanceAPI,
 } from './backend';

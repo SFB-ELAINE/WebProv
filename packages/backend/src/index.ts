@@ -1,7 +1,7 @@
 import RestypedRouter from 'restyped-express-async';
-import * as express from 'express';
+import express from 'express';
 import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
+import cors from 'cors';
 import * as data from './data';
 import { 
   getModels, 
@@ -9,23 +9,48 @@ import {
   deleteNode, 
   deleteModel, 
   updateOrCreateNode, 
-  updateOrCreateModel 
+  updateOrCreateModel, 
+  clearDatabase,
+  createConnection,
 } from './neo4j';
-import { BackupAPI } from 'common';
+import { ProvenanceAPI, ProvenanceNodeConnection, ProvenanceNode } from 'common';
 
 export function literal<T extends string>(o: T): T {
   return o;
 }
 
 export const resetDatabase = async () => {
+  clearDatabase();
+
+  const connections: Array<[ProvenanceNode, ProvenanceNodeConnection]> = [];
   for (const node of data.nodes) {
-    await updateOrCreateNode(node);
+    if (node.connections) {
+      node.connections.forEach(connection => {
+        connections.push([node, connection])
+      })
+    }
+
+    delete node.connections;
+
+    const result = await updateOrCreateNode(node);
+    if (result.result === 'error') {
+      console.log(`ERROR: Error creating ${node.type}: ${result.message}`);
+    }
+  }
+
+  for (const [source, connectionInfo] of connections) {
+    await createConnection('Node', connectionInfo.id, source.id, connectionInfo.targetId, connectionInfo.type)
   }
 
   for (const model of Object.values(data.studies)) {
-    await updateOrCreateModel(model);
+    const result = await updateOrCreateModel(model);
+    if (result.result === 'error') {
+      console.log(`Error creating ${model.id}: ${result.message}`);
+    }
   }
 }
+
+resetDatabase();
 
 const create = () => {
   // SETUP FOR EXPRESS //
@@ -36,7 +61,7 @@ const create = () => {
 
   const apiRouter = express.Router();
   app.use('/', apiRouter);
-  const router = RestypedRouter<BackupAPI>(apiRouter);
+  const router = RestypedRouter<ProvenanceAPI>(apiRouter);
 
   // ROUTES //
   router.get('/health', async () => {
@@ -72,4 +97,7 @@ const create = () => {
 
 const server = create();
 
-server.listen(3000, () => console.log(`Backend listening on port ${3000}!`))
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Backend listening on port ${PORT}!`);
+})

@@ -18,7 +18,7 @@ export interface BackendNotFound {
   result: 'not-found';
 }
 
-export interface BackupAPI {
+export interface ProvenanceAPI {
   '/health': {
     //
   };
@@ -31,7 +31,7 @@ export interface BackupAPI {
     POST: {
       body: {
         item: ProvenanceNode;
-        keys: Array<keyof BackupAPI['/nodes']['POST']['body']['item']>;
+        keys?: Array<keyof ProvenanceAPI['/nodes']['POST']['body']['item']>;
       }
       response: BackendSuccess | BackendError;
     }
@@ -50,7 +50,7 @@ export interface BackupAPI {
     POST: {
       body: {
         item: SimulationStudy;
-        keys: Array<keyof BackupAPI['/studies']['POST']['body']['item']>;
+        keys?: Array<keyof ProvenanceAPI['/studies']['POST']['body']['item']>;
       }
       response: BackendSuccess | BackendError;
     }

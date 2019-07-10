@@ -9,6 +9,8 @@ import {
   ProvenanceNodeLookup,
   provenanceNodeTypes,
   uniqueId,
+  BackendError,
+  BackendNotFound,
 } from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
@@ -272,7 +274,7 @@ export function createComponent<Props>(
 // Remove until here
 
 export async function makeRequest<T extends { result: 'success' }>(
-  f: () => Promise<T | backend.BackendError | backend.BackendNotFound>, cb?: (result: T) => void,
+  f: () => Promise<T | BackendError | BackendNotFound>, cb?: (result: T) => void,
 ) {
   const result = await f();
 

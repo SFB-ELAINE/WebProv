@@ -13,7 +13,7 @@ import {
 const WX_7: WetLabData = {
   id: uniqueId(),
   studyId: 1,
-  name: 'Wx_7',
+  label: 'Wx_7',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'Xenopus egg extract']],
@@ -22,7 +22,7 @@ const WX_7: WetLabData = {
 const W1_1: WetLabData = {
   id: uniqueId(),
   studyId: 1,
-  name: 'W1_1',
+  label: 'W1_1',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'Xenopus egg extract']],
@@ -31,7 +31,7 @@ const W1_1: WetLabData = {
 const W1_2: WetLabData = {
   id: uniqueId(),
   studyId: 1,
-  name: 'W1_2',
+  label: 'W1_2',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'Xenopus egg extract']],
@@ -66,7 +66,7 @@ const S1_1: SimulationData = {
   studyId: 1,
   type: 'SimulationData',
   classification: 'entity',
-  name: 'S1_1',
+  label: 'S1_1',
   connections: [
     {
       id: uniqueId(),
@@ -102,7 +102,7 @@ const S1_2: SimulationData = {
   studyId: 1,
   type: 'SimulationData',
   classification: 'entity',
-  name: 'S1_2',
+  label: 'S1_2',
   connections: [{ id: uniqueId(), targetId: MEA.id, type: 'generated-by' }],
 };
 
@@ -115,7 +115,7 @@ const study12: SimulationStudy = {
 const W12_1: WetLabData = {
   id: uniqueId(),
   studyId: 12,
-  name: 'W12_1',
+  label: 'W12_1',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'hNPCs']],
@@ -124,7 +124,7 @@ const W12_1: WetLabData = {
 const WX_1: WetLabData = {
   id: uniqueId(),
   studyId: 12,
-  name: 'Wx_1',
+  label: 'Wx_1',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'HEK293T']],
@@ -133,7 +133,7 @@ const WX_1: WetLabData = {
 const WX_2: WetLabData = {
   id: uniqueId(),
   studyId: 12,
-  name: 'Wx_2',
+  label: 'Wx_2',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
@@ -174,7 +174,7 @@ const S12_1: SimulationData = {
   studyId: 12,
   type: 'SimulationData',
   classification: 'entity',
-  name: 'S12_1',
+  label: 'S12_1',
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
@@ -189,7 +189,7 @@ const model1: Model = {
 const W12_2: WetLabData = {
   id: uniqueId(),
   studyId: 12,
-  name: 'W12_2',
+  label: 'W12_2',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'hNPCs']],
@@ -198,7 +198,7 @@ const W12_2: WetLabData = {
 const W12_3: WetLabData = {
   id: uniqueId(),
   studyId: 12,
-  name: 'W12_3',
+  label: 'W12_3',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
@@ -207,7 +207,7 @@ const W12_3: WetLabData = {
 const WX_3: WetLabData = {
   id: uniqueId(),
   studyId: 12,
-  name: 'Wx_3',
+  label: 'Wx_3',
   type: 'WetLabData',
   classification: 'entity',
   information: [['Cell line', 'hNPCs']],
@@ -247,7 +247,7 @@ const S12_2: SimulationData = {
   studyId: 12,
   type: 'SimulationData',
   classification: 'entity',
-  name: 'S12_2',
+  label: 'S12_2',
   connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
 };
 

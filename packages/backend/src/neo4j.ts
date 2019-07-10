@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
-import { ProvenanceNode, SimulationStudy, BackendError, BackendSuccess, BackendItems, BackendNotFound } from 'common';
+import { ProvenanceNode, SimulationStudy, BackendError, BackendSuccess, BackendItems, BackendNotFound, ProvenanceNodeRelationships } from 'common';
 
 dotenv.config();
 
@@ -54,18 +54,20 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
     const object = arg.data;
     const partial: Partial<typeof arg.data> = {};
     const toRemove: string[] = []
-    for (const key of arg.keys) {
-      if (object[key] === undefined) {
+    for (const key of arg.keys || Object.keys(object)) {
+      const o = object as any;
+      const p = partial as any;
+      if (o[key] === undefined) {
         toRemove.push(key);
       } else {
-        partial[key] = object[key]
+        p[key] = o[key]
       }
     }
 
     const session = driver.session();
     
-    console.info(`Updating or creating ${id} using: ${arg.keys}`);
-    session.run(
+    console.debug(`Updating or creating ${id} using: ${arg.keys}`);
+    const result = await session.run(
       `
       MERGE (n:${arg.label} { id: $id })
       ON CREATE SET n = $object
@@ -77,10 +79,10 @@ const updateOrCreate = async (id: string, arg: GenericArgument) => {
         partial,
       }
     )
-    
+
     if (toRemove.length !== 0) {
       console.log(`Deleting ${toRemove} from object.`)
-      session.run(
+      await session.run(
         `
         MATCH (n:${nodeName} { id: $id })
         UNWIND $keys AS key
@@ -139,7 +141,29 @@ export const getModels = async () => {
   return await getItems<SimulationStudy>('SimulationStudy');
 };
 
-export const resetDatabase = async () => {
+export const createConnection = async (
+  label: Label, id: string, source: string, target: string, type: ProvenanceNodeRelationships
+) => {
+  return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
+    const session = driver.session();
+    
+    // tslint:disable-next-line: no-console
+    const result = await session.run(`
+    MATCH (a:${label} { id: $source }), (b:${label} { id: $target })
+    CREATE (a)-[r:DEPENDS { type: $type }]->(b)
+    RETURN r
+    `, { source, target, type })
+    // console.log(result.records.map(r => r.get(0)));
+
+    session.close();
+
+    return {
+      result: 'success',
+    };
+  });
+}
+
+export const clearDatabase = async () => {
   const session = driver.session();
   await session.run(`
   MATCH (n)
@@ -158,8 +182,8 @@ const deleteItem = async (label: Label, id: string) => {
     MATCH (n:${label} { id: $id })
     DELETE n
     `, { id })
-    console.log(result.records);
-    console.log(result.summary);
+    // console.log(result.records);
+    // console.log(result.summary);
 
     session.close();
 
