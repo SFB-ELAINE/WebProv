@@ -5,14 +5,14 @@ import {
   ProvenanceNodeType,
   relationshipRules,
   ProvenanceNodeRelationships,
-  ModelInformation,
+  SimulationStudy,
   ProvenanceNodeLookup,
   provenanceNodeTypes,
+  uniqueId,
 } from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
-import * as backend from '@/backend';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -28,69 +28,37 @@ export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
   return W(path, options);
 }
 
-interface ModelInformationLookup {
-  [modelId: number]: ModelInformation | undefined;
+interface SimulationStudyLookup {
+  [studyId: number]: SimulationStudy | undefined;
 }
 
-export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
+export function getText(n: ProvenanceNode, lookup: SimulationStudyLookup): string {
   switch (n.type) {
-    case 'wet-lab-data':
-      return n.name || 'None';
-    case 'model-building-activity':
-      return 'MBA';
-    case 'simulation-data':
-      return n.name || 'None';
-    case 'model-exploration-activity':
-      return 'MEA';
-    case 'model':
-      if (n.modelId === undefined) {
+    case 'WetLabData':
+      return n.label || 'No Label';
+    case 'ModelBuildingActivity':
+      return n.label || 'MBA';
+    case 'SimulationData':
+      return n.label || 'None';
+    case 'ModelExplorationActivity':
+      return n.label || 'MEA';
+    case 'Model':
+      if (n.label) {
+        return n.label;
+      }
+
+      if (n.studyId === undefined) {
         return 'None';
       }
 
-      let text = `M${n.modelId}`;
-
-      if (n.version === undefined || n.version === 1) {
-        // Do nothing is the version is 1
-      } else if (n.version === 2) {
-        // Just add an apostrophe if the version is 2
-        text += `'`;
-      } else {
-        // Add an explicit version number if > 2
-        text += `v${n.version}`;
-      }
-
-      const modelInformation = lookup[n.modelId];
-      if (!modelInformation) {
+      const text = `M${n.studyId}`;
+      const simulationStudy = lookup[n.studyId];
+      if (!simulationStudy) {
         return text;
       }
 
-      return text + ` (${modelInformation.source})`;
+      return text + ` (${simulationStudy.source})`;
   }
-}
-
-export const notNull = <T>(t: T | null): t is T => {
-  return t !== null;
-};
-
-export function getInformationFields(node: ProvenanceNode, title: string) {
-  const fields: Array<[string, string]> = [['Title', title], ['Model', '' + node.modelId]];
-
-  switch (node.type) {
-    case 'model-building-activity':
-      break;
-    case 'model-exploration-activity':
-      break;
-    case 'model':
-      fields.push(['Version', '' + node.version]);
-      break;
-    case 'wet-lab-data':
-      fields.push(...(node.information || []));
-      break;
-    case 'simulation-data':
-      break;
-  }
-
-  return fields;
 }
 
 interface ConnectionOptions { type: ProvenanceNodeRelationships | undefined; doConnection?: boolean; }
@@ -230,22 +198,23 @@ export interface FieldInformation<T extends string> {
 
 type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
 
-const typeSelect: FieldInformation<'type'> = { name: 'type', type: 'string', options: provenanceNodeTypes };
-const modelSelect: FieldInformation<'modelId'> = { name: 'modelId', type: 'number' };
+const createField = <T extends string>(field: FieldInformation<T>) => {
+  return field;
+};
+
+const typeSelect = createField({ name: 'type', type: 'string', options: provenanceNodeTypes });
+const studyId = createField({ name: 'studyId', type: 'number' });
+const label = createField({ name: 'label', type: 'string' });
+const information = createField({ name: 'information', type: 'string', multiple: true });
 
 // TODO Remove this and use io-ts instead!
 // We can infer this information from there instead!
 export const nodeFields: NodeFields = {
-  'model': [typeSelect, modelSelect, { name: 'version', type: 'number' }],
-  'model-building-activity': [typeSelect, modelSelect],
-  'model-exploration-activity': [typeSelect, modelSelect],
-  'simulation-data': [typeSelect, modelSelect, { name: 'name', type: 'string' }],
-  'wet-lab-data': [
-    typeSelect,
-    modelSelect,
-    { name: 'name', type: 'string' },
-    { name: 'information', type: 'string', multiple: true },
-  ],
+  Model: [typeSelect, studyId, label, information],
+  ModelBuildingActivity: [typeSelect, studyId, label, information],
+  ModelExplorationActivity: [typeSelect, studyId, label, information],
+  SimulationData: [typeSelect, studyId, label, information],
+  WetLabData: [typeSelect, studyId, label, information],
 };
 
 export function uppercase(s: string) {

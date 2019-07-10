@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
-import { ProvenanceNode, SimulationStudy } from 'common';
+import { ProvenanceNode, SimulationStudy, BackendError, BackendSuccess, BackendItems, BackendNotFound } from 'common';
 
 dotenv.config();
 
@@ -21,34 +21,6 @@ if (!password) {
 }
 
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
-const session = driver.session();
-
-const personName = 'Alice';
-const resultPromise = session.run(
-  'CREATE (a:Person {name: $name}) RETURN a',
-  {name: personName},
-);
-
-resultPromise.then((result) => {
-  session.close();
-
-  const singleRecord = result.records[0];
-  const node = singleRecord.get(0);
-
-  console.log(node.properties.name);
-
-  // on application exit
-  driver.close();
-});
-
-export interface BackendSuccess {
-  result: 'success';
-}
-
-export interface BackendError {
-  result: 'error';
-  message: string;
-}
 
 const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> => {
   try {
@@ -60,15 +32,6 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
     };
   }
 };
-
-export interface BackendItems<T> {
-  result: 'success';
-  items: T[];
-}
-
-export interface BackendNotFound {
-  result: 'not-found';
-}
 
 type Label = 'Node' | 'SimulationStudy';
 

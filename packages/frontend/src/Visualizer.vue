@@ -147,7 +147,7 @@ import {
   ProvenanceNodeRelationships,
   ProvenanceNodeConnection,
   provenanceNodeTypes,
-  ModelInformation,
+  SimulationStudy,
 } from 'common';
 import ProvLegend from '@/components/ProvLegend.vue';
 import InformationModal from '@/components/InformationModal.vue';
@@ -156,7 +156,6 @@ import {
   Lookup,
   getText,
   makeLookup,
-  getInformationFields,
   once,
   addEventListeners,
   makeConnection,
@@ -278,13 +277,13 @@ export default class Visualizer extends Vue {
   public cachedConnections: RelationshipCache = {};
 
   public nodeFields = nodeFields;
-  public models: ModelInformation[] = [];
+  public models: SimulationStudy[] = [];
 
   // Whether to show the help information
   public showHelp = false;
 
   // The selected model. This is set automatically when a new model is created or it can be opened from the search.
-  public selectedModel: ModelInformation | null = null;
+  public selectedModel: SimulationStudy | null = null;
 
   // Used so find group IDs for group nodes that have already been created.
   // We don't want to use a different ID every time we render.
@@ -362,7 +361,7 @@ export default class Visualizer extends Vue {
     return makeLookup(this.highLevelNodes);
   }
 
-  get modelInformationLookup() {
+  get SimulationStudyLookup() {
     return makeLookup(this.models);
   }
 
@@ -377,8 +376,8 @@ export default class Visualizer extends Vue {
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
-      if (info.node.modelId !== undefined) {
-        this.expanded[info.node.modelId] = true;
+      if (info.node.studyId !== undefined) {
+        this.expanded[info.node.studyId] = true;
       }
 
       info.outgoing.forEach((c) => {
@@ -413,7 +412,7 @@ export default class Visualizer extends Vue {
   }
 
   public openModel(result: SearchItem) {
-    if (result.modelId === undefined) {
+    if (result.studyId === undefined) {
       this.$notification.open({
         message: 'Please assign a model first.',
       });
@@ -427,7 +426,7 @@ export default class Visualizer extends Vue {
       return;
     }
 
-    this.selectedModel = this.modelInformationLookup[result.modelId];
+    this.selectedModel = this.SimulationStudyLookup[result.studyId];
   }
 
   public clearNodes() {
@@ -439,12 +438,12 @@ export default class Visualizer extends Vue {
     // Reset every time this function is called.
     this.nodesToShow = {};
 
-    if (result.modelId !== undefined) {
-      this.expanded[result.modelId] = true;
+    if (result.studyId !== undefined) {
+      this.expanded[result.studyId] = true;
     }
 
     this.highLevelNodes.forEach(({ node, id }) => {
-      if (node.modelId === result.modelId) {
+      if (node.studyId === result.studyId) {
         this.nodesToShow[id] = true;
       }
     });
@@ -455,16 +454,16 @@ export default class Visualizer extends Vue {
   get searchItems() {
     return this.provenanceNodes.map((n): SearchItem => {
       const information =
-        n.type === 'wet-lab-data' &&
+        n.type === 'WetLabData' &&
         n.information ?
         n.information.map(([_, value]) => value) : [];
 
       return {
         id: n.id,
-        title: getText(n, this.modelInformationLookup),
+        title: getText(n, this.SimulationStudyLookup),
         type: n.type,
-        modelId: n.modelId,
-        model: n.modelId !== undefined ? `Model ${n.modelId}` : undefined,
+        studyId: n.studyId,
+        model: n.studyId !== undefined ? `Model ${n.studyId}` : undefined,
         information,
       };
     });
@@ -600,17 +599,17 @@ export default class Visualizer extends Vue {
       return !this.nodesToShow[dep.source.id];
     });
 
-    const text = getText(n, this.modelInformationLookup);
+    const text = getText(n, this.SimulationStudyLookup);
     const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
-    const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data' || n.type === 'model';
+    const isEntity = n.type === 'WetLabData' || n.type === 'SimulationData' || n.type === 'model';
     const node: SingleNode = {
       isGroup: false,
       id: sourceId,
       text,
       actionText: moreLeftToShow ? 'See more' : undefined,
       type: n.type,
-      model: n.modelId,
-      hullGroup: n.modelId,
+      model: n.studyId,
+      hullGroup: n.studyId,
       stroke: NODE_OUTLINE,
       x,
       y,
@@ -659,9 +658,9 @@ export default class Visualizer extends Vue {
               return;
             }
 
-            const modelId = connection[st].node.modelId;
-            if (modelId !== undefined) {
-              this.expanded[modelId] = true;
+            const studyId = connection[st].node.studyId;
+            if (studyId !== undefined) {
+              this.expanded[studyId] = true;
             }
             this.nodesToShow[connection[st].id] = true;
             expandDependencies(connection[st].id, 'outgoing');
@@ -680,7 +679,7 @@ export default class Visualizer extends Vue {
   public renderGraph() {
     const links: Link[] = [];
     const nodes: Node[] = [];
-    const models: { [modelId: number]: GroupNode } = {};
+    const models: { [studyId: number]: GroupNode } = {};
 
     // We don't care about any nodes that don't need to be shown.
     const filtered = this.provenanceNodes.filter((n) => this.nodesToShow[n.id]);
@@ -688,20 +687,20 @@ export default class Visualizer extends Vue {
     // First, create all of the model nodes.
     // These are the collapsed nodes. We only need to create one per model.
     filtered.forEach((n) => {
-      if (n.modelId === undefined) {
+      if (n.studyId === undefined) {
         return;
       }
 
-      if (this.expanded[n.modelId]) {
+      if (this.expanded[n.studyId]) {
         return;
       }
 
-      if (models[n.modelId]) {
+      if (models[n.studyId]) {
         return;
       }
 
-      const model = n.modelId;
-      const groupId = this.savedGroupIds[n.modelId] = get(this.savedGroupIds, n.modelId, uniqueId());
+      const model = n.studyId;
+      const groupId = this.savedGroupIds[n.studyId] = get(this.savedGroupIds, n.studyId, uniqueId());
       const point = this.nodeLookup[groupId] ? this.nodeLookup[groupId] : this.pointToPlaceNode;
       const node: GroupNode = {
         ...point,
@@ -713,7 +712,7 @@ export default class Visualizer extends Vue {
         vy: 0,
         stroke: MODEL_STROKE,
         rx: 0,
-        text: `M${n.modelId}`,
+        text: `M${n.studyId}`,
         width: MODEL_WIDTH,
         height: NODE_HEIGHT,
         onDidDblclick: () => {
@@ -723,7 +722,7 @@ export default class Visualizer extends Vue {
         },
       };
 
-      models[n.modelId] = node;
+      models[n.studyId] = node;
       nodes.push(node);
     });
 
@@ -747,8 +746,8 @@ export default class Visualizer extends Vue {
           return models[model].id;
         };
 
-        const source = determineLinkId(sourceId, c.source.node.modelId);
-        const target = determineLinkId(targetId, c.target.node.modelId);
+        const source = determineLinkId(sourceId, c.source.node.studyId);
+        const target = determineLinkId(targetId, c.target.node.studyId);
 
         // This happens for nodes in the same model when the model hasn't been expanded
         if (target === source) {
@@ -795,7 +794,7 @@ export default class Visualizer extends Vue {
       });
 
       // don't add nodes that are a model that isn't expanded
-      if (n.modelId !== undefined && !this.expanded[n.modelId]) {
+      if (n.studyId !== undefined && !this.expanded[n.studyId]) {
         return;
       }
 
@@ -813,7 +812,7 @@ export default class Visualizer extends Vue {
 
   public addNode() {
     const node: ProvenanceNode = {
-      type: 'model-building-activity',
+      type: 'ModelBuildingActivity',
       id: uniqueId(),
     };
 
@@ -822,8 +821,8 @@ export default class Visualizer extends Vue {
     makeRequest(() => backend.updateOrCreateNode(node));
 
     this.nodesToShow[node.id] = true;
-    if (node.modelId !== undefined) {
-      this.expanded[node.modelId] = true;
+    if (node.studyId !== undefined) {
+      this.expanded[node.studyId] = true;
     }
 
     this.renderGraph();
@@ -922,7 +921,7 @@ export default class Visualizer extends Vue {
         return;
       }
 
-      const newText = getText(node, this.modelInformationLookup);
+      const newText = getText(node, this.SimulationStudyLookup);
       if (newText !== n.text) {
         const newNode = this.createNewNode(node);
         this.$refs.d3.replaceNode(newNode);
