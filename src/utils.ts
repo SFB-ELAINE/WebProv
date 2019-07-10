@@ -29,7 +29,7 @@ export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
 }
 
 interface ModelInformationLookup {
-  [modelId: number]: ModelInformation | undefined;
+  [studyId: number]: ModelInformation | undefined;
 }
 
 export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
@@ -43,11 +43,11 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
     case 'model-exploration-activity':
       return 'MEA';
     case 'model':
-      if (n.modelId === undefined) {
+      if (n.studyId === undefined) {
         return 'None';
       }
 
-      let text = `M${n.modelId}`;
+      let text = `M${n.studyId}`;
 
       if (n.version === undefined || n.version === 1) {
         // Do nothing is the version is 1
@@ -59,7 +59,7 @@ export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): stri
         text += `v${n.version}`;
       }
 
-      const modelInformation = lookup[n.modelId];
+      const modelInformation = lookup[n.studyId];
       if (!modelInformation) {
         return text;
       }
@@ -73,7 +73,7 @@ export const notNull = <T>(t: T | null): t is T => {
 };
 
 export function getInformationFields(node: ProvenanceNode, title: string) {
-  const fields: Array<[string, string]> = [['Title', title], ['Model', '' + node.modelId]];
+  const fields: Array<[string, string]> = [['Title', title], ['Model', '' + node.studyId]];
 
   switch (node.type) {
     case 'model-building-activity':
@@ -238,7 +238,7 @@ export interface FieldInformation<T extends string> {
 type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
 
 const typeSelect: FieldInformation<'type'> = { name: 'type', type: 'string', options: provenanceNodeTypes };
-const modelSelect: FieldInformation<'modelId'> = { name: 'modelId', type: 'number' };
+const modelSelect: FieldInformation<'studyId'> = { name: 'studyId', type: 'number' };
 
 // TODO Remove this and use io-ts instead!
 // We can infer this information from there instead!

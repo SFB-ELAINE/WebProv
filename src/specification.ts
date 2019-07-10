@@ -96,9 +96,9 @@ interface BaseNode {
   id: string;
 
   /**
-   * The model id. This information is what links nodes together.
+   * The study id.
    */
-  modelId?: number;
+  studyId?: number;
 
   /**
    * The connections.

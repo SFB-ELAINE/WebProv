@@ -12,7 +12,7 @@ import { uniqueId } from '@/utils';
 // M1
 const WX_7: WetLabData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   name: 'Wx_7',
   type: 'wet-lab-data',
   information: [['Cell line', 'Xenopus egg extract']],
@@ -20,7 +20,7 @@ const WX_7: WetLabData = {
 
 const W1_1: WetLabData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   name: 'W1_1',
   type: 'wet-lab-data',
   information: [['Cell line', 'Xenopus egg extract']],
@@ -28,7 +28,7 @@ const W1_1: WetLabData = {
 
 const W1_2: WetLabData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   name: 'W1_2',
   type: 'wet-lab-data',
   information: [['Cell line', 'Xenopus egg extract']],
@@ -36,7 +36,7 @@ const W1_2: WetLabData = {
 
 const MBA_3: ModelBuildingActivity = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'model-building-activity',
   connections: [
     {
@@ -59,7 +59,7 @@ const MBA_3: ModelBuildingActivity = {
 
 const S1_1: SimulationData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'simulation-data',
   name: 'S1_1',
   connections: [
@@ -78,7 +78,7 @@ const modelInformation1: ModelInformation = {
 
 const model3: Model = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'model',
   version: 1,
   connections: [{ id: uniqueId(), targetId: MBA_3.id, type: 'generated-by' }],
@@ -86,14 +86,14 @@ const model3: Model = {
 
 const MEA: ModelExplorationActivity = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'model-exploration-activity',
   connections: [{ id: uniqueId(), targetId: model3.id, type: 'used' }],
 };
 
 const S1_2: SimulationData = {
   id: uniqueId(),
-  modelId: 1,
+  studyId: 1,
   type: 'simulation-data',
   name: 'S1_2',
   connections: [{ id: uniqueId(), targetId: MEA.id, type: 'generated-by' }],
@@ -107,7 +107,7 @@ const modelInformation12: ModelInformation = {
 
 const W12_1: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'W12_1',
   type: 'wet-lab-data',
   information: [['Cell line', 'hNPCs']],
@@ -115,7 +115,7 @@ const W12_1: WetLabData = {
 
 const WX_1: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'Wx_1',
   type: 'wet-lab-data',
   information: [['Cell line', 'HEK293T']],
@@ -123,7 +123,7 @@ const WX_1: WetLabData = {
 
 const WX_2: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'Wx_2',
   type: 'wet-lab-data',
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
@@ -132,7 +132,7 @@ const WX_2: WetLabData = {
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ModelBuildingActivity = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'model-building-activity',
   connections: [
     {
@@ -160,7 +160,7 @@ const MBA_1: ModelBuildingActivity = {
 
 const S12_1: SimulationData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'simulation-data',
   name: 'S12_1',
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
@@ -168,7 +168,7 @@ const S12_1: SimulationData = {
 
 const model1: Model = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'model',
   version: 1,
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
@@ -176,7 +176,7 @@ const model1: Model = {
 
 const W12_2: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'W12_2',
   type: 'wet-lab-data',
   information: [['Cell line', 'hNPCs']],
@@ -184,7 +184,7 @@ const W12_2: WetLabData = {
 
 const W12_3: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'W12_3',
   type: 'wet-lab-data',
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
@@ -192,7 +192,7 @@ const W12_3: WetLabData = {
 
 const WX_3: WetLabData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   name: 'Wx_3',
   type: 'wet-lab-data',
   information: [['Cell line', 'hNPCs']],
@@ -200,7 +200,7 @@ const WX_3: WetLabData = {
 
 const MBA_2: ModelBuildingActivity = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'model-building-activity',
   connections: [
     {
@@ -228,7 +228,7 @@ const MBA_2: ModelBuildingActivity = {
 
 const S12_2: SimulationData = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'simulation-data',
   name: 'S12_2',
   connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
@@ -236,7 +236,7 @@ const S12_2: SimulationData = {
 
 const model2: Model = {
   id: uniqueId(),
-  modelId: 12,
+  studyId: 12,
   type: 'model',
   version: 2,
   connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
