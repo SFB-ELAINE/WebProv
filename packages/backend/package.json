@@ -9,14 +9,15 @@
   },
   "author": "",
   "dependencies": {
-    "@types/dotenv": "^6.1.1",
-    "dotenv": "^8.0.0",
-    "neo4j-driver": "^1.7.5",
-    "common": "^0.1.0",
-    "express": "^4.17.1",
     "@types/cors": "^2.8.5",
+    "@types/dotenv": "^6.1.1",
     "body-parser": "^1.19.0",
+    "common": "^0.1.0",
     "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "io-ts": "^2.0.0",
+    "neo4j-driver": "^1.7.5",
     "restyped-express-async": "^0.6.1"
   },
   "devDependencies": {

@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "typescript": "^3.4.3"
+  },
+  "dependencies": {
+    "io-ts": "^2.0.0"
   }
 }

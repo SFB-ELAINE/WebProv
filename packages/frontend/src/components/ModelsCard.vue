@@ -1,7 +1,7 @@
 <template>
-  <card title="Edit Model">
+  <card title="Simulation Study">
     <div>
-      <b-field class="field" label="Model">
+      <b-field class="field" label="Study ID">
         <b-input 
           type="number" 
           :value="model.id"

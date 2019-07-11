@@ -50,7 +50,7 @@
                 @click="$emit('dependency', result)"
               ></b-button>
             </b-tooltip>
-            <b-tooltip label="Show Entire Model" position="is-left">
+            <b-tooltip label="Show Entire Study" position="is-left">
               <b-button 
                 type="is-text" 
                 icon-right="arrow-expand-all"

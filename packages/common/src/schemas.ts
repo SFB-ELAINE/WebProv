@@ -93,7 +93,12 @@ export interface SimulationStudy {
   /**
    * The unique id.
    */
-  id: number;
+  id: string;
+
+  /**
+   * The study id. Must be unique.
+   */
+  studyId: number;
 
   /**
    * The signaling pathway information.

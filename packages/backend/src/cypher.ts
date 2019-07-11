@@ -1,21 +1,296 @@
-export type TypeOf<C extends Type<any>> = C;
+import * as t from 'io-ts';
+import { BackendError, BackendSuccess, BackendItems, BackendNotFound, schema, TypeOf, relationship, Schema, Relationship } from 'common';
 
-class Type<T> {
-  readonly t!: T;
+export const SimulationStudyModel = schema({
+  name: 'SimulationStudy',
+  required: {
+    id: {
+      primary: true,
+      type: t.string,
+    },
+    studyId: {
+      unique: true,
+      type: t.number,
+    },
+  },
+  optional: {
+    signalingPathway: {
+      type: t.string,
+    },
+    source: {
+      type: t.string,
+    },
+  }
+})
+
+export const InformationModel = schema({
+  name: 'Information',
+  required: {
+    id: {
+      primary: true,
+      type: t.string,
+    }
+  }
+})
+
+export const NodeModel = schema({
+  name: 'Node',
+  required: {
+    id: {
+      primary: true,
+      type: t.string,
+    },
+    type: {
+      type: t.union([
+        t.literal('ModelBuildingActivity'),
+        t.literal('ModelExplorationActivity'),
+        t.literal('Model'),
+        t.literal('WetLabData'),
+        t.literal('SimulationData'),
+      ])
+    },
+    classification: {
+      type: t.union([
+        t.literal('activity'),
+        t.literal('entity'),
+      ])
+    }
+  },
+  optional: {
+    studyId: {
+      type: t.number,
+    },
+    label: {
+      type: t.string,
+    },
+  }
+})
+
+
+
+export type Node = TypeOf<typeof NodeModel>;
+export type SimulationStudy = TypeOf<typeof SimulationStudyModel>;
+
+export type ProvenanceNodeType = Node['type'];
+
+export const provenanceNodeTypes = NodeModel.required.type.type.types.map(t => t._A)
+
+export const InformationRelationship = relationship({
+  name: 'HAS_INFORMATION',
+  source: NodeModel,
+  target: InformationModel,
+  required: {
+    id: {
+      primary: true,
+      type: t.string,
+    }
+  }
+});
+
+export const DependsRelationship = relationship({
+  name: 'DEPENDS',
+  source: NodeModel,
+  target: NodeModel,
+  required: {
+    id: {
+      primary: true,
+      type: t.string,
+    },
+    type: {
+      type: t.string,
+    },
+  }
+});
+
+const tuple = <T extends any[]>(...args: T): T => args;
+
+const keys = <T extends object>(arg: T) => Object.keys(arg) as Array<keyof T & string>;
+
+const toObject = <T>(arg: Array<[string, T]>) => {
+  const obj: { [k: string]: T } = {};
+  arg.forEach(([key, value]) => {
+    obj[key] = value;
+  });
+
+  return obj;
+};
+
+import * as dotenv from 'dotenv';
+import neo4j from 'neo4j-driver';
+dotenv.config();
+
+const uri = process.env.DB_URI;
+const user = process.env.DB_USER;
+const password = process.env.DB_PASSWORD;
+
+if (!uri) {
+  throw Error('DB_URI is required.');
 }
 
-export class BooleanC extends Type<boolean> {
-  public type = 'boolean';
+if (!user) {
+  throw Error('DB_USER is required.');
 }
 
-export const boolean = new BooleanC();
-
-export interface Mixed extends Type<any> {}
-
-export interface Props {
-  [key: string]: Mixed
+if (!password) {
+  throw Error('DB_PASSWORD is required.');
 }
 
-export type TypeC<P extends Props> = {
-  [K in keyof P]: P[K]['t'];
+const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+
+const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> => {
+  try {
+    return await f();
+  } catch (e) {
+    return {
+      result: 'error',
+      message: e.message,
+    };
+  }
+};
+
+const getType = <S extends Schema>(schema: S) => {
+  const required = schema.required;
+  const optional = schema.optional || {};
+  const r = toObject(keys(required).map((key) => tuple(key, required[key].type)))
+  const o = toObject(keys(optional).map((key) => tuple(key, required[key].type)))
+  return t.exact(t.intersection([
+    t.type(r),
+    t.partial(o),
+  ]));
+}
+
+export const updateOrCreate = async <S extends Schema>(
+  schema: S, obj: TypeOf<S>, objKeys?: Array<keyof typeof obj>
+) => {
+  return await withHandling(async (): Promise<BackendSuccess> => {
+    const type = getType(schema);
+
+    const partial: Partial<typeof obj> = {};
+    const toRemove: Array<keyof typeof obj> = []
+    for (const key of objKeys || keys(obj)) {
+      if (obj[key] === undefined) {
+        toRemove.push(key);
+        delete obj[key];
+      } else {
+        partial[key] = obj[key];
+      }
+    }
+
+    // Create an exact encoding of the object
+    const object = type.encode(obj);
+
+    const session = driver.session();
+    await session.run(
+      `
+      MERGE (n:${schema.name} { id: $id })
+      ON CREATE SET n = $object
+      ON MATCH  SET n += $partial
+      `, 
+      {
+        id: obj.id,
+        object,
+        partial,
+      }
+    )
+
+    if (toRemove.length !== 0) {
+      console.log(`Deleting ${toRemove} from object.`)
+      await session.run(
+        `
+        MATCH (n:${schema.name} { id: $id })
+        UNWIND $keys AS key
+        REMOVE n[key]
+        `, 
+        {
+          id: obj.id,
+          keys: toRemove,
+        }
+      )
+    }
+
+    session.close();
+
+    return {
+      result: 'success',
+    };
+  })
+}
+
+
+export async function getItems<T>(schema: Schema) {
+  return withHandling(async (): Promise<BackendItems<T>> => {
+    const session = driver.session();
+    const result = await session.run(`
+    MATCH (n:${schema.name})
+    RETURN n
+    `)
+
+    const items = result.records.map(record => record.get(0));
+
+    session.close();
+
+    return {
+      result: 'success',
+      items,
+    };
+  });
+}
+
+export const clearDatabase = async () => {
+  const session = driver.session();
+  await session.run(`
+  MATCH (n)
+  DETACH DELETE n
+  `)
+  session.close();
+};
+
+export const deleteItem = async (schema: Schema, id: string) => {
+  return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
+    const session = driver.session();
+    
+    // tslint:disable-next-line: no-console
+    console.info(`Deleting ${id}`);
+    const result = await session.run(`
+    MATCH (n:${schema.name} { id: $id })
+    DELETE n
+    `, { id })
+    // console.log(result.records);
+    // console.log(result.summary);
+
+    session.close();
+
+    return {
+      result: 'success',
+    };
+  });
+};
+
+export const createConnection = async <A extends Schema, B extends Schema, R extends Relationship<A, B>>(
+  relationship: R,
+  obj: TypeOf<R>,
+  source: string,
+  target: string,
+) => {
+  return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
+    const type = getType(relationship);
+
+    // remove all extra key/value pairs
+    const object = type.encode(obj);
+
+    const session = driver.session();
+    
+    await session.run(`
+    MATCH (a:${relationship.source.name} { id: $source }), (b:${relationship.target.name} { id: $target })
+    CREATE (a)-[r:${relationship.name} $props]->(b)
+    RETURN r
+    `, { source, target, props: object })
+    // console.log(result.records.map(r => r.get(0)));
+
+    session.close();
+
+    return {
+      result: 'success',
+    };
+  });
 }

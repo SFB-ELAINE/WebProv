@@ -4,15 +4,15 @@ import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import * as data from './data';
 import { 
-  getModels, 
-  getProvenanceNodes, 
-  deleteNode, 
-  deleteModel, 
-  updateOrCreateNode, 
-  updateOrCreateModel, 
+  getItems, 
+  deleteItem, 
+  updateOrCreate, 
   clearDatabase,
   createConnection,
-} from './neo4j';
+  NodeModel,
+  DependsRelationship,
+  SimulationStudyModel,
+} from './cypher';
 import { ProvenanceAPI, ProvenanceNodeConnection, ProvenanceNode } from 'common';
 
 export function literal<T extends string>(o: T): T {
@@ -32,18 +32,24 @@ export const resetDatabase = async () => {
 
     delete node.connections;
 
-    const result = await updateOrCreateNode(node);
+    const result = await updateOrCreate(NodeModel, node);
     if (result.result === 'error') {
       console.log(`ERROR: Error creating ${node.type}: ${result.message}`);
     }
   }
 
   for (const [source, connectionInfo] of connections) {
-    await createConnection('Node', connectionInfo.id, source.id, connectionInfo.targetId, connectionInfo.type)
+    await createConnection(DependsRelationship, { type: connectionInfo.type, id: connectionInfo.id }, source.id, connectionInfo.targetId)
   }
 
   for (const model of Object.values(data.studies)) {
-    const result = await updateOrCreateModel(model);
+    const result = await updateOrCreate(SimulationStudyModel, {
+      id: '' + model.id,
+      studyId: model.id,
+      source: model.source,
+      signalingPathway: model.signalingPathway,
+    });
+
     if (result.result === 'error') {
       console.log(`Error creating ${model.id}: ${result.message}`);
     }
@@ -69,27 +75,28 @@ const create = () => {
   });
 
   router.get('/nodes', async () => {
-    return await getProvenanceNodes()
+    return await getItems(NodeModel)
   });
 
   router.get('/studies', async () => {
-    return await getModels();
+    return await getItems(SimulationStudyModel);
   })
 
   router.delete('/nodes', async (req) => {
-    return await deleteNode(req.query.id);
+    return await deleteItem(NodeModel, req.query.id);
   })
 
   router.delete('/studies', async (req) => {
-    return await deleteModel(req.query.id);
+    return await deleteItem(SimulationStudyModel, req.query.id);
   })
 
   router.post('/nodes', async (req) => {
-    return await updateOrCreateNode(req.body.item, req.body.keys);
+    // TODO This should use the types from the DB
+    return await updateOrCreate(NodeModel, req.body.item, req.body.keys as any);
   })
 
   router.post('/studies', async (req) => {
-    return await updateOrCreateModel(req.body.item, req.body.keys);
+    return await updateOrCreate(SimulationStudyModel, req.body.item as any, req.body.keys);
   })
 
   return app;
