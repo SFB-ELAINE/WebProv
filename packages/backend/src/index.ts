@@ -13,7 +13,7 @@ import {
   DependsRelationship,
   SimulationStudyModel,
 } from './cypher';
-import { ProvenanceAPI, ProvenanceNodeConnection, ProvenanceNode } from 'common';
+import { ProvenanceAPI, ProvenanceNode } from 'common';
 
 export function literal<T extends string>(o: T): T {
   return o;
@@ -22,15 +22,15 @@ export function literal<T extends string>(o: T): T {
 export const resetDatabase = async () => {
   clearDatabase();
 
-  const connections: Array<[ProvenanceNode, ProvenanceNodeConnection]> = [];
+  // const connections: Array<[ProvenanceNode, ProvenanceNodeConnection]> = [];
   for (const node of data.nodes) {
-    if (node.connections) {
-      node.connections.forEach(connection => {
-        connections.push([node, connection])
-      })
-    }
+    // if (node.connections) {
+    //   node.connections.forEach(connection => {
+    //     connections.push([node, connection])
+    //   })
+    // }
 
-    delete node.connections;
+    // delete node.connections;
 
     const result = await updateOrCreate(NodeModel, node);
     if (result.result === 'error') {
@@ -38,20 +38,15 @@ export const resetDatabase = async () => {
     }
   }
 
-  for (const [source, connectionInfo] of connections) {
-    await createConnection(DependsRelationship, { type: connectionInfo.type, id: connectionInfo.id }, source.id, connectionInfo.targetId)
-  }
+  // for (const [source, connectionInfo] of connections) {
+  //   await createConnection(DependsRelationship, { type: connectionInfo.type, id: connectionInfo.id }, source.id, connectionInfo.targetId)
+  // }
 
-  for (const model of Object.values(data.studies)) {
-    const result = await updateOrCreate(SimulationStudyModel, {
-      id: '' + model.id,
-      studyId: model.id,
-      source: model.source,
-      signalingPathway: model.signalingPathway,
-    });
+  for (const study of Object.values(data.studies)) {
+    const result = await updateOrCreate(SimulationStudyModel, study);
 
     if (result.result === 'error') {
-      console.log(`Error creating ${model.id}: ${result.message}`);
+      console.log(`Error creating ${study.id}: ${result.message}`);
     }
   }
 }
@@ -92,11 +87,11 @@ const create = () => {
 
   router.post('/nodes', async (req) => {
     // TODO This should use the types from the DB
-    return await updateOrCreate(NodeModel, req.body.item, req.body.keys as any);
+    return await updateOrCreate(NodeModel, req.body.item, req.body.keys);
   })
 
   router.post('/studies', async (req) => {
-    return await updateOrCreate(SimulationStudyModel, req.body.item as any, req.body.keys);
+    return await updateOrCreate(SimulationStudyModel, req.body.item, req.body.keys);
   })
 
   return app;

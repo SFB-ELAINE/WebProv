@@ -1,25 +1,22 @@
 import {
-  WetLabData,
-  ModelBuildingActivity,
-  SimulationData,
-  Model,
   SimulationStudy,
   ProvenanceNode,
-  ModelExplorationActivity,
   uniqueId,
 } from 'common';
+import { Information } from 'common/dist/schemas';
 
 // M1
-const WX_7: WetLabData = {
+const WX_7: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   label: 'Wx_7',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'Xenopus egg extract']],
 };
 
-const W1_1: WetLabData = {
+const WX_7_INFORMATION: Information = [['Cell line', 'Xenopus egg extract']];
+
+const W1_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   label: 'W1_1',
@@ -28,7 +25,7 @@ const W1_1: WetLabData = {
   information: [['Cell line', 'Xenopus egg extract']],
 };
 
-const W1_2: WetLabData = {
+const W1_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   label: 'W1_2',
@@ -37,7 +34,7 @@ const W1_2: WetLabData = {
   information: [['Cell line', 'Xenopus egg extract']],
 };
 
-const MBA_3: ModelBuildingActivity = {
+const MBA_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'ModelBuildingActivity',
@@ -61,7 +58,7 @@ const MBA_3: ModelBuildingActivity = {
   ],
 };
 
-const S1_1: SimulationData = {
+const S1_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'SimulationData',
@@ -77,11 +74,12 @@ const S1_1: SimulationData = {
 };
 
 const study1: SimulationStudy = {
-  id: 1,
+  id: uniqueId(),
+  studyId: 1,
   source: 'Lee et al., PLoS bio. 2003',
 };
 
-const model3: Model = {
+const model3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'Model',
@@ -89,7 +87,7 @@ const model3: Model = {
   connections: [{ id: uniqueId(), targetId: MBA_3.id, type: 'generated-by' }],
 };
 
-const MEA: ModelExplorationActivity = {
+const MEA: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'ModelExplorationActivity',
@@ -97,7 +95,7 @@ const MEA: ModelExplorationActivity = {
   connections: [{ id: uniqueId(), targetId: model3.id, type: 'used' }],
 };
 
-const S1_2: SimulationData = {
+const S1_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'SimulationData',
@@ -108,11 +106,12 @@ const S1_2: SimulationData = {
 
 // M12
 const study12: SimulationStudy = {
-  id: 12,
+  id: uniqueId(),
+  studyId: 12,
   source: 'Haack et al., PLoS comp. bio. 2015',
 };
 
-const W12_1: WetLabData = {
+const W12_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'W12_1',
@@ -121,7 +120,7 @@ const W12_1: WetLabData = {
   information: [['Cell line', 'hNPCs']],
 };
 
-const WX_1: WetLabData = {
+const WX_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'Wx_1',
@@ -130,7 +129,7 @@ const WX_1: WetLabData = {
   information: [['Cell line', 'HEK293T']],
 };
 
-const WX_2: WetLabData = {
+const WX_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'Wx_2',
@@ -140,7 +139,7 @@ const WX_2: WetLabData = {
 };
 
 // TODO Leaving out simulationsUsedForCalibration from M1
-const MBA_1: ModelBuildingActivity = {
+const MBA_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'ModelBuildingActivity',
@@ -169,7 +168,7 @@ const MBA_1: ModelBuildingActivity = {
   ],
 };
 
-const S12_1: SimulationData = {
+const S12_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'SimulationData',
@@ -178,7 +177,7 @@ const S12_1: SimulationData = {
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
-const model1: Model = {
+const model1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'Model',
@@ -186,7 +185,7 @@ const model1: Model = {
   connections: [{ id: uniqueId(), targetId: MBA_1.id, type: 'generated-by' }],
 };
 
-const W12_2: WetLabData = {
+const W12_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'W12_2',
@@ -195,7 +194,7 @@ const W12_2: WetLabData = {
   information: [['Cell line', 'hNPCs']],
 };
 
-const W12_3: WetLabData = {
+const W12_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'W12_3',
@@ -204,7 +203,7 @@ const W12_3: WetLabData = {
   information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
 };
 
-const WX_3: WetLabData = {
+const WX_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'Wx_3',
@@ -213,7 +212,7 @@ const WX_3: WetLabData = {
   information: [['Cell line', 'hNPCs']],
 };
 
-const MBA_2: ModelBuildingActivity = {
+const MBA_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'ModelBuildingActivity',
@@ -242,7 +241,7 @@ const MBA_2: ModelBuildingActivity = {
   ],
 };
 
-const S12_2: SimulationData = {
+const S12_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'SimulationData',
@@ -251,7 +250,7 @@ const S12_2: SimulationData = {
   connections: [{ id: uniqueId(), targetId: MBA_2.id, type: 'generated-by' }],
 };
 
-const model2: Model = {
+const model2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'Model',

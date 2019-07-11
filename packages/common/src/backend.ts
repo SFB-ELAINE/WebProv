@@ -56,7 +56,7 @@ export interface ProvenanceAPI {
     }
 
     DELETE: {
-      query: { id: number }
+      query: { id: string }
       response: BackendSuccess | BackendNotFound | BackendError;
     },
   };
