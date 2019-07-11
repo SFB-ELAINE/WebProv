@@ -32,3 +32,25 @@ npm run build
 ```
 
 This will automatically place the application in the `docs` folder. Then, all you have to do is create a PR for your branch. Once the branch is merged, the new application will automatically be deployed.
+
+## Dependencies/Acknowledgements
+- [@types/d3](https://www.npmjs.com/package/@types/d3) (MIT)
+- [@types/@types/lodash.debounce](https://www.npmjs.com/package/@types/@types/lodash.debounce) (MIT)
+- [@types/@types/lodash.uni](https://www.npmjs.com/package/@types/@types/lodash.uni) (MIT)
+- [buefy](https://www.npmjs.com/package/buefy) (MIT)
+- [core-js](https://www.npmjs.com/package/core-js) (MIT)
+- [d3](https://www.npmjs.com/package/d3) (BSD 3-Clause)
+- [firebase](https://www.npmjs.com/package/firebase) (Apache-2.0)
+- [fuse.js](https://www.npmjs.com/package/fuse.js) (Apache-2.0)
+- [lodash.debounce](https://www.npmjs.com/package/lodash.debounce) (MIT)
+- [vue](https://www.npmjs.com/package/vue) (MIT)
+- [vue-class-component](https://www.npmjs.com/package/vue-class-component) (MIT)
+- [vue-function-api](https://www.npmjs.com/package/vue-function-api) (MIT)
+- [@vue/cli-plugin-babel](https://www.npmjs.com/package/@vue/cli-plugin-babel) (MIT)
+- [@vue/cli-plugin-typescript](https://www.npmjs.com/package/@vue/cli-plugin-typescript) (MIT)
+- [@vue/cli-service](https://www.npmjs.com/package/@vue/cli-service) (MIT)
+- [babel-core](https://www.npmjs.com/package/babel-core) (MIT)
+- [sass](https://www.npmjs.com/package/sass) (MIT)
+- [sass-loader](https://www.npmjs.com/package/sass-loader) (MIT)
+- [typescript](https://www.npmjs.com/package/typescript) (Apache-2.0)
+- [vue-template-compiler](https://www.npmjs.com/package/vue-template-compiler) (MIT)

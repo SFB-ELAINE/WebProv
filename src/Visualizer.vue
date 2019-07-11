@@ -124,6 +124,8 @@
       v-model="showHelp"
     ></information-modal>
 
+    <div class="version">v{{ version }}</div>
+
   </div>
 </template>
 
@@ -178,6 +180,7 @@ import { SearchItem, search } from '@/search';
 import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
+import { version } from '../package.json';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -241,6 +244,9 @@ const isSingleNode = (node: Node): node is SingleNode => {
 export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowHeight!: number;
   @Prop({ type: Number, required: true }) public windowWidth!: number;
+
+  // The package version number
+  public version = version;
 
   public provenanceNodes: ProvenanceNode[] = [];
 
@@ -1004,5 +1010,12 @@ export default class Visualizer extends Vue {
 
 .clear-button {
   margin: 0 10px;
+}
+
+.version {
+  position: absolute;
+  right: 25px;
+  bottom: 15px;
+  color: rgba(0, 0, 0, 0.5);
 }
 </style>
