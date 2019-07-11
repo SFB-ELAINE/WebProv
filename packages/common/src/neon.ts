@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-export { boolean, string, number, union } from 'io-ts';
+export { boolean, string, number, union, literal } from 'io-ts';
 
 export type Primitive =
   t.BooleanC |

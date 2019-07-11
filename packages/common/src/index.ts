@@ -3,21 +3,12 @@ export {
 } from './utils';
 
 export {
-  ProvenanceNodeConnection,
   SimulationStudy,
-  ModelBuildingActivity,
-  ModelExplorationActivity,
-  Model,
-  WetLabData,
-  SimulationData,
-  ProvenanceNodeLookup,
   ProvenanceNodeRelationships,
   ProvenanceNode,
   ProvenanceNodeType,
-  provenanceNodeRelationshipsMap,
   provenanceNodeRelationships,
   relationshipRules,
-  provenanceNodeTypeDisplayText,
   provenanceNodeTypes,
 } from './schemas';
 
