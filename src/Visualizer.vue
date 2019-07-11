@@ -46,7 +46,7 @@
         type="is-text"
         @click="addModel"
       >
-        Add Model
+        Add Study
       </b-button>
       
       <b-button
