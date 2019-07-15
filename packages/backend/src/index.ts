@@ -8,10 +8,18 @@ import {
   deleteItem, 
   updateOrCreate, 
   clearDatabase,
-  createConnection,
+  updateOrCreateConnection,
+  getRelationships,
+  deleteRelationship,
 } from './cypher';
-import { ProvenanceAPI } from 'common';
-import { ProvenanceNodeSchema, SimulationStudyModel } from 'common/dist/schemas';
+import { 
+  ProvenanceAPI, 
+  ProvenanceNodeSchema, 
+  SimulationStudyModel, 
+  DependsRelationship, 
+  InformationRelationship, 
+  InformationSchema 
+} from 'common';
 
 export function literal<T extends string>(o: T): T {
   return o;
@@ -20,36 +28,27 @@ export function literal<T extends string>(o: T): T {
 export const resetDatabase = async () => {
   clearDatabase();
 
-  // const connections: Array<[ProvenanceNode, ProvenanceNodeConnection]> = [];
   for (const node of data.nodes) {
-    // if (node.connections) {
-    //   node.connections.forEach(connection => {
-    //     connections.push([node, connection])
-    //   })
-    // }
-
-    // delete node.connections;
-
     const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
-      console.log(`ERROR: Error creating ${node.type}: ${result.message}`);
+      console.error(`ERROR: Error creating ${node.type}: ${result.message}`);
     }
   }
-
-  // for (const [source, connectionInfo] of connections) {
-  //   await createConnection(DependsRelationship, { type: connectionInfo.type, id: connectionInfo.id }, source.id, connectionInfo.targetId)
-  // }
 
   for (const study of Object.values(data.studies)) {
     const result = await updateOrCreate(SimulationStudyModel, study);
 
     if (result.result === 'error') {
-      console.log(`Error creating ${study.id}: ${result.message}`);
+      console.error(`Error creating ${study.id}: ${result.message}`);
     }
   }
 
   for (const connection of data.connections) {
-    await createConnection(connection)
+    await updateOrCreateConnection(connection.schema, {
+      source: connection.source.id,
+      target: connection.target.id,
+      properties: connection.properties,
+    })
   }
 }
 
@@ -71,8 +70,12 @@ const create = () => {
     return 'OK'
   });
 
+  router.get('/information', async () => {
+    return await getItems(InformationSchema);
+  });
+
   router.get('/nodes', async () => {
-    return await getItems(ProvenanceNodeSchema)
+    return await getItems(ProvenanceNodeSchema);
   });
 
   router.get('/studies', async () => {
@@ -92,8 +95,32 @@ const create = () => {
     return await updateOrCreate(ProvenanceNodeSchema, req.body.item, req.body.keys);
   })
 
+  router.get('/nodes/dependencies', async () => {
+    return await getRelationships(DependsRelationship);
+  })
+
+  router.post('/nodes/dependencies', async (req) => {
+    return await updateOrCreateConnection(DependsRelationship, req.body);
+  })
+
+  router.get('/nodes/information', async () => {
+    return await getRelationships(InformationRelationship);
+  })
+
+  router.post('/nodes/information', async (req) => {
+    return await updateOrCreateConnection(InformationRelationship, req.body);
+  })
+
   router.post('/studies', async (req) => {
     return await updateOrCreate(SimulationStudyModel, req.body.item, req.body.keys);
+  })
+
+  router.delete('/nodes/information', async (req) => {
+    return await deleteRelationship(InformationRelationship, req.query.id);
+  })
+
+  router.delete('/nodes/dependencies', async (req) => {
+    return await deleteRelationship(DependsRelationship, req.query.id);
   })
 
   return app;

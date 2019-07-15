@@ -144,10 +144,12 @@ import {
   ProvenanceNode,
   relationshipRules,
   ProvenanceNodeRelationships,
-  ProvenanceNodeConnection,
   provenanceNodeTypes,
   SimulationStudy,
+  DependsRelationship,
+  RelationshipBasics,
   uniqueId,
+  TypeOf,
 } from 'common';
 import ProvLegend from '@/components/ProvLegend.vue';
 import InformationModal from '@/components/InformationModal.vue';
@@ -166,6 +168,8 @@ import {
   FieldInformation,
   get,
   makeRequest,
+  makeLookupBy,
+  makeArrayLookupBy,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -176,6 +180,7 @@ import { SearchItem, search } from '@/search';
 import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
+import { Depends, Information, HasInformation } from 'common/dist/schemas';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -201,7 +206,7 @@ interface Link extends D3Link {
 interface Connection {
   id: string;
   relationship: ProvenanceNodeRelationships;
-  original: ProvenanceNodeConnection;
+  original: RelationshipBasics<Depends>; // TODO is this sufficient?
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -209,6 +214,8 @@ interface Connection {
 
 interface HighLevelNode {
   id: string;
+  information: Array<[string, string]>;
+  connections: Array<RelationshipBasics<Depends>>;
   node: ProvenanceNode;
   outgoing: Connection[];
   incoming: Connection[];
@@ -241,6 +248,10 @@ export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowWidth!: number;
 
   public provenanceNodes: ProvenanceNode[] = [];
+
+  public informationNodes: Information[] = [];
+  public dependencies: Array<RelationshipBasics<Depends>> = [];
+  public information: Array<{ source: string, target: string, properties: HasInformation }> = [];
 
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
@@ -312,6 +323,8 @@ export default class Visualizer extends Vue {
     this.provenanceNodes.forEach((node) => {
       nodeLookup[node.id] = {
         id: node.id,
+        information: [],
+        connections: [],
         node,
         incoming: [],
         outgoing: [],
@@ -322,12 +335,13 @@ export default class Visualizer extends Vue {
       const sourceId = n.id;
 
       const source = nodeLookup[sourceId];
-      if (!n.connections) {
+      const connections = this.getConnections(sourceId);
+      if (!connections) {
         return;
       }
 
-      n.connections.forEach((connection) => {
-        const targetId = connection.targetId;
+      connections.forEach((connection) => {
+        const targetId = connection.target;
         const target: HighLevelNode | undefined = nodeLookup[targetId];
         if (!target) {
           this.$notification.open({
@@ -340,10 +354,10 @@ export default class Visualizer extends Vue {
         }
 
         const d3Connection: Connection = {
-          id: connection.id,
-          relationship: connection.type,
+          id: connection.properties.id,
+          relationship: connection.properties.type,
           original: connection,
-          color: relationshipColors[connection.type].color,
+          color: relationshipColors[connection.properties.type].color,
           source,
           target,
         };
@@ -366,6 +380,29 @@ export default class Visualizer extends Vue {
 
   public openHelp() {
     this.showHelp = true;
+  }
+
+  get dependenciesLookup() {
+    return makeArrayLookupBy(this.dependencies, (d) => d.source);
+  }
+
+  get informationLookup() {
+    return makeArrayLookupBy(this.information, (i) => i.source);
+  }
+
+  public getConnections(id: string) {
+    if (!this.dependenciesLookup[id]) {
+      return undefined;
+    }
+    return this.dependenciesLookup[id];
+  }
+
+  public getInformation(id: string) {
+    if (!this.informationLookup[id]) {
+      return undefined;
+    }
+
+    return this.informationLookup[id];
   }
 
   public showProvenanceGraph(r: SearchItem) {
@@ -451,18 +488,16 @@ export default class Visualizer extends Vue {
   }
 
   get searchItems() {
-    return this.provenanceNodes.map((n): SearchItem => {
-      const information =
-        n.type === 'WetLabData' &&
-        n.information ?
-        n.information.map(([_, value]) => value) : [];
+    return this.highLevelNodes.map((n): SearchItem => {
+      const informationConnection = this.getInformation(n.id);
+      const information = n.information.map(([_, value]) => value);
 
       return {
         id: n.id,
-        title: getText(n, this.SimulationStudyLookup),
-        type: n.type,
-        studyId: n.studyId,
-        model: n.studyId !== undefined ? `Model ${n.studyId}` : undefined,
+        title: getText(n.node, this.SimulationStudyLookup),
+        type: n.node.type,
+        studyId: n.node.studyId,
+        model: n.node.studyId !== undefined ? `Model ${n.node.studyId}` : undefined,
         information,
       };
     });
@@ -470,8 +505,8 @@ export default class Visualizer extends Vue {
 
   public addModel() {
     this.selectedModel = {
-      id: 0,
-      source: '',
+      id: uniqueId(),
+      studyId: 0,
     };
   }
 
@@ -564,9 +599,11 @@ export default class Visualizer extends Vue {
         const b = nodeToMakeConnection.provenanceNode;
         const relationship = getRelationship(a, b);
 
-        const madeConnection = makeConnection(a, b, { type: relationship });
-        if (madeConnection) {
-          makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+        const connection = makeConnection(a, b, relationship);
+        if (connection.can) {
+          makeRequest(() => backend.createDependency(connection.connection));
+          // TODO error handle (ie don't push)
+          this.dependencies.push(connection.connection);
           this.renderGraph();
         }
       },
@@ -847,11 +884,11 @@ export default class Visualizer extends Vue {
     cached[b.type] = relationship;
 
     this.currentRelationship = relationship;
-    originalConnection.type = relationship;
+    originalConnection.properties.type = relationship;
     this.renderGraph();
     this.cancelRelationshipSelection();
 
-    makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
+    makeRequest(() => backend.createDependency(originalConnection));
   }
 
   public deleteRelationship() {
@@ -861,18 +898,16 @@ export default class Visualizer extends Vue {
 
     const selectedConnection = this.selectedConnection;
     const source = this.selectedConnection.source;
-    if (!source.node.connections) {
-      return;
-    }
 
-    source.node.connections = source.node.connections.filter((connection) => {
-      return connection.id !== selectedConnection.original.id;
+    source.connections = source.connections.filter((connection) => {
+      return connection.properties.id !== selectedConnection.id;
     });
 
     this.renderGraph();
     this.cancelRelationshipSelection();
 
-    makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
+    // TODO what happens on error?
+    makeRequest(() => backend.deleteDependency(selectedConnection.id));
   }
 
   public deselectNode() {
@@ -888,21 +923,24 @@ export default class Visualizer extends Vue {
 
     // Remove all incoming connections
     const { incoming } = this.highLevelNodeLookup[selected.id];
-    incoming.forEach(({ source }) => {
-      if (!source.node.connections) {
-        return;
-      }
-
-      source.node.connections = source.node.connections.filter(({ targetId }) => selected.id !== targetId);
+    const toRemove = this.dependencies.filter((dependency) => {
+      return dependency.target === selected.id;
     });
 
+    // TODO what happens if the request fails
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return dependency.target !== selected.id;
+    });
+
+    // TODO what happens if the request fails
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
     });
 
     makeRequest(() => backend.deleteNode(selected.id));
-    incoming.forEach(({ source }) => {
-      backend.updateOrCreateNode(source.node, ['connections']);
+    toRemove.forEach((connection) => {
+      // TODO error handling
+      backend.deleteDependency(connection.properties.id);
     });
 
     this.selectedNode = null;
@@ -931,34 +969,30 @@ export default class Visualizer extends Vue {
     // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
 
-    const nodesToSave: ProvenanceNode[] = [];
-    const addIfNotInArray = <T>(arr: T[], value: T) => {
-      if (!arr.includes(value)) {
-        arr.push(value);
-      }
-    };
+    const dependenciesToRemove: this['dependencies'] = [];
 
     [...incoming, ...outgoing].forEach((c) => {
-      const { source, target, relationship } = c;
-      if (isValidConnection(source.node, target.node, relationship)) {
+      if (isValidConnection(c.source.node, c.target.node, c.relationship)) {
         return;
       }
 
-      addIfNotInArray(nodesToSave, source.node);
-      addIfNotInArray(nodesToSave, target.node);
-      if (!source.node.connections) {
-        return;
-      }
+      dependenciesToRemove.push(...this.dependencies.filter((dependency) => {
+        return dependency.properties.id === c.id;
+      }));
+    });
 
-      source.node.connections = source.node.connections
-        .filter((connection) => connection.targetId !== target.node.id);
+    const dependencyIds = new Set(dependenciesToRemove.map(({ properties }) => properties.id));
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return dependencyIds.has(dependency.properties.id);
+    });
+
+    dependenciesToRemove.forEach((dependency) => {
+      // TODO error handling
+      backend.deleteDependency(dependency.properties.id);
     });
 
     makeRequest(() => backend.updateOrCreateNode(node, [key]));
 
-    nodesToSave.map((n) => {
-      makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
-    });
 
     // We are calling the render function since we will likely need to redraw something
     // We debounce because we don't want to be rerendering all of the time
@@ -972,6 +1006,18 @@ export default class Visualizer extends Vue {
 
     makeRequest(backend.getNodes, (result) => {
       this.provenanceNodes = result.items;
+    });
+
+    makeRequest(backend.getNodeDependencies, (result) => {
+      this.dependencies = result.items;
+    });
+
+    makeRequest(backend.getNodeInformation, (result) => {
+      this.information = result.items;
+    });
+
+    makeRequest(backend.getInformationNodes, (result) => {
+      this.informationNodes = result.items;
     });
   }
 }

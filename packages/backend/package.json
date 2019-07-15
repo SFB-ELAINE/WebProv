@@ -16,7 +16,6 @@
     "cors": "^2.8.5",
     "dotenv": "^8.0.0",
     "express": "^4.17.1",
-    "io-ts": "^2.0.0",
     "neo4j-driver": "^1.7.5",
     "restyped-express-async": "^0.6.1"
   },

@@ -1,4 +1,3 @@
-import * as t from 'io-ts';
 import { 
   BackendError, 
   BackendSuccess, 
@@ -7,21 +6,11 @@ import {
   TypeOf, 
   Schema,
   RelationshipSchema,
-  Relationship
+  BackendRelationships,
+  getType,
+  keys,
+  RelationshipBasics
 } from 'common';
-
-const tuple = <T extends any[]>(...args: T): T => args;
-
-const keys = <T extends object>(arg: T) => Object.keys(arg) as Array<keyof T & string>;
-
-const toObject = <T>(arg: Array<[string, T]>) => {
-  const obj: { [k: string]: T } = {};
-  arg.forEach(([key, value]) => {
-    obj[key] = value;
-  });
-
-  return obj;
-};
 
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
@@ -55,17 +44,6 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
     };
   }
 };
-
-const getType = <S extends Schema>(schema: S) => {
-  const required = schema.required;
-  const optional = schema.optional || {};
-  const r = toObject(keys(required).map((key) => tuple(key, required[key].type)))
-  const o = toObject(keys(optional).map((key) => tuple(key, required[key].type)))
-  return t.exact(t.intersection([
-    t.type(r),
-    t.partial(o),
-  ]));
-}
 
 export const updateOrCreate = async <S extends Schema>(
   schema: S, obj: TypeOf<S>, objKeys?: Array<keyof typeof obj>
@@ -125,21 +103,67 @@ export const updateOrCreate = async <S extends Schema>(
 }
 
 
-export async function getItems<T>(schema: Schema) {
-  return withHandling(async (): Promise<BackendItems<T>> => {
+export async function getItems<S extends Schema>(schema: S) {
+  return withHandling(async (): Promise<BackendItems<TypeOf<S>>> => {
     const session = driver.session();
-    const result = await session.run(`
+    const result: StatementResult<[Neo4jNode<S>]> = await session.run(`
     MATCH (n:${schema.name})
     RETURN n
     `)
 
-    const items = result.records.map(record => record.get(0));
-
+    const items = result.records.map(record => record.get(0).properties);
     session.close();
 
     return {
       result: 'success',
       items,
+    };
+  });
+}
+
+interface Neo4jNode<S extends Schema> extends neo4j.Node {
+  properties: TypeOf<S>;
+}
+
+interface Neo4jRelationship<R extends Schema> extends neo4j.Relationship {
+  properties: TypeOf<R>;
+}
+
+interface Record<T extends any[]> extends neo4j.Record {
+  get<I extends number>(key: I): T[I];
+}
+
+interface StatementResult<T extends any[]> extends neo4j.StatementResult {
+  records: Record<T>[];
+}
+
+export async function getRelationships<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+  schema: R,
+) {
+  return withHandling(async (): Promise<BackendRelationships<TypeOf<R>>> => {
+    const session = driver.session();
+    const result: StatementResult<[Neo4jNode<A>, Neo4jNode<B>, Neo4jRelationship<R>]> = await session.run(
+      `
+      MATCH (a:${schema.source.name})-[r:${schema.name}]->(b:${schema.target.name})
+      RETURN a, b, r
+      `, 
+    )
+
+    const sourceIds = result.records.map(record => record.get(0).properties.id);
+    const targetIds = result.records.map(record => record.get(1).properties.id);
+    const relationships = result.records.map(record => record.get(2).properties);
+    session.close();
+
+
+    return {
+      result: 'success',
+      items: relationships.map((relationship, i) => {
+        return {
+          properties: relationship,
+          source: sourceIds[i],
+          target: targetIds[i],
+        }
+      }),
     };
   });
 }
@@ -174,29 +198,45 @@ export const deleteItem = async (schema: Schema, id: string) => {
   });
 };
 
-export const createConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
-  relationship: Relationship<A, B, R>,
+export const deleteRelationship = async <A extends Schema, B extends Schema>(
+  schema: RelationshipSchema<A, B>, id: string
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
-    const type = getType(relationship.schema);
-
-    // remove all extra key/value pairs
-    const object = type.encode(relationship.properties);
-
     const session = driver.session();
     
+    // TODO return failure information
+    await session.run(`
+    MATCH (:${schema.source.name})-[r:${schema.name}]-(:${schema.target.name}) 
+    WHERE id(r) = ${id} 
+    DELETE r
+    `, { id });
+
+    session.close();
+
+    return {
+      result: 'success',
+    };
+  });
+};
+
+export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+  schema: R, information: RelationshipBasics<TypeOf<R>>,
+) => {
+  return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
+    const type = getType(schema);
+    const session = driver.session();
     await session.run(
       `
-      MATCH (a:${relationship.schema.source.name} { id: $source }), (b:${relationship.schema.target.name} { id: $target })
-      CREATE (a)-[r:${relationship.schema.name} $props]->(b)
-      RETURN r
+      MERGE (a:${schema.source.name} { id: $source })-[r:${schema.name}]->(b:${schema.target.name} { id: $target })
+      ON CREATE SET r = $props
+      ON MATCH  SET r = $props
       `, 
       { 
-        source: relationship.source.id, 
-        target: relationship.source.id, 
-        props: object 
-      })
-    // console.log(result.records.map(r => r.get(0)));
+        source: information.source, 
+        target: information.target, 
+        props: type.encode(information.properties) 
+      }
+    )
 
     session.close();
 

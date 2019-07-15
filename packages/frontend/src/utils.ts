@@ -6,7 +6,6 @@ import {
   relationshipRules,
   ProvenanceNodeRelationships,
   SimulationStudy,
-  ProvenanceNodeLookup,
   provenanceNodeTypes,
   uniqueId,
   BackendError,
@@ -15,11 +14,37 @@ import {
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
+import { Depends } from 'common/dist/schemas';
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
   for (const item of array) {
     lookup[item.id] = item;
+  }
+  return lookup;
+};
+
+export const makeLookupBy = <T, F extends (t: T) => string>(
+  array: Iterable<T>, f: F,
+) => {
+  const lookup: Lookup<T> = {};
+  for (const item of array) {
+    lookup[f(item)] = item;
+  }
+  return lookup;
+};
+
+export const makeArrayLookupBy = <T, F extends (t: T) => string>(
+  array: Iterable<T>, f: F,
+) => {
+  const lookup: Lookup<T[]> = {};
+  for (const item of array) {
+    const key = f(item);
+    if (!lookup[key]) {
+      lookup[key] = [];
+    }
+
+    lookup[key].push(item);
   }
   return lookup;
 };
@@ -63,51 +88,65 @@ export function getText(n: ProvenanceNode, lookup: SimulationStudyLookup): strin
   }
 }
 
-interface ConnectionOptions { type: ProvenanceNodeRelationships | undefined; doConnection?: boolean; }
+interface Can {
+  can: true;
+  connection: {
+    source: string;
+    target: string;
+    properties: Depends;
+  };
+}
 
-export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: ConnectionOptions ): boolean => {
-  const { doConnection = true } = opts;
-  if (!a.connections) {
-    Vue.set(a, 'connections', []);
-  }
+interface Cant {
+  can: false;
+}
 
+export const makeConnection = (
+  a: ProvenanceNode, b: ProvenanceNode, type?: ProvenanceNodeRelationships,
+): Can | Cant => {
   const rulesForA = relationshipRules[a.type];
   const rules = rulesForA[b.type];
   if (!rules) {
-    return false;
+    return {
+      can: false,
+    };
   }
 
-  if (!opts.type) {
-    return false;
+  if (!type) {
+    return {
+      can: false,
+    };
   }
 
   const isValid = rules.some((rule) => {
     if (typeof rule === 'string') {
-      return rule === opts.type;
+      return rule === type;
     } else {
-      return rule.relationship === opts.type;
+      return rule.relationship === type;
     }
   });
 
   if (!isValid) {
-    return false;
+    return { can: false };
   }
 
-  if (doConnection) {
-    a.connections!.push({
-      id: uniqueId(),
-      type: opts.type,
-      targetId: b.id,
-    });
-  }
-
-  return true;
+  return {
+    can: true,
+    connection: {
+      source: a.id,
+      target: b.id,
+      properties: {
+        id: uniqueId(),
+        type,
+      },
+    },
+  };
 };
 
 export const isValidConnection = (
   a: ProvenanceNode, b: ProvenanceNode, type: ProvenanceNodeRelationships | undefined,
 ) => {
-  return makeConnection(a, b, { doConnection: false, type });
+  return makeConnection(a, b, type).can;
 };
 
 type Events = keyof WindowEventMap;

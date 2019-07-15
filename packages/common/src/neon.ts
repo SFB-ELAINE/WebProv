@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import { keys } from './utils';
 export { boolean, string, number, union, literal } from 'io-ts';
 
 export type Primitive =
@@ -65,6 +66,34 @@ type Optional<F extends Fields> = t.TypeOf<t.PartialC<GetTypes<F>>>;
 
 type Defined<T> = Exclude<T, undefined>;
 
+export interface RelationshipBasics<T> { 
+  source: string, 
+  target: string, 
+  properties: T,
+}
+
 export type TypeOf<T extends Schema> =
   Required<Defined<T['required']>> &
   Optional<Defined<T['optional']>>;
+
+const toObject = <T>(arg: Array<[string, T]>) => {
+  const obj: { [k: string]: T } = {};
+  arg.forEach(([key, value]) => {
+    obj[key] = value;
+  });
+
+  return obj;
+};
+
+const tuple = <T extends any[]>(...args: T): T => args;
+
+export const getType = <S extends Schema>(schema: S) => {
+  const required = schema.required;
+  const optional = schema.optional || {};
+  const r = toObject(keys(required).map((key) => tuple(key, required[key].type)))
+  const o = toObject(keys(optional).map((key) => tuple(key, optional[key].type)))
+  return t.exact(t.intersection([
+    t.type(r),
+    t.partial(o),
+  ]));
+}

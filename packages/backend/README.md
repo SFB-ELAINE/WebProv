@@ -2,6 +2,8 @@
 The backend for the web provenance platform.
 
 ## Development
+### Installation
+#### Linux
 First, make sure to start up docker:
 ```
 sudo service docker start # if docker is not already running
@@ -20,6 +22,20 @@ docker run \
     neo4j:latest
 ```
 
+#### MacOS
+First, install `neo4j`:
+```
+brew install neo4j
+```
+
+Then start the server:
+```
+neo4j start
+```
+
+Other commands include `stop`, `restart`, `console` and `status`.
+
+### Connection Configuration
 Also, create a `.env` file if you don't already have one:
 ```
 DB_URI=bolt://localhost:7687

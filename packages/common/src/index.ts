@@ -1,5 +1,6 @@
 export {
   uniqueId,
+  keys,
 } from './utils';
 
 export {
@@ -14,6 +15,9 @@ export {
   HasInformation,
   InformationRelationship,
   DependsRelationship,
+  ProvenanceNodeSchema,
+  SimulationStudyModel,
+  InformationSchema,
 } from './schemas';
 
 export {
@@ -22,6 +26,7 @@ export {
   BackendItems,
   BackendNotFound,
   ProvenanceAPI,
+  BackendRelationships,
 } from './backend';
 
 export {
@@ -35,7 +40,9 @@ export {
   SchemaField,
   Relationship,
   schema,
+  RelationshipBasics,
   relationship,
   TypeOf,
   RelationshipSchema,
+  getType,
 } from './neon';
