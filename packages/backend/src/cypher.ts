@@ -6,7 +6,8 @@ import {
   BackendNotFound, 
   TypeOf, 
   Schema,
-  RelationshipSchema
+  RelationshipSchema,
+  Relationship
 } from 'common';
 
 const tuple = <T extends any[]>(...args: T): T => args;
@@ -174,24 +175,27 @@ export const deleteItem = async (schema: Schema, id: string) => {
 };
 
 export const createConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
-  relationship: R,
-  obj: TypeOf<R>,
-  source: string,
-  target: string,
+  relationship: Relationship<A, B, R>,
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
-    const type = getType(relationship);
+    const type = getType(relationship.schema);
 
     // remove all extra key/value pairs
-    const object = type.encode(obj);
+    const object = type.encode(relationship.properties);
 
     const session = driver.session();
     
-    await session.run(`
-    MATCH (a:${relationship.source.name} { id: $source }), (b:${relationship.target.name} { id: $target })
-    CREATE (a)-[r:${relationship.name} $props]->(b)
-    RETURN r
-    `, { source, target, props: object })
+    await session.run(
+      `
+      MATCH (a:${relationship.schema.source.name} { id: $source }), (b:${relationship.schema.target.name} { id: $target })
+      CREATE (a)-[r:${relationship.schema.name} $props]->(b)
+      RETURN r
+      `, 
+      { 
+        source: relationship.source.id, 
+        target: relationship.source.id, 
+        props: object 
+      })
     // console.log(result.records.map(r => r.get(0)));
 
     session.close();

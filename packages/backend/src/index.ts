@@ -8,6 +8,7 @@ import {
   deleteItem, 
   updateOrCreate, 
   clearDatabase,
+  createConnection,
 } from './cypher';
 import { ProvenanceAPI } from 'common';
 import { ProvenanceNodeSchema, SimulationStudyModel } from 'common/dist/schemas';
@@ -45,6 +46,10 @@ export const resetDatabase = async () => {
     if (result.result === 'error') {
       console.log(`Error creating ${study.id}: ${result.message}`);
     }
+  }
+
+  for (const connection of data.connections) {
+    await createConnection(connection)
   }
 }
 

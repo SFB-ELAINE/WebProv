@@ -13,6 +13,7 @@ export {
   Information,
   HasInformation,
   InformationRelationship,
+  DependsRelationship,
 } from './schemas';
 
 export {

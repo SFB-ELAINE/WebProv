@@ -42,8 +42,8 @@ export interface RelationshipSchema<A extends Schema, B extends Schema> extends 
 
 export interface Relationship<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>> {
   schema: R;
-  source: A;
-  target: B;
+  source: TypeOf<A>;
+  target: TypeOf<B>;
   properties: TypeOf<R>;
 }
 
