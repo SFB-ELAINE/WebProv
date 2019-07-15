@@ -8,12 +8,9 @@ import {
   deleteItem, 
   updateOrCreate, 
   clearDatabase,
-  createConnection,
-  NodeModel,
-  DependsRelationship,
-  SimulationStudyModel,
 } from './cypher';
-import { ProvenanceAPI, ProvenanceNode } from 'common';
+import { ProvenanceAPI } from 'common';
+import { ProvenanceNodeSchema, SimulationStudyModel } from 'common/dist/schemas';
 
 export function literal<T extends string>(o: T): T {
   return o;
@@ -32,7 +29,7 @@ export const resetDatabase = async () => {
 
     // delete node.connections;
 
-    const result = await updateOrCreate(NodeModel, node);
+    const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
       console.log(`ERROR: Error creating ${node.type}: ${result.message}`);
     }
@@ -70,7 +67,7 @@ const create = () => {
   });
 
   router.get('/nodes', async () => {
-    return await getItems(NodeModel)
+    return await getItems(ProvenanceNodeSchema)
   });
 
   router.get('/studies', async () => {
@@ -78,7 +75,7 @@ const create = () => {
   })
 
   router.delete('/nodes', async (req) => {
-    return await deleteItem(NodeModel, req.query.id);
+    return await deleteItem(ProvenanceNodeSchema, req.query.id);
   })
 
   router.delete('/studies', async (req) => {
@@ -87,7 +84,7 @@ const create = () => {
 
   router.post('/nodes', async (req) => {
     // TODO This should use the types from the DB
-    return await updateOrCreate(NodeModel, req.body.item, req.body.keys);
+    return await updateOrCreate(ProvenanceNodeSchema, req.body.item, req.body.keys);
   })
 
   router.post('/studies', async (req) => {

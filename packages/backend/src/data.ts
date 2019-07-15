@@ -2,8 +2,21 @@ import {
   SimulationStudy,
   ProvenanceNode,
   uniqueId,
+  Information,
+  Relationship,
+  InformationRelationship,
+  RelationshipSchema,
+  Schema,
+  TypeOf,
 } from 'common';
-import { Information } from 'common/dist/schemas';
+
+const informationRelationships: Relationship<any, any, any>[] = [];
+
+const addRelationship = <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+  relationship: Relationship<A, B, R>,
+) => {
+  informationRelationships.push(relationship);
+}
 
 // M1
 const WX_7: ProvenanceNode = {
@@ -14,7 +27,20 @@ const WX_7: ProvenanceNode = {
   classification: 'entity',
 };
 
-const WX_7_INFORMATION: Information = [['Cell line', 'Xenopus egg extract']];
+const WX_7_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'Xenopus egg extract',
+};
+
+addRelationship({
+  schema: InformationRelationship,
+  source: WX_7,
+  target: WX_7_INFORMATION,
+  properties: {
+    id: uniqueId(),
+  }
+})
 
 const W1_1: ProvenanceNode = {
   id: uniqueId(),
@@ -22,8 +48,13 @@ const W1_1: ProvenanceNode = {
   label: 'W1_1',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'Xenopus egg extract']],
 };
+
+const W1_1_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'Xenopus egg extract',
+}
 
 const W1_2: ProvenanceNode = {
   id: uniqueId(),
@@ -31,8 +62,13 @@ const W1_2: ProvenanceNode = {
   label: 'W1_2',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'Xenopus egg extract']],
 };
+
+const W1_2_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'Xenopus egg extract',
+}
 
 const MBA_3: ProvenanceNode = {
   id: uniqueId(),
@@ -117,8 +153,13 @@ const W12_1: ProvenanceNode = {
   label: 'W12_1',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'hNPCs']],
 };
+
+const W12_1_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'hNPCs',
+}
 
 const WX_1: ProvenanceNode = {
   id: uniqueId(),
@@ -126,8 +167,13 @@ const WX_1: ProvenanceNode = {
   label: 'Wx_1',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'HEK293T']],
 };
+
+const WX_1_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'HEK293T',
+}
 
 const WX_2: ProvenanceNode = {
   id: uniqueId(),
@@ -135,8 +181,13 @@ const WX_2: ProvenanceNode = {
   label: 'Wx_2',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
 };
+
+const WX_2_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
+}
 
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ProvenanceNode = {
@@ -191,8 +242,13 @@ const W12_2: ProvenanceNode = {
   label: 'W12_2',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'hNPCs']],
 };
+
+const W12_2_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'hNPCs',
+}
 
 const W12_3: ProvenanceNode = {
   id: uniqueId(),
@@ -200,8 +256,13 @@ const W12_3: ProvenanceNode = {
   label: 'W12_3',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)']],
 };
+
+const W12_3_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
+}
 
 const WX_3: ProvenanceNode = {
   id: uniqueId(),
@@ -209,8 +270,13 @@ const WX_3: ProvenanceNode = {
   label: 'Wx_3',
   type: 'WetLabData',
   classification: 'entity',
-  information: [['Cell line', 'hNPCs']],
 };
+
+const W_INFORMATION: Information = {
+  id: uniqueId(),
+  key: 'Cell line',
+  value: 'hNPCs',
+}
 
 const MBA_2: ProvenanceNode = {
   id: uniqueId(),

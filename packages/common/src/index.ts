@@ -10,6 +10,9 @@ export {
   provenanceNodeRelationships,
   relationshipRules,
   provenanceNodeTypes,
+  Information,
+  HasInformation,
+  InformationRelationship,
 } from './schemas';
 
 export {
@@ -33,4 +36,5 @@ export {
   schema,
   relationship,
   TypeOf,
+  RelationshipSchema,
 } from './neon';

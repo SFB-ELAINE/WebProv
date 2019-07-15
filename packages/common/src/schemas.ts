@@ -102,6 +102,12 @@ export const InformationSchema = n.schema({
       primary: true,
       type: n.string,
     },
+    key: {
+      type: n.string,
+    },
+    value: {
+      type: n.string,
+    }
   },
 });
 
@@ -149,6 +155,8 @@ export const ProvenanceNodeSchema = n.schema({
 
 export type ProvenanceNode = n.TypeOf<typeof ProvenanceNodeSchema>;
 
+export type Information = n.TypeOf<typeof InformationSchema>;
+
 export type SimulationStudy = n.TypeOf<typeof SimulationStudyModel>;
 
 export type ProvenanceNodeType = ProvenanceNode['type'];
@@ -192,6 +200,6 @@ export type Depends = n.TypeOf<typeof DependsRelationship>;
 
 export type ProvenanceNodeRelationships = Depends['type'];
 
-export type Information = n.TypeOf<typeof InformationRelationship>;
+export type HasInformation = n.TypeOf<typeof InformationRelationship>;
 
 export const provenanceNodeRelationships = DependsRelationship.required.type.type.types.map((t) => t._A);

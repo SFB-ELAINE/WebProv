@@ -35,9 +35,16 @@ export interface Schema {
   optional?: Fields;
 }
 
-export interface Relationship<A extends Schema, B extends Schema> extends Schema {
+export interface RelationshipSchema<A extends Schema, B extends Schema> extends Schema {
   source: A;
   target: B;
+}
+
+export interface Relationship<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>> {
+  schema: R;
+  source: A;
+  target: B;
+  properties: TypeOf<R>;
 }
 
 export const schema = <S extends Schema>(s: S) => {
@@ -45,7 +52,7 @@ export const schema = <S extends Schema>(s: S) => {
 };
 
 export const relationship = <
-  A extends Schema, B extends Schema, R extends Relationship<A, B>
+  A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>
 >(r: R) => {
   return r;
 };

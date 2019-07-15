@@ -1,106 +1,13 @@
 import * as t from 'io-ts';
-import { BackendError, BackendSuccess, BackendItems, BackendNotFound, schema, TypeOf, relationship, Schema, Relationship } from 'common';
-
-export const SimulationStudyModel = schema({
-  name: 'SimulationStudy',
-  required: {
-    id: {
-      primary: true,
-      type: t.string,
-    },
-    studyId: {
-      unique: true,
-      type: t.number,
-    },
-  },
-  optional: {
-    signalingPathway: {
-      type: t.string,
-    },
-    source: {
-      type: t.string,
-    },
-  }
-})
-
-export const InformationModel = schema({
-  name: 'Information',
-  required: {
-    id: {
-      primary: true,
-      type: t.string,
-    }
-  }
-})
-
-export const NodeModel = schema({
-  name: 'Node',
-  required: {
-    id: {
-      primary: true,
-      type: t.string,
-    },
-    type: {
-      type: t.union([
-        t.literal('ModelBuildingActivity'),
-        t.literal('ModelExplorationActivity'),
-        t.literal('Model'),
-        t.literal('WetLabData'),
-        t.literal('SimulationData'),
-      ])
-    },
-    classification: {
-      type: t.union([
-        t.literal('activity'),
-        t.literal('entity'),
-      ])
-    }
-  },
-  optional: {
-    studyId: {
-      type: t.number,
-    },
-    label: {
-      type: t.string,
-    },
-  }
-})
-
-
-
-export type Node = TypeOf<typeof NodeModel>;
-export type SimulationStudy = TypeOf<typeof SimulationStudyModel>;
-
-export type ProvenanceNodeType = Node['type'];
-
-export const provenanceNodeTypes = NodeModel.required.type.type.types.map(t => t._A)
-
-export const InformationRelationship = relationship({
-  name: 'HAS_INFORMATION',
-  source: NodeModel,
-  target: InformationModel,
-  required: {
-    id: {
-      primary: true,
-      type: t.string,
-    }
-  }
-});
-
-export const DependsRelationship = relationship({
-  name: 'DEPENDS',
-  source: NodeModel,
-  target: NodeModel,
-  required: {
-    id: {
-      primary: true,
-      type: t.string,
-    },
-    type: {
-      type: t.string,
-    },
-  }
-});
+import { 
+  BackendError, 
+  BackendSuccess, 
+  BackendItems, 
+  BackendNotFound, 
+  TypeOf, 
+  Schema,
+  RelationshipSchema
+} from 'common';
 
 const tuple = <T extends any[]>(...args: T): T => args;
 
@@ -266,7 +173,7 @@ export const deleteItem = async (schema: Schema, id: string) => {
   });
 };
 
-export const createConnection = async <A extends Schema, B extends Schema, R extends Relationship<A, B>>(
+export const createConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
   relationship: R,
   obj: TypeOf<R>,
   source: string,
