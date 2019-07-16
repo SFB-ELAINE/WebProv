@@ -38,9 +38,15 @@ export const resetDatabase = async () => {
 
   for (const study of data.studies) {
     const result = await updateOrCreate(SimulationStudyModel, study);
-
     if (result.result === 'error') {
-      console.error(`Error creating ${study.id}: ${result.message}`);
+      console.error(`ERROR: Error creating stufy: ${result.message}`);
+    }
+  }
+
+  for (const node of data.informationNodes) {
+    const result = await updateOrCreate(InformationSchema, node);
+    if (result.result === 'error') {
+      console.error(`ERROR: Error creating information: ${result.message}`);
     }
   }
 

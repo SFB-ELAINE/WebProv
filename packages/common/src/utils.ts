@@ -5,3 +5,5 @@ export const uniqueId = () => {
 };
 
 export const keys = <T extends object>(arg: T) => Object.keys(arg) as Array<keyof T & string>;
+
+export const tuple = <T extends any[]>(...args: T): T => args;

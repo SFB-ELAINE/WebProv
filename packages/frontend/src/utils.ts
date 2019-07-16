@@ -372,3 +372,7 @@ export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End
     // if line1 and line2 are segments, they intersect if both of the above are true
   };
 }
+
+export const isDefined = <T>(o: T | undefined): o is T => {
+  return o !== undefined;
+};

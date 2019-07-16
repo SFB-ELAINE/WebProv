@@ -149,6 +149,7 @@ import {
   DependsRelationship,
   RelationshipBasics,
   uniqueId,
+  tuple,
   TypeOf,
 } from 'common';
 import ProvLegend from '@/components/ProvLegend.vue';
@@ -170,6 +171,7 @@ import {
   makeRequest,
   makeLookupBy,
   makeArrayLookupBy,
+  isDefined,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -320,9 +322,13 @@ export default class Visualizer extends Vue {
   get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
     this.provenanceNodes.forEach((node) => {
+      const relationships = this.getInformationRelationship(node.id);
+      const fields = relationships.map((relationship) => this.getInformationNode(relationship.target));
+      const tuples = fields.filter(isDefined).map((field) => tuple(field.key, field.value));
+
       nodeLookup[node.id] = {
         id: node.id,
-        information: [],
+        information: tuples,
         node,
         incoming: [],
         outgoing: [],
@@ -388,6 +394,10 @@ export default class Visualizer extends Vue {
     return makeArrayLookupBy(this.information, (i) => i.source);
   }
 
+  get informationNodeLookup() {
+    return makeLookup(this.informationNodes);
+  }
+
   public getConnections(id: string) {
     if (!this.dependenciesLookup[id]) {
       return undefined;
@@ -395,9 +405,17 @@ export default class Visualizer extends Vue {
     return this.dependenciesLookup[id];
   }
 
-  public getInformation(id: string) {
-    if (!this.informationLookup[id]) {
+  public getInformationNode(id: string) {
+    if (!this.informationNodeLookup[id]) {
       return undefined;
+    }
+
+    return this.informationNodeLookup[id];
+  }
+
+  public getInformationRelationship(id: string) {
+    if (!this.informationLookup[id]) {
+      return [];
     }
 
     return this.informationLookup[id];
@@ -487,7 +505,6 @@ export default class Visualizer extends Vue {
 
   get searchItems() {
     return this.highLevelNodes.map((n): SearchItem => {
-      const informationConnection = this.getInformation(n.id);
       const information = n.information.map(([_, value]) => value);
 
       return {

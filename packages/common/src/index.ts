@@ -1,6 +1,7 @@
 export {
   uniqueId,
   keys,
+  tuple,
 } from './utils';
 
 export {

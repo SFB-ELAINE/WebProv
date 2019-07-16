@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { keys } from './utils';
+import { keys, tuple } from './utils';
 export { boolean, string, number, union, literal } from 'io-ts';
 
 export type Primitive =
@@ -84,8 +84,6 @@ const toObject = <T>(arg: Array<[string, T]>) => {
 
   return obj;
 };
-
-const tuple = <T extends any[]>(...args: T): T => args;
 
 export const getType = <S extends Schema>(schema: S) => {
   const required = schema.required;

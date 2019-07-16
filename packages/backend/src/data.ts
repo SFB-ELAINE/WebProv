@@ -540,6 +540,18 @@ export const nodes: ProvenanceNode[] = [
   S1_2,
 ];
 
+export const informationNodes: Information[] = [
+  WX_7_INFORMATION,
+  W1_1_INFORMATION,
+  W1_2_INFORMATION,
+  W12_1_INFORMATION,
+  WX_1_INFORMATION,
+  WX_2_INFORMATION,
+  W12_2_INFORMATION,
+  W12_3_INFORMATION,
+  WX_3_INFORMATION,
+]
+
 export const studies: SimulationStudy[] = [
   study1,
   study12,
