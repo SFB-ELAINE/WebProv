@@ -207,7 +207,7 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
     // TODO return failure information
     await session.run(`
     MATCH (:${schema.source.name})-[r:${schema.name}]-(:${schema.target.name}) 
-    WHERE id(r) = ${id} 
+    WHERE r.id = $id
     DELETE r
     `, { id });
 

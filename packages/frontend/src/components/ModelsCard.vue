@@ -47,7 +47,6 @@ export default createComponent({
 
     const deleteModel = () => {
       context.emit('delete');
-      cancel();
     };
 
     const setModel = (model: string) => {

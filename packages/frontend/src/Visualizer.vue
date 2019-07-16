@@ -206,7 +206,7 @@ interface Link extends D3Link {
 }
 
 interface Connection {
-  id: string;
+  properties: Depends;
   relationship: ProvenanceNodeRelationships;
   original: RelationshipBasics<Depends>; // TODO is this sufficient?
   source: HighLevelNode;
@@ -358,8 +358,8 @@ export default class Visualizer extends Vue {
         }
 
         const d3Connection: Connection = {
-          id: connection.properties.id,
           relationship: connection.properties.type,
+          properties: connection.properties,
           original: connection,
           color: relationshipColors[connection.properties.type].color,
           source,
@@ -460,7 +460,14 @@ export default class Visualizer extends Vue {
     }
 
     const model = this.selectedModel;
-    makeRequest(() => backend.deleteModel(model.id));
+    makeRequest(async () => {
+      const result = await backend.deleteModel(model.id);
+      if (result.result === 'success') {
+        this.selectedModel = null;
+      }
+
+      return result;
+    });
   }
 
   public openModel(result: SearchItem) {
@@ -525,7 +532,6 @@ export default class Visualizer extends Vue {
     };
   }
 
-  // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
   public nodeRightClick(e: MouseEvent, node: SingleNode) {
     e.preventDefault();
     const setCenter = () => {
@@ -615,12 +621,19 @@ export default class Visualizer extends Vue {
         const relationship = getRelationship(a, b);
 
         const connection = makeConnection(a, b, relationship);
-        if (connection.can) {
-          makeRequest(() => backend.createDependency(connection.connection));
-          // TODO error handle (ie don't push)
-          this.dependencies.push(connection.connection);
-          this.renderGraph();
+        if (!connection.can) {
+          return;
         }
+
+        makeRequest(async () => {
+          const result = await backend.createDependency(connection.connection);
+          if (result.result === 'success') {
+            this.dependencies.push(connection.connection);
+            this.renderGraph();
+          }
+
+          return result;
+        });
       },
     });
   }
@@ -912,17 +925,18 @@ export default class Visualizer extends Vue {
     }
 
     const selectedConnection = this.selectedConnection;
-    const source = this.selectedConnection.source;
+    makeRequest(async () => {
+      const result = await backend.deleteDependency(selectedConnection.properties.id);
+      if (result.result === 'success') {
+        this.dependencies = this.dependencies.filter((dependency) => {
+          return dependency.properties.id !== selectedConnection.properties.id;
+        });
 
-    this.dependencies.filter((dependency) => {
-      return dependency.properties.id !== selectedConnection.id;
+        this.renderGraph();
+        this.cancelRelationshipSelection();
+      }
+      return result;
     });
-
-    this.renderGraph();
-    this.cancelRelationshipSelection();
-
-    // TODO what happens on error?
-    makeRequest(() => backend.deleteDependency(selectedConnection.id));
   }
 
   public deselectNode() {
@@ -992,7 +1006,7 @@ export default class Visualizer extends Vue {
       }
 
       dependenciesToRemove.push(...this.dependencies.filter((dependency) => {
-        return dependency.properties.id === c.id;
+        return dependency.properties.id === c.properties.id;
       }));
     });
 
