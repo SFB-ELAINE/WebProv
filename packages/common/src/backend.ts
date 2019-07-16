@@ -33,6 +33,11 @@ export interface ProvenanceAPI {
     GET: {
       response: BackendError | BackendItems<Information>,
     }
+
+    POST: {
+      body: Information;
+      response: BackendSuccess | BackendError;
+    }
   }
 
   '/nodes': {

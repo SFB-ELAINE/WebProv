@@ -81,6 +81,10 @@ const create = () => {
     return await getItems(InformationSchema);
   });
 
+  router.post('/information', async (req) => {
+    return await updateOrCreate(InformationSchema, req.body);
+  });
+
   router.get('/nodes', async () => {
     return await getItems(ProvenanceNodeSchema);
   });

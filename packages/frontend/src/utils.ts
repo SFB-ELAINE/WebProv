@@ -237,22 +237,6 @@ export interface FieldInformation<T extends string> {
   options?: Array<string | number>;
 }
 
-type NodeFields = Array<FieldInformation<keyof ProvenanceNode & string>>;
-
-const createField = <T extends string>(field: FieldInformation<T>) => {
-  return field;
-};
-
-const typeSelect = createField({ name: 'type', type: 'string', options: provenanceNodeTypes });
-const studyId = createField({ name: 'studyId', type: 'number' });
-const label = createField({ name: 'label', type: 'string' });
-const information = createField({ name: 'information', type: 'string', multiple: true });
-
-// TODO Remove this and use io-ts instead!
-// We can infer this information from there instead!
-export const nodeFields: NodeFields = [typeSelect, studyId, label];
-export const informationFields = [information];
-
 export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
 }
@@ -331,6 +315,8 @@ export async function makeRequest<T extends { result: 'success' }>(
       cb(result);
     }
   }
+
+  return result;
 }
 
 interface Point {

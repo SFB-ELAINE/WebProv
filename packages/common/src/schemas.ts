@@ -161,7 +161,7 @@ export type SimulationStudy = n.TypeOf<typeof SimulationStudyModel>;
 
 export type ProvenanceNodeType = ProvenanceNode['type'];
 
-export const provenanceNodeTypes = ProvenanceNodeSchema.required.type.type.types.map((t) => t._A);
+export const provenanceNodeTypes = ProvenanceNodeSchema.required.type.type.types.map((t) => t.value);
 
 export const InformationRelationship = n.relationship({
   name: 'HAS_INFORMATION',
@@ -202,4 +202,4 @@ export type ProvenanceNodeRelationships = Depends['type'];
 
 export type HasInformation = n.TypeOf<typeof InformationRelationship>;
 
-export const provenanceNodeRelationships = DependsRelationship.required.type.type.types.map((t) => t._A);
+export const provenanceNodeRelationships = DependsRelationship.required.type.type.types.map((t) => t.value);

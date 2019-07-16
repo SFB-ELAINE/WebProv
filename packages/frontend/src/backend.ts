@@ -1,6 +1,6 @@
 import axios from 'restyped-axios';
 import { SimulationStudy, ProvenanceNode, ProvenanceAPI, RelationshipBasics } from 'common';
-import { Depends, HasInformation } from 'common/dist/schemas';
+import { Depends, HasInformation, Information } from 'common/dist/schemas';
 
 // TODO(jacob) baseUrl
 const api = axios.create<ProvenanceAPI>({
@@ -11,6 +11,10 @@ export const updateOrCreateNode = async (
   node: ProvenanceNode, keys?: Array<keyof ProvenanceNode>,
 ) => {
   return (await api.post('/nodes', { item: node, keys })).data;
+};
+
+export const updateOrCreateInformationNode = async (node: Information) => {
+  return (await api.post('/information', node)).data;
 };
 
 export const updateOrCreateModel = async (

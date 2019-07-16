@@ -98,15 +98,14 @@
         ></card-select>
         <div class="spacer"></div>
         
-        <form-card
-          title="Node Information"
+        <node-form
           v-if="selectedNode"
-          :fields="nodeFields[selectedNode.type]"
           :node="selectedNode"
+          :information="selectedNodeInformation"
           @close="deselectNode"
           @delete="deleteNode"
-          @input="onNodeChange"
-        ></form-card>
+          @save="saveNode"
+        ></node-form>
       
       </div>
     </div>
@@ -165,7 +164,6 @@ import {
   isValidConnection,
   Watch,
   getDefaultRelationshipType,
-  nodeFields,
   FieldInformation,
   get,
   makeRequest,
@@ -175,7 +173,7 @@ import {
 } from '@/utils';
 import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
-import FormCard from '@/components/FormCard.vue';
+import NodeForm from '@/components/NodeForm.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
@@ -242,7 +240,7 @@ const isSingleNode = (node: Node): node is SingleNode => {
 // the models that use that data.
 
 @Component({
-  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard, InformationModal },
+  components: { ProvLegend, D3, Search, CardSelect, NodeForm, ModelsCard, InformationModal },
 })
 export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowHeight!: number;
@@ -287,7 +285,6 @@ export default class Visualizer extends Vue {
   // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
-  public nodeFields = nodeFields;
   public models: SimulationStudy[] = [];
 
   // Whether to show the help information
@@ -304,8 +301,6 @@ export default class Visualizer extends Vue {
     d3: D3<SingleNode>;
   };
 
-  public debouncedRenderGraph = debounce(this.renderGraph, 500);
-
   get height() {
     // OK, so for some reason we have to remove 7 here so that there is no overlow
     return this.windowHeight - 7;
@@ -317,6 +312,15 @@ export default class Visualizer extends Vue {
 
   get nodeLookup() {
     return makeLookup(this.nodes);
+  }
+
+  get selectedNodeInformation() {
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const relationships = this.getInformationRelationship(this.selectedNode.id);
+    return relationships.map((relationship) => this.getInformationNode(relationship.target)).filter(isDefined);
   }
 
   get highLevelNodes(): HighLevelNode[] {
@@ -454,20 +458,16 @@ export default class Visualizer extends Vue {
     makeRequest(() => backend.updateOrCreateModel(model, ['id', 'source', 'signalingPathway']));
   }
 
-  public deleteSelectedModel() {
+  public async deleteSelectedModel() {
     if (!this.selectedModel) {
       return;
     }
 
     const model = this.selectedModel;
-    makeRequest(async () => {
-      const result = await backend.deleteModel(model.id);
-      if (result.result === 'success') {
-        this.selectedModel = null;
-      }
-
-      return result;
-    });
+    const result = await makeRequest(() => backend.deleteModel(model.id));
+    if (result.result === 'success') {
+      this.selectedModel = null;
+    }
   }
 
   public openModel(result: SearchItem) {
@@ -873,16 +873,20 @@ export default class Visualizer extends Vue {
     this.links = links;
   }
 
-  public addNode() {
+  public async addNode() {
     const node: ProvenanceNode = {
       type: 'ModelBuildingActivity',
       classification: 'activity',
       id: uniqueId(),
     };
 
+    const result = await makeRequest(() => backend.updateOrCreateNode(node));
+    if (result.result !== 'success') {
+      return;
+    }
+
     this.provenanceNodes.push(node);
     this.selectedNode = node;
-    makeRequest(() => backend.updateOrCreateNode(node));
 
     this.nodesToShow[node.id] = true;
     if (node.studyId !== undefined) {
@@ -943,89 +947,118 @@ export default class Visualizer extends Vue {
     this.selectedNode = null;
   }
 
-  public deleteNode() {
+  public async deleteNode() {
     if (!this.selectedNode) {
       return;
     }
 
     const selected = this.selectedNode;
 
-    // Remove all incoming connections
-    const { incoming } = this.highLevelNodeLookup[selected.id];
-    const toRemove = this.dependencies.filter((dependency) => {
-      return dependency.target === selected.id;
+    const toRemove: this['dependencies'] = [];
+    const toKeep: this['dependencies'] = [];
+    this.dependencies.filter((dependency) => {
+      if (dependency.target === selected.id || dependency.source === selected.id) {
+        toRemove.push(dependency);
+      } else {
+        toKeep.push(dependency);
+      }
     });
 
-    // TODO what happens if the request fails
-    this.dependencies = this.dependencies.filter((dependency) => {
-      return dependency.target !== selected.id;
-    });
+    // Try and delete all of the connections first
+    // Only delete the node if all of the connections are able to be deleted
+    for (const connection of toRemove) {
+      const res = await makeRequest(() => backend.deleteDependency(connection.properties.id));
+      if (res.result !== 'success') {
+        return;
+      }
+    }
 
-    // TODO what happens if the request fails
+    const result = await makeRequest(() => backend.deleteNode(selected.id));
+    if (result.result !== 'success') {
+      return;
+    }
+
+    this.dependencies = toKeep;
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
-    });
-
-    makeRequest(() => backend.deleteNode(selected.id));
-    toRemove.forEach((connection) => {
-      // TODO error handling
-      backend.deleteDependency(connection.properties.id);
     });
 
     this.selectedNode = null;
     this.renderGraph();
   }
 
-  public onNodeChange(node: ProvenanceNode, key: keyof ProvenanceNode) {
-    // This is a bit inefficient
-    this.nodes.forEach((n) => {
-      if (n.id !== node.id) {
-        return;
-      }
+  public async saveNode(node: ProvenanceNode, information: Information[]) {
+    if (!this.selectedNodeInformation) {
+      return;
+    }
 
-      if (n.isGroup) {
-        return;
-      }
+    const newInformationSet = new Set(information.map((field) => field.id));
+    const oldInformationSet = new Set(this.selectedNodeInformation.map((field) => field.id));
+    const informationToRemove = this.selectedNodeInformation.filter((field) => !newInformationSet.has(field.id));
+    const newInformation = information.filter((field) => !oldInformationSet.has(field.id));
 
-      const newText = getText(node, this.simulationStudyLookup);
-      if (newText !== n.text) {
-        const newNode = this.createNewNode(node);
-        this.$refs.d3.replaceNode(newNode);
-      }
+    await Promise.all(newInformation.map(async (field) => {
+      console.info('Adding new connection from ' + node.id + ' to ' + field.id);
+      const res = await makeRequest(() => backend.addInformationEntry({
+        source: node.id,
+        target: field.id,
+        properties: {
+          id: uniqueId(),
+        },
+      }));
+
+      console.log('PUSHING');
+      this.informationNodes.push(field);
+    }));
+
+    const informationToRemoveSet = new Set(informationToRemove.map(({ id }) => id));
+    this.informationNodes = this.informationNodes.filter((field) => !informationToRemoveSet.has(field.id));
+    informationToRemove.forEach((field) => {
+      console.info('Deleting information node: ' + field.id);
+      backend.deleteInformationField(field.id);
+    });
+
+    information.forEach((field) => {
+      const toUpdate = this.informationNodeLookup[field.id];
+      toUpdate.key = field.key;
+      toUpdate.value = field.value;
+      console.info('Updating information node: ' + field.id);
+      backend.updateOrCreateInformationNode(field);
     });
 
     // Here we are revalidating all of the connections to see if they are still valid
     // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
-
-    const dependenciesToRemove: this['dependencies'] = [];
+    const toRemove = new Set<string>();
 
     [...incoming, ...outgoing].forEach((c) => {
       if (isValidConnection(c.source.node, c.target.node, c.relationship)) {
         return;
       }
 
-      dependenciesToRemove.push(...this.dependencies.filter((dependency) => {
-        return dependency.properties.id === c.properties.id;
-      }));
+      toRemove.add(c.properties.id);
     });
 
-    const dependencyIds = new Set(dependenciesToRemove.map(({ properties }) => properties.id));
+    for (const id of toRemove) {
+      console.info('Adding dependency: ' + id);
+      makeRequest(() => backend.deleteDependency(id));
+    }
+
     this.dependencies = this.dependencies.filter((dependency) => {
-      return dependencyIds.has(dependency.properties.id);
+      return !toRemove.has(dependency.properties.id);
     });
 
-    dependenciesToRemove.forEach((dependency) => {
-      // TODO error handling
-      backend.deleteDependency(dependency.properties.id);
-    });
+    console.info('Updating node: ' + node.id);
+    {
+      const toUpdate = this.highLevelNodeLookup[node.id].node;
+      toUpdate.type = node.type;
+      toUpdate.studyId = node.studyId;
+      toUpdate.label = node.label;
+      makeRequest(() => backend.updateOrCreateNode(node));
+    }
 
-    makeRequest(() => backend.updateOrCreateNode(node, [key]));
-
-
-    // We are calling the render function since we will likely need to redraw something
-    // We debounce because we don't want to be rerendering all of the time
-    this.debouncedRenderGraph();
+    this.renderGraph();
+    this.selectedNode = null;
   }
 
   public async mounted() {
