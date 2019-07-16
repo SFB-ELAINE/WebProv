@@ -24,7 +24,7 @@ export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>
   return lookup;
 };
 
-export const makeLookupBy = <T, F extends (t: T) => string>(
+export const makeLookupBy = <T, F extends (t: T) => string | number>(
   array: Iterable<T>, f: F,
 ) => {
   const lookup: Lookup<T> = {};
@@ -34,7 +34,7 @@ export const makeLookupBy = <T, F extends (t: T) => string>(
   return lookup;
 };
 
-export const makeArrayLookupBy = <T, F extends (t: T) => string>(
+export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
   array: Iterable<T>, f: F,
 ) => {
   const lookup: Lookup<T[]> = {};
@@ -237,7 +237,7 @@ export interface FieldInformation<T extends string> {
   options?: Array<string | number>;
 }
 
-type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
+type NodeFields = Array<FieldInformation<keyof ProvenanceNode & string>>;
 
 const createField = <T extends string>(field: FieldInformation<T>) => {
   return field;
@@ -250,13 +250,8 @@ const information = createField({ name: 'information', type: 'string', multiple:
 
 // TODO Remove this and use io-ts instead!
 // We can infer this information from there instead!
-export const nodeFields: NodeFields = {
-  Model: [typeSelect, studyId, label, information],
-  ModelBuildingActivity: [typeSelect, studyId, label, information],
-  ModelExplorationActivity: [typeSelect, studyId, label, information],
-  SimulationData: [typeSelect, studyId, label, information],
-  WetLabData: [typeSelect, studyId, label, information],
-};
+export const nodeFields: NodeFields = [typeSelect, studyId, label];
+export const informationFields = [information];
 
 export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);

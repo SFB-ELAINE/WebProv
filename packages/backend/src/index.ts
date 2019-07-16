@@ -28,6 +28,7 @@ export function literal<T extends string>(o: T): T {
 export const resetDatabase = async () => {
   clearDatabase();
 
+  console.log('Creating ' + data.nodes.length + ' Nodes');
   for (const node of data.nodes) {
     const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
@@ -35,7 +36,7 @@ export const resetDatabase = async () => {
     }
   }
 
-  for (const study of Object.values(data.studies)) {
+  for (const study of data.studies) {
     const result = await updateOrCreate(SimulationStudyModel, study);
 
     if (result.result === 'error') {

@@ -15,7 +15,6 @@
     "common": "^0.1.0",
     "core-js": "^2.6.5",
     "d3": "^5.9.2",
-    "firebase": "^6.2.4",
     "fuse.js": "^3.4.5",
     "lodash.debounce": "^4.0.8",
     "lodash.uniqueid": "^4.0.1",

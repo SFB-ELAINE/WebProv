@@ -215,7 +215,6 @@ interface Connection {
 interface HighLevelNode {
   id: string;
   information: Array<[string, string]>;
-  connections: Array<RelationshipBasics<Depends>>;
   node: ProvenanceNode;
   outgoing: Connection[];
   incoming: Connection[];
@@ -324,14 +323,13 @@ export default class Visualizer extends Vue {
       nodeLookup[node.id] = {
         id: node.id,
         information: [],
-        connections: [],
         node,
         incoming: [],
         outgoing: [],
       };
     });
 
-    const highLevelNodes = this.provenanceNodes.map((n) => {
+    this.provenanceNodes.forEach((n) => {
       const sourceId = n.id;
 
       const source = nodeLookup[sourceId];
@@ -374,8 +372,8 @@ export default class Visualizer extends Vue {
     return makeLookup(this.highLevelNodes);
   }
 
-  get SimulationStudyLookup() {
-    return makeLookup(this.models);
+  get simulationStudyLookup() {
+    return makeLookupBy(this.models, (study) => study.studyId);
   }
 
   public openHelp() {
@@ -462,7 +460,7 @@ export default class Visualizer extends Vue {
       return;
     }
 
-    this.selectedModel = this.SimulationStudyLookup[result.studyId];
+    this.selectedModel = this.simulationStudyLookup[result.studyId];
   }
 
   public clearNodes() {
@@ -494,7 +492,7 @@ export default class Visualizer extends Vue {
 
       return {
         id: n.id,
-        title: getText(n.node, this.SimulationStudyLookup),
+        title: getText(n.node, this.simulationStudyLookup),
         type: n.node.type,
         studyId: n.node.studyId,
         model: n.node.studyId !== undefined ? `Model ${n.node.studyId}` : undefined,
@@ -635,7 +633,7 @@ export default class Visualizer extends Vue {
       return !this.nodesToShow[dep.source.id];
     });
 
-    const text = getText(n, this.SimulationStudyLookup);
+    const text = getText(n, this.simulationStudyLookup);
     const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
     const node: SingleNode = {
       isGroup: false,
@@ -899,8 +897,8 @@ export default class Visualizer extends Vue {
     const selectedConnection = this.selectedConnection;
     const source = this.selectedConnection.source;
 
-    source.connections = source.connections.filter((connection) => {
-      return connection.properties.id !== selectedConnection.id;
+    this.dependencies.filter((dependency) => {
+      return dependency.properties.id !== selectedConnection.id;
     });
 
     this.renderGraph();
@@ -958,7 +956,7 @@ export default class Visualizer extends Vue {
         return;
       }
 
-      const newText = getText(node, this.SimulationStudyLookup);
+      const newText = getText(node, this.simulationStudyLookup);
       if (newText !== n.text) {
         const newNode = this.createNewNode(node);
         this.$refs.d3.replaceNode(newNode);

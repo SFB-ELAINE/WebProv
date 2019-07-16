@@ -227,9 +227,10 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
     const session = driver.session();
     await session.run(
       `
-      MERGE (a:${schema.source.name} { id: $source })-[r:${schema.name}]->(b:${schema.target.name} { id: $target })
+      MATCH (a:${schema.source.name} { id: $source }), (b:${schema.target.name} { id: $target })
+      MERGE (a)-[r:${schema.name}]->(b)
       ON CREATE SET r = $props
-      ON MATCH  SET r = $props
+      ON MATCH SET r = $props
       `, 
       { 
         source: information.source, 

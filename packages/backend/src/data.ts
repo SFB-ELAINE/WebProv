@@ -540,10 +540,10 @@ export const nodes: ProvenanceNode[] = [
   S1_2,
 ];
 
-export const studies = {
+export const studies: SimulationStudy[] = [
   study1,
   study12,
-};
+];
 
 
 
