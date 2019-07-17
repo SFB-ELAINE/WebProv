@@ -15,6 +15,11 @@ export interface BackendItems<T> {
   items: T[];
 }
 
+export interface BackendItem<T> {
+  result: 'success';
+  item: T;
+}
+
 export interface BackendRelationships<T> {
   result: 'success';
   items: Array<{ properties: T, source: string, target: string }>;
@@ -37,6 +42,11 @@ export interface ProvenanceAPI {
     POST: {
       body: Information;
       response: BackendSuccess | BackendError;
+    }
+
+    DELETE: {
+      query: { id: string }
+      response: BackendSuccess | BackendNotFound | BackendError;
     }
   }
 
@@ -100,13 +110,9 @@ export interface ProvenanceAPI {
     },
     
     POST: {
-      body: RelationshipBasics<HasInformation>;
+      query: { id: string };
+      body: Information[];
       response: BackendSuccess | BackendError;
-    }
-
-    DELETE: {
-      query: { id: string }
-      response: BackendSuccess | BackendNotFound | BackendError;
     }
   }
 }

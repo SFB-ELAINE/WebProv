@@ -11,6 +11,8 @@ import {
   updateOrCreateConnection,
   getRelationships,
   deleteRelationship,
+  deleteRelationshipByType,
+  getItemsByConnection,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -18,11 +20,35 @@ import {
   SimulationStudyModel, 
   DependsRelationship, 
   InformationRelationship, 
-  InformationSchema 
+  InformationSchema,
+  BackendError,
+  BackendNotFound,
+  BackendSuccess,
+  uniqueId,
+  Information, 
 } from 'common';
 
 export function literal<T extends string>(o: T): T {
   return o;
+}
+
+const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | BackendNotFound> => {
+  // Ok, first delete all of the information nodes attached to the given provenance node
+  const result1 = await deleteRelationshipByType(InformationRelationship, id);
+  if (result1.result !== 'success') {
+    return result1;
+  }
+
+  // Now, delete the provenance node.
+  const result2 =  await deleteItem(ProvenanceNodeSchema, id);
+  if (result2.result !== 'success') {
+    return result2;
+  }
+
+
+  return {
+    result: 'success',
+  };
 }
 
 export const resetDatabase = async () => {
@@ -85,6 +111,10 @@ const create = () => {
     return await updateOrCreate(InformationSchema, req.body);
   });
 
+  router.delete('/information', async (req) => {
+    return await deleteItem(InformationSchema, req.query.id);
+  });
+
   router.get('/nodes', async () => {
     return await getItems(ProvenanceNodeSchema);
   });
@@ -94,7 +124,7 @@ const create = () => {
   })
 
   router.delete('/nodes', async (req) => {
-    return await deleteItem(ProvenanceNodeSchema, req.query.id);
+    return await deleteNode(req.query.id);
   })
 
   router.delete('/studies', async (req) => {
@@ -119,15 +149,11 @@ const create = () => {
   })
 
   router.post('/nodes/information', async (req) => {
-    return await updateOrCreateConnection(InformationRelationship, req.body);
+    return;
   })
 
   router.post('/studies', async (req) => {
     return await updateOrCreate(SimulationStudyModel, req.body.item, req.body.keys);
-  })
-
-  router.delete('/nodes/information', async (req) => {
-    return await deleteRelationship(InformationRelationship, req.query.id);
   })
 
   router.delete('/nodes/dependencies', async (req) => {

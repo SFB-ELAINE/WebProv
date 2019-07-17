@@ -48,7 +48,7 @@ export interface Relationship<A extends Schema, B extends Schema, R extends Rela
   properties: TypeOf<R>;
 }
 
-export const schema = <S extends Schema>(s: S) => {
+export const schema = <S extends Schema>(s: S): S => {
   return s;
 };
 

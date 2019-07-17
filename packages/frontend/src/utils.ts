@@ -6,7 +6,6 @@ import {
   relationshipRules,
   ProvenanceNodeRelationships,
   SimulationStudy,
-  provenanceNodeTypes,
   uniqueId,
   BackendError,
   BackendNotFound,
@@ -361,4 +360,17 @@ export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End
 
 export const isDefined = <T>(o: T | undefined): o is T => {
   return o !== undefined;
+};
+
+type Level = 'info' | 'debug' | 'error' | 'trace';
+
+const levelLookup: { [L in Level]: number } = {
+  error: 2,
+  info: 3,
+  debug: 4,
+  trace: 5,
+};
+
+export const getLogger = () => {
+  return console;
 };

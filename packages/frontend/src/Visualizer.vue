@@ -56,14 +56,6 @@
       >
         Add Node
       </b-button>
-      
-      <b-button
-        class="clear-button overlay-child"
-        type="is-text"
-        @click="renderGraph"
-      >
-        Refresh
-      </b-button>
 
       <b-button
         class="clear-button overlay-child"
@@ -170,6 +162,7 @@ import {
   makeLookupBy,
   makeArrayLookupBy,
   isDefined,
+  getLogger,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link } from '@/d3';
 import Search from '@/components/Search.vue';
@@ -234,6 +227,8 @@ export type RelationshipCache = {
 const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
 };
+
+const logger = getLogger();
 
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
@@ -320,14 +315,14 @@ export default class Visualizer extends Vue {
     }
 
     const relationships = this.getInformationRelationship(this.selectedNode.id);
+    logger.info(`There are ${relationships.length} information fields for the selected node`);
     return relationships.map((relationship) => this.getInformationNode(relationship.target)).filter(isDefined);
   }
 
   get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
     this.provenanceNodes.forEach((node) => {
-      const relationships = this.getInformationRelationship(node.id);
-      const fields = relationships.map((relationship) => this.getInformationNode(relationship.target));
+      const fields = this.getInformationNodesFromProvenance(node);
       const tuples = fields.filter(isDefined).map((field) => tuple(field.key, field.value));
 
       nodeLookup[node.id] = {
@@ -386,10 +381,6 @@ export default class Visualizer extends Vue {
     return makeLookupBy(this.models, (study) => study.studyId);
   }
 
-  public openHelp() {
-    this.showHelp = true;
-  }
-
   get dependenciesLookup() {
     return makeArrayLookupBy(this.dependencies, (d) => d.source);
   }
@@ -400,6 +391,10 @@ export default class Visualizer extends Vue {
 
   get informationNodeLookup() {
     return makeLookup(this.informationNodes);
+  }
+
+  public openHelp() {
+    this.showHelp = true;
   }
 
   public getConnections(id: string) {
@@ -423,6 +418,13 @@ export default class Visualizer extends Vue {
     }
 
     return this.informationLookup[id];
+  }
+
+  public getInformationNodesFromProvenance(node: ProvenanceNode) {
+    const relationships = this.getInformationRelationship(node.id);
+    return relationships
+      .map((relationship) => this.getInformationNode(relationship.target))
+      .filter(isDefined);
   }
 
   public showProvenanceGraph(r: SearchItem) {
@@ -449,13 +451,16 @@ export default class Visualizer extends Vue {
     this.selectedModel = null;
   }
 
-  public saveSelectedModel() {
+  public async saveSelectedModel() {
     if (!this.selectedModel) {
       return;
     }
 
     const model = this.selectedModel;
-    makeRequest(() => backend.updateOrCreateModel(model, ['id', 'source', 'signalingPathway']));
+    const result = await makeRequest(() => backend.updateOrCreateModel(model));
+    if (result.result === 'success') {
+      this.selectedModel = null;
+    }
   }
 
   public async deleteSelectedModel() {
@@ -472,10 +477,6 @@ export default class Visualizer extends Vue {
 
   public openModel(result: SearchItem) {
     if (result.studyId === undefined) {
-      this.$notification.open({
-        message: 'Please assign a model first.',
-      });
-
       this.$notification.open({
         message: 'Please assign a model first.',
         position: 'is-bottom-right',
@@ -596,7 +597,7 @@ export default class Visualizer extends Vue {
         const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
         this.$refs.d3.setStrokeColor(selectedNode, color);
       },
-      mouseup: (ev: MouseEvent) => {
+      mouseup: async (ev: MouseEvent) => {
         if (ev.which !== 3) {
           return;
         }
@@ -625,15 +626,13 @@ export default class Visualizer extends Vue {
           return;
         }
 
-        makeRequest(async () => {
-          const result = await backend.createDependency(connection.connection);
-          if (result.result === 'success') {
-            this.dependencies.push(connection.connection);
-            this.renderGraph();
-          }
+        const result = await makeRequest(async () => backend.updateOrCreateDependency(connection.connection));
+        if (result.result !== 'success') {
+          return;
+        }
 
-          return result;
-        });
+        this.dependencies.push(connection.connection);
+        this.renderGraph();
       },
     });
   }
@@ -889,10 +888,6 @@ export default class Visualizer extends Vue {
     this.selectedNode = node;
 
     this.nodesToShow[node.id] = true;
-    if (node.studyId !== undefined) {
-      this.expanded[node.studyId] = true;
-    }
-
     this.renderGraph();
   }
 
@@ -902,7 +897,7 @@ export default class Visualizer extends Vue {
     this.possibleRelationships = null;
   }
 
-  public changeRelationship(relationship: ProvenanceNodeRelationships) {
+  public async changeRelationship(relationship: ProvenanceNodeRelationships) {
     if (!this.selectedConnection) {
       return;
     }
@@ -915,32 +910,47 @@ export default class Visualizer extends Vue {
     const cached = this.cachedConnections[a.type] = this.cachedConnections[a.type] || {};
     cached[b.type] = relationship;
 
+    const newProperties = {
+      ...originalConnection.properties,
+      type: relationship,
+    };
+
+    const result = await makeRequest(() => backend.updateOrCreateDependency({
+      source: originalConnection.source,
+      target: originalConnection.target,
+      properties: newProperties,
+    }));
+    if (result.result !== 'success') {
+      return;
+    }
+
+    // This feels a bit messy
+    // Set the relationship
+    // Set the relationship of the actual data
+    // Then render the graph again
     this.currentRelationship = relationship;
-    originalConnection.properties.type = relationship;
+    originalConnection.properties = newProperties;
     this.renderGraph();
     this.cancelRelationshipSelection();
-
-    makeRequest(() => backend.createDependency(originalConnection));
   }
 
-  public deleteRelationship() {
+  public async deleteRelationship() {
     if (!this.selectedConnection) {
       return;
     }
 
     const selectedConnection = this.selectedConnection;
-    makeRequest(async () => {
-      const result = await backend.deleteDependency(selectedConnection.properties.id);
-      if (result.result === 'success') {
-        this.dependencies = this.dependencies.filter((dependency) => {
-          return dependency.properties.id !== selectedConnection.properties.id;
-        });
+    const result = await makeRequest(() => backend.deleteDependency(selectedConnection.properties.id));
+    if (result.result !== 'success') {
+      return;
+    }
 
-        this.renderGraph();
-        this.cancelRelationshipSelection();
-      }
-      return result;
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return dependency.properties.id !== selectedConnection.properties.id;
     });
+
+    this.renderGraph();
+    this.cancelRelationshipSelection();
   }
 
   public deselectNode() {
@@ -954,33 +964,30 @@ export default class Visualizer extends Vue {
 
     const selected = this.selectedNode;
 
-    const toRemove: this['dependencies'] = [];
-    const toKeep: this['dependencies'] = [];
-    this.dependencies.filter((dependency) => {
-      if (dependency.target === selected.id || dependency.source === selected.id) {
-        toRemove.push(dependency);
-      } else {
-        toKeep.push(dependency);
-      }
-    });
-
-    // Try and delete all of the connections first
-    // Only delete the node if all of the connections are able to be deleted
-    for (const connection of toRemove) {
-      const res = await makeRequest(() => backend.deleteDependency(connection.properties.id));
-      if (res.result !== 'success') {
-        return;
-      }
-    }
-
+    // This request will delete all of the dependency relationships
+    // It will also delete information relationships and nodes
     const result = await makeRequest(() => backend.deleteNode(selected.id));
     if (result.result !== 'success') {
       return;
     }
 
-    this.dependencies = toKeep;
+    // We have to delte the same data that the backend deletes
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
+    });
+
+    const nodeIds = new Set(this.provenanceNodes.map(({ id }) => id));
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return nodeIds.has(dependency.target) && nodeIds.has(dependency.source);
+    });
+
+    this.information = this.information.filter((node) => {
+      return nodeIds.has(node.source);
+    });
+
+    const informationNodeIds = new Set(this.information.map(({ target }) => target));
+    this.informationNodes = this.informationNodes.filter((node) => {
+      return informationNodeIds.has(node.id);
     });
 
     this.selectedNode = null;
@@ -992,39 +999,56 @@ export default class Visualizer extends Vue {
       return;
     }
 
-    const newInformationSet = new Set(information.map((field) => field.id));
-    const oldInformationSet = new Set(this.selectedNodeInformation.map((field) => field.id));
-    const informationToRemove = this.selectedNodeInformation.filter((field) => !newInformationSet.has(field.id));
-    const newInformation = information.filter((field) => !oldInformationSet.has(field.id));
+    const newInformationIds = new Set(information.map((field) => field.id));
+    const oldInformationIds = new Set(this.selectedNodeInformation.map((field) => field.id));
 
-    await Promise.all(newInformation.map(async (field) => {
-      console.info('Adding new connection from ' + node.id + ' to ' + field.id);
-      const res = await makeRequest(() => backend.addInformationEntry({
+    const informationToRemove = this.selectedNodeInformation.filter((field) => !newInformationIds.has(field.id));
+    const changedInformation = information.filter((field) => oldInformationIds.has(field.id));
+    const newInformation = information.filter((field) => !oldInformationIds.has(field.id));
+
+    logger.info(`There are ${informationToRemove.length} nodes to remove and ${newInformation.length} nodes to add!`);
+
+    for (const field of newInformation) {
+      const relationship = {
         source: node.id,
         target: field.id,
         properties: {
           id: uniqueId(),
         },
-      }));
+      };
 
-      console.log('PUSHING');
+      logger.info('Creating new informatio node and relationship: ' + field.id);
+      const result = await makeRequest(() => backend.addInformationEntry(relationship, field));
+      if (result.result !== 'success') {
+        return;
+      }
+
+      this.information.push(relationship);
       this.informationNodes.push(field);
-    }));
+    }
 
-    const informationToRemoveSet = new Set(informationToRemove.map(({ id }) => id));
-    this.informationNodes = this.informationNodes.filter((field) => !informationToRemoveSet.has(field.id));
-    informationToRemove.forEach((field) => {
-      console.info('Deleting information node: ' + field.id);
-      backend.deleteInformationField(field.id);
-    });
+    for (const field of changedInformation) {
+      logger.info('Updating information node: ' + field.id);
+      const result = await makeRequest(() => backend.updateOrCreateInformationNode(field));
+      if (result.result !== 'success') {
+        return;
+      }
 
-    information.forEach((field) => {
       const toUpdate = this.informationNodeLookup[field.id];
       toUpdate.key = field.key;
       toUpdate.value = field.value;
-      console.info('Updating information node: ' + field.id);
-      backend.updateOrCreateInformationNode(field);
-    });
+    }
+
+    for (const field of informationToRemove) {
+      logger.info('Deleting information node: ' + field.id);
+      const result = await makeRequest(() => backend.deleteInformationNode(field.id));
+      if (result.result !== 'success') {
+        return;
+      }
+    }
+
+    const informationToRemoveSet = new Set(informationToRemove.map(({ id }) => id));
+    this.informationNodes = this.informationNodes.filter((field) => !informationToRemoveSet.has(field.id));
 
     // Here we are revalidating all of the connections to see if they are still valid
     // If the type of node changed, they may no longer be valid
@@ -1040,7 +1064,7 @@ export default class Visualizer extends Vue {
     });
 
     for (const id of toRemove) {
-      console.info('Adding dependency: ' + id);
+      logger.info('Adding dependency: ' + id);
       makeRequest(() => backend.deleteDependency(id));
     }
 
@@ -1048,7 +1072,7 @@ export default class Visualizer extends Vue {
       return !toRemove.has(dependency.properties.id);
     });
 
-    console.info('Updating node: ' + node.id);
+    logger.info('Updating node: ' + node.id);
     {
       const toUpdate = this.highLevelNodeLookup[node.id].node;
       toUpdate.type = node.type;
@@ -1088,6 +1112,9 @@ export default class Visualizer extends Vue {
 <style lang="scss" scoped>
 .cards {
   width: 350px;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 20px 1px;
 }
 
 .search {
@@ -1102,7 +1129,7 @@ export default class Visualizer extends Vue {
 
 .overlay {
   position: absolute;
-  margin: 20px;
+  margin: 0 20px;
   top: 0;
   left: 0;
   right: 0;
@@ -1113,6 +1140,10 @@ export default class Visualizer extends Vue {
 
 .overlay-child {
   pointer-events: auto;
+}
+
+.overlay-child:not(.cards) {
+  margin-top: 20px;
 }
 
 .clear-button {

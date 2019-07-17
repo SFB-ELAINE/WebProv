@@ -65,7 +65,6 @@ export default createComponent({
 
     const save = () => {
       context.emit('save');
-      cancel();
     };
 
     return {
