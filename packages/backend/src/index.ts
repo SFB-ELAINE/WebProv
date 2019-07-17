@@ -132,8 +132,7 @@ const create = () => {
   })
 
   router.post('/nodes', async (req) => {
-    // TODO This should use the types from the DB
-    return await updateOrCreate(ProvenanceNodeSchema, req.body.item, req.body.keys);
+    return await updateOrCreate(ProvenanceNodeSchema, req.body.item);
   })
 
   router.get('/nodes/dependencies', async () => {
@@ -149,11 +148,16 @@ const create = () => {
   })
 
   router.post('/nodes/information', async (req) => {
-    return;
+    const result1 = await updateOrCreate(InformationSchema, req.body.information);
+    if (result1.result !== 'success') {
+      return result1;
+    }
+
+    return await updateOrCreateConnection(InformationRelationship, req.body.relationship);
   })
 
   router.post('/studies', async (req) => {
-    return await updateOrCreate(SimulationStudyModel, req.body.item, req.body.keys);
+    return await updateOrCreate(SimulationStudyModel, req.body.item);
   })
 
   router.delete('/nodes/dependencies', async (req) => {

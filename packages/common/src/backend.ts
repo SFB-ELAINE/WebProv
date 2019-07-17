@@ -58,7 +58,6 @@ export interface ProvenanceAPI {
     POST: {
       body: {
         item: ProvenanceNode;
-        keys?: Array<keyof ProvenanceAPI['/nodes']['POST']['body']['item']>;
       }
       response: BackendSuccess | BackendError;
     }
@@ -77,7 +76,6 @@ export interface ProvenanceAPI {
     POST: {
       body: {
         item: SimulationStudy;
-        keys?: Array<keyof ProvenanceAPI['/studies']['POST']['body']['item']>;
       }
       response: BackendSuccess | BackendError;
     }
@@ -110,8 +108,10 @@ export interface ProvenanceAPI {
     },
     
     POST: {
-      query: { id: string };
-      body: Information[];
+      body: {
+        relationship: RelationshipBasics<HasInformation>,
+        information: Information,
+      };
       response: BackendSuccess | BackendError;
     }
   }

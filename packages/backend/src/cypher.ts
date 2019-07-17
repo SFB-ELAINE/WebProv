@@ -51,31 +51,27 @@ interface Statement<> {
 }
 
 export const updateOrCreate = async <S extends Schema>(
-  schema: S, obj: TypeOf<S>, objKeys?: Array<keyof typeof obj>
+  schema: S, obj: TypeOf<S>
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
     const type = getType(schema);
 
     const partial: Partial<typeof obj> = {};
-    const toRemove: Array<keyof typeof obj> = []
-    for (const key of objKeys || keys(obj)) {
-      if (obj[key] === undefined) {
-        toRemove.push(key);
-        delete obj[key];
-      } else {
+    for (const key of keys(obj)) {
+      if (obj[key] !== undefined) {
         partial[key] = obj[key];
       }
     }
 
-    // Create an exact encoding of the object
+    // Create an encoding of the object
     const object = type.encode(obj);
 
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<S>]> = await session.run(
       `
       MERGE (n:${schema.name} { id: $id })
-      ON CREATE SET n = $object
-      ON MATCH  SET n += $partial
+      ON CREATE SET n = $partial
+      ON MATCH  SET n = $partial
       return n
       `, 
       {
@@ -85,30 +81,15 @@ export const updateOrCreate = async <S extends Schema>(
       }
     )
 
+    session.close();
+
     if (result.records.length !== 1) {
-      session.close();
       return {
         result: 'error',
         message: 'Node was not created/updated successfully.'
       }
     }
 
-    if (toRemove.length !== 0) {
-      console.log(`Deleting ${toRemove} from object.`)
-      await session.run(
-        `
-        MATCH (n:${schema.name} { id: $id })
-        UNWIND $keys AS key
-        REMOVE n[key]
-        `, 
-        {
-          id: obj.id,
-          keys: toRemove,
-        }
-      )
-    }
-    
-    session.close();
     return {
       result: 'success',
     };

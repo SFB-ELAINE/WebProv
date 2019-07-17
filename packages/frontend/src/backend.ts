@@ -1,16 +1,24 @@
 import axios from 'restyped-axios';
 import { SimulationStudy, ProvenanceNode, ProvenanceAPI, RelationshipBasics } from 'common';
 import { Depends, HasInformation, Information } from 'common/dist/schemas';
+import { getLogger } from '@/utils';
+
+const logger = getLogger();
 
 // TODO(jacob) baseUrl
 const api = axios.create<ProvenanceAPI>({
   baseURL: 'http://localhost:3000/',
 });
 
+api.interceptors.request.use((request) => {
+  logger.info(`REQUEST -> ${request.url}`, request);
+  return request;
+});
+
 export const updateOrCreateNode = async (
-  node: ProvenanceNode, keys?: Array<keyof ProvenanceNode>,
+  node: ProvenanceNode,
 ) => {
-  return (await api.post('/nodes', { item: node, keys })).data;
+  return (await api.post('/nodes', { item: node })).data;
 };
 
 export const updateOrCreateInformationNode = async (node: Information) => {
@@ -18,9 +26,9 @@ export const updateOrCreateInformationNode = async (node: Information) => {
 };
 
 export const updateOrCreateModel = async (
-  model: SimulationStudy, keys?: Array<keyof SimulationStudy>,
+  model: SimulationStudy,
 ) => {
-  return (await api.post('/studies', { item: model, keys })).data;
+  return (await api.post('/studies', { item: model })).data;
 };
 
 export const updateOrCreateDependency = async (

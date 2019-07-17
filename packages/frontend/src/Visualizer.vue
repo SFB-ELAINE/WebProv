@@ -96,7 +96,10 @@
           :information="selectedNodeInformation"
           @close="deselectNode"
           @delete="deleteNode"
-          @save="saveNode"
+          @update:information:delete="deleteInformationNode"
+          @update:information:add="addInformationNode"
+          @update:information="editInformationNode"
+          @update:node="editNode"
         ></node-form>
       
       </div>
@@ -291,6 +294,8 @@ export default class Visualizer extends Vue {
   // Used so find group IDs for group nodes that have already been created.
   // We don't want to use a different ID every time we render.
   public savedGroupIds: Lookup<string> = {};
+
+  public debouncedRenderGraph = debounce(this.renderGraph, 500);
 
   public $refs!: {
     d3: D3<SingleNode>;
@@ -626,7 +631,7 @@ export default class Visualizer extends Vue {
           return;
         }
 
-        const result = await makeRequest(async () => backend.updateOrCreateDependency(connection.connection));
+        const result = await makeRequest(() => backend.updateOrCreateDependency(connection.connection));
         if (result.result !== 'success') {
           return;
         }
@@ -994,62 +999,7 @@ export default class Visualizer extends Vue {
     this.renderGraph();
   }
 
-  public async saveNode(node: ProvenanceNode, information: Information[]) {
-    if (!this.selectedNodeInformation) {
-      return;
-    }
-
-    const newInformationIds = new Set(information.map((field) => field.id));
-    const oldInformationIds = new Set(this.selectedNodeInformation.map((field) => field.id));
-
-    const informationToRemove = this.selectedNodeInformation.filter((field) => !newInformationIds.has(field.id));
-    const changedInformation = information.filter((field) => oldInformationIds.has(field.id));
-    const newInformation = information.filter((field) => !oldInformationIds.has(field.id));
-
-    logger.info(`There are ${informationToRemove.length} nodes to remove and ${newInformation.length} nodes to add!`);
-
-    for (const field of newInformation) {
-      const relationship = {
-        source: node.id,
-        target: field.id,
-        properties: {
-          id: uniqueId(),
-        },
-      };
-
-      logger.info('Creating new informatio node and relationship: ' + field.id);
-      const result = await makeRequest(() => backend.addInformationEntry(relationship, field));
-      if (result.result !== 'success') {
-        return;
-      }
-
-      this.information.push(relationship);
-      this.informationNodes.push(field);
-    }
-
-    for (const field of changedInformation) {
-      logger.info('Updating information node: ' + field.id);
-      const result = await makeRequest(() => backend.updateOrCreateInformationNode(field));
-      if (result.result !== 'success') {
-        return;
-      }
-
-      const toUpdate = this.informationNodeLookup[field.id];
-      toUpdate.key = field.key;
-      toUpdate.value = field.value;
-    }
-
-    for (const field of informationToRemove) {
-      logger.info('Deleting information node: ' + field.id);
-      const result = await makeRequest(() => backend.deleteInformationNode(field.id));
-      if (result.result !== 'success') {
-        return;
-      }
-    }
-
-    const informationToRemoveSet = new Set(informationToRemove.map(({ id }) => id));
-    this.informationNodes = this.informationNodes.filter((field) => !informationToRemoveSet.has(field.id));
-
+  public async validateConnections(node: ProvenanceNode) {
     // Here we are revalidating all of the connections to see if they are still valid
     // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
@@ -1063,8 +1013,12 @@ export default class Visualizer extends Vue {
       toRemove.add(c.properties.id);
     });
 
+    if (toRemove.size === 0) {
+      return;
+    }
+
     for (const id of toRemove) {
-      logger.info('Adding dependency: ' + id);
+      logger.info('Deleting dependency: ' + id);
       makeRequest(() => backend.deleteDependency(id));
     }
 
@@ -1072,17 +1026,58 @@ export default class Visualizer extends Vue {
       return !toRemove.has(dependency.properties.id);
     });
 
-    logger.info('Updating node: ' + node.id);
-    {
-      const toUpdate = this.highLevelNodeLookup[node.id].node;
-      toUpdate.type = node.type;
-      toUpdate.studyId = node.studyId;
-      toUpdate.label = node.label;
-      makeRequest(() => backend.updateOrCreateNode(node));
+    this.debouncedRenderGraph();
+  }
+
+  public async deleteInformationNode(node: Information) {
+    const result = await makeRequest(() => backend.deleteInformationNode(node.id));
+    if (result.result !== 'success') {
+      return;
     }
 
-    this.renderGraph();
-    this.selectedNode = null;
+    this.informationNodes = this.informationNodes.filter((n) => n.id !== node.id);
+    this.information = this.information.filter((n) => n.target !== node.id);
+    this.debouncedRenderGraph();
+  }
+
+  public async addInformationNode(node: Information) {
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const relationship = {
+      source: node.id,
+      target: this.selectedNode.id,
+      properties: {
+        id: uniqueId(),
+      },
+    };
+
+    logger.info('Creating new information node and relationship: ' + node.id);
+    const result = await makeRequest(() => backend.addInformationEntry(relationship, node));
+    if (result.result !== 'success') {
+      return;
+    }
+
+    this.information.push(relationship);
+    this.informationNodes.push(node);
+    this.debouncedRenderGraph();
+  }
+
+  public async editInformationNode<K extends keyof Information>(node: Information, key: K, value: Information[K]) {
+    node[key] = value;
+    makeRequest(() => backend.updateOrCreateInformationNode(node));
+    this.debouncedRenderGraph();
+  }
+
+  public editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, value: ProvenanceNode[K]) {
+    node[key] = value;
+    makeRequest(() => backend.updateOrCreateNode(node));
+    this.debouncedRenderGraph();
+
+    if (key === 'type') {
+      this.validateConnections(node);
+    }
   }
 
   public async mounted() {
