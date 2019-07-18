@@ -61,7 +61,7 @@ export const relationshipRules: RelationshipRules = {
   },
 };
 
-export const SimulationStudyModel = n.schema({
+export const SimulationStudySchema = n.schema({
   name: 'SimulationStudy',
   required: {
     /**
@@ -95,8 +95,8 @@ export const SimulationStudyModel = n.schema({
   },
 });
 
-export const InformationSchema = n.schema({
-  name: 'Information',
+export const InformationFieldSchema = n.schema({
+  name: 'InformationField',
   required: {
     id: {
       primary: true,
@@ -112,7 +112,7 @@ export const InformationSchema = n.schema({
 });
 
 export const ProvenanceNodeSchema = n.schema({
-  name: 'Node',
+  name: 'ProvenanceNode',
   required: {
     /**
      * The unique id.
@@ -155,9 +155,9 @@ export const ProvenanceNodeSchema = n.schema({
 
 export type ProvenanceNode = n.TypeOf<typeof ProvenanceNodeSchema>;
 
-export type Information = n.TypeOf<typeof InformationSchema>;
+export type InformationField = n.TypeOf<typeof InformationFieldSchema>;
 
-export type SimulationStudy = n.TypeOf<typeof SimulationStudyModel>;
+export type SimulationStudy = n.TypeOf<typeof SimulationStudySchema>;
 
 export type ProvenanceNodeType = ProvenanceNode['type'];
 
@@ -166,7 +166,7 @@ export const provenanceNodeTypes = ProvenanceNodeSchema.required.type.type.types
 export const InformationRelationship = n.relationship({
   name: 'HAS_INFORMATION',
   source: ProvenanceNodeSchema,
-  target: InformationSchema,
+  target: InformationFieldSchema,
   required: {
     id: {
       primary: true,

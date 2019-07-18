@@ -1,5 +1,4 @@
 import * as t from 'io-ts';
-import { keys, tuple } from './utils';
 export { boolean, string, number, union, literal } from 'io-ts';
 
 export type Primitive =
@@ -41,11 +40,10 @@ export interface RelationshipSchema<A extends Schema, B extends Schema> extends 
   target: B;
 }
 
-export interface Relationship<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>> {
-  schema: R;
-  source: TypeOf<A>;
-  target: TypeOf<B>;
-  properties: TypeOf<R>;
+export interface RelationshipInformation<T> {
+  source: string, 
+  target: string, 
+  properties: T,
 }
 
 export const schema = <S extends Schema>(s: S): S => {
@@ -75,23 +73,3 @@ export interface RelationshipBasics<T> {
 export type TypeOf<T extends Schema> =
   Required<Defined<T['required']>> &
   Optional<Defined<T['optional']>>;
-
-const toObject = <T>(arg: Array<[string, T]>) => {
-  const obj: { [k: string]: T } = {};
-  arg.forEach(([key, value]) => {
-    obj[key] = value;
-  });
-
-  return obj;
-};
-
-export const getType = <S extends Schema>(schema: S) => {
-  const required = schema.required;
-  const optional = schema.optional || {};
-  const r = toObject(keys(required).map((key) => tuple(key, required[key].type)))
-  const o = toObject(keys(optional).map((key) => tuple(key, optional[key].type)))
-  return t.exact(t.intersection([
-    t.type(r),
-    t.partial(o),
-  ]));
-}

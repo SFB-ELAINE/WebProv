@@ -35,7 +35,7 @@
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
-            <b-tooltip label="Open Model Information" position="is-left">
+            <b-tooltip label="Open Model InformationField" position="is-left">
               <b-button
                 type="is-text"
                 icon-right="information-outline"

@@ -9,11 +9,14 @@ import {
   uniqueId,
   BackendError,
   BackendNotFound,
+  isValidRelationship,
 } from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 import { Depends } from 'common/dist/schemas';
+
+// The following methods are useful for making lookups.
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -50,6 +53,12 @@ export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
 
 export interface Lookup<T> { [k: string]: T; }
 
+/**
+ * Similar to the vue-property-decorator, but with better type checking.
+ *
+ * @param path The value to watch.
+ * @param options The options.
+ */
 export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
   return W(path, options);
 }
@@ -58,16 +67,26 @@ interface SimulationStudyLookup {
   [studyId: number]: SimulationStudy | undefined;
 }
 
-export function getText(n: ProvenanceNode, lookup: SimulationStudyLookup): string {
+/**
+ * Determine the label for the provenance node. If a label is defined, that is used.
+ *
+ * @param n The node.
+ * @param lookup The simulation study lookup. We need this to determine the default label for the model node.
+ */
+export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): string {
+  if (n.label) {
+    return n.label;
+  }
+
   switch (n.type) {
     case 'WetLabData':
-      return n.label || 'No Label';
+      return 'No Label';
     case 'ModelBuildingActivity':
-      return n.label || 'MBA';
+      return 'MBA';
     case 'SimulationData':
-      return n.label || 'None';
+      return 'None';
     case 'ModelExplorationActivity':
-      return n.label || 'MEA';
+      return 'MEA';
     case 'Model':
       if (n.label) {
         return n.label;
@@ -100,33 +119,20 @@ interface Cant {
   can: false;
 }
 
-export const makeConnection = (
+export const createRelationship = (
   a: ProvenanceNode, b: ProvenanceNode, type?: ProvenanceNodeRelationships,
 ): Can | Cant => {
-  const rulesForA = relationshipRules[a.type];
-  const rules = rulesForA[b.type];
-  if (!rules) {
-    return {
-      can: false,
-    };
-  }
-
   if (!type) {
     return {
       can: false,
     };
   }
 
-  const isValid = rules.some((rule) => {
-    if (typeof rule === 'string') {
-      return rule === type;
-    } else {
-      return rule.relationship === type;
-    }
-  });
-
+  const isValid = isValidRelationship(a, b, type);
   if (!isValid) {
-    return { can: false };
+    return {
+      can: false,
+    };
   }
 
   return {
@@ -142,16 +148,16 @@ export const makeConnection = (
   };
 };
 
-export const isValidConnection = (
-  a: ProvenanceNode, b: ProvenanceNode, type: ProvenanceNodeRelationships | undefined,
-) => {
-  return makeConnection(a, b, type).can;
-};
-
 type Events = keyof WindowEventMap;
 
 type EventListener<K extends Events> = (ev: WindowEventMap[K]) => any;
 
+/**
+ * Add an event listener and remove it when the event occurs.
+ * @param type
+ * @param listener
+ * @param options
+ */
 export const once = <K extends Events>(
   type: K,
   listener: EventListener<K>,
@@ -165,6 +171,13 @@ export const once = <K extends Events>(
   window.addEventListener(type, callAndRemove, options);
 };
 
+/**
+ * Add an event listener (like normal) but return an object with a dispose method to remove the same listener.
+ *
+ * @param type The event.
+ * @param ev The listener.
+ * @param options The options.
+ */
 export const addEventListener = <K extends Events>(
   type: K,
   ev: EventListener<K>,
@@ -172,8 +185,10 @@ export const addEventListener = <K extends Events>(
 ) => {
   window.addEventListener(type, ev, options);
 
-  return () => {
-    window.removeEventListener(type, ev);
+  return {
+    dispose: () => {
+      window.removeEventListener(type, ev);
+    },
   };
 };
 
@@ -181,6 +196,12 @@ type EventListeners = {
   [P in keyof WindowEventMap]?: EventListener<P> | 'remove';
 };
 
+/**
+ * Add 0 or more event listeners and return an object with a dispose method to remove the listeners.
+ *
+ * @param events The events.
+ * @param options The options.
+ */
 export const addEventListeners = (
   events: EventListeners,
   options?: boolean | AddEventListenerOptions,
@@ -210,9 +231,19 @@ export const addEventListeners = (
   }
 
 
-  return remove;
+  return {
+    dispose: remove,
+  };
 };
 
+/**
+ * Determines the default relationship between two nodes based on the valid relationship types. If none exist, nothing
+ * is returned.
+ *
+ * @param a The source node.
+ * @param b The target node.
+ * @returns The default relationship (the first in the list) or nothing if the list of valid relationships is empty.
+ */
 export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceNodeType) => {
   const aRules = relationshipRules[a];
 
@@ -229,13 +260,11 @@ export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceN
   }
 };
 
-export interface FieldInformation<T extends string> {
-  name: T;
-  type: 'string' | 'number';
-  multiple?: boolean;
-  options?: Array<string | number>;
-}
-
+/**
+ * Uppercase the first character of the string.
+ *
+ * @param s The string to uppercase.
+ */
 export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
 }
@@ -251,6 +280,7 @@ export function wordCase(s: string) {
   );
 }
 
+// A getter function with defaults
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o): T | undefined;
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue: T): T;
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue?: T) {
@@ -287,7 +317,6 @@ export function createComponent<Props>(
 ): ComponentOptions<Vue> {
   return (compOptions as any) as ComponentOptions<Vue>;
 }
-
 // Remove until here
 
 export async function makeRequest<T extends { result: 'success' }>(
@@ -297,14 +326,14 @@ export async function makeRequest<T extends { result: 'success' }>(
 
   if (result.result === 'error') {
     NotificationProgrammatic.open({
-      duration: 10000,
+      indefinite: true,
       message: result.message,
       position: 'is-bottom-right',
       type: 'is-danger',
     });
   } else if (result.result === 'not-found') {
     NotificationProgrammatic.open({
-      duration: 10000,
+      indefinite: true,
       message: 'Item not found in database',
       position: 'is-bottom-right',
       type: 'is-danger',
@@ -323,6 +352,16 @@ interface Point {
   y: number;
 }
 
+/**
+ * Find the intersection between two lines defined by four points.
+ *
+ * @param l1Start The start of the first line.
+ * @param l1End The end of the first line.
+ * @param l2Start The start of the second line.
+ * @param l2End The end of the second line.
+ * @returns The position of their intersection and information on whether the intersection actually occurred or whether
+ * the intersection would have only occurred if the lines extended to infinite.
+ */
 export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End: Point) {
   // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and
   // booleans for whether line segment 1 or line segment 2 contain the point
@@ -362,15 +401,8 @@ export const isDefined = <T>(o: T | undefined): o is T => {
   return o !== undefined;
 };
 
-type Level = 'info' | 'debug' | 'error' | 'trace';
-
-const levelLookup: { [L in Level]: number } = {
-  error: 2,
-  info: 3,
-  debug: 4,
-  trace: 5,
-};
-
+// This seems weird, but I'm just doing it to avoid tslint warnings.
+// Also, we can easily modify this method to return other objects rather than console
 export const getLogger = () => {
   return console;
 };

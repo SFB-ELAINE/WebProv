@@ -15,7 +15,7 @@
       <b-input type="number" :value="node.studyId" @input="studyIdChange"></b-input>
     </b-field>
 
-    <b-field label="Information" style="flex-direction: column; align-items: flex-start;">
+    <b-field label="InformationField" style="flex-direction: column; align-items: flex-start;">
       <div v-for="(field, j) in information" :key="j" style="display: flex">
         <b-field>
           <b-input placeholder="Key" :value="field.key" @input="updateKey(j, $event)"></b-input>
@@ -45,8 +45,8 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { FieldInformation, makeRequest, setVue, Watch } from '../utils';
-import { provenanceNodeTypes, ProvenanceNode, Information, uniqueId, ProvenanceNodeType } from 'common';
+import { makeRequest, setVue } from '../utils';
+import { provenanceNodeTypes, ProvenanceNode, InformationField, uniqueId, ProvenanceNodeType } from 'common';
 import * as backend from '@/backend';
 
 @Component({
@@ -54,7 +54,7 @@ import * as backend from '@/backend';
 })
 export default class NodeForm extends Vue {
   @Prop({ type: Object, required: true }) public node!: ProvenanceNode;
-  @Prop({ type: Array, required: true }) public information!: Information[];
+  @Prop({ type: Array, required: true }) public information!: InformationField[];
 
   public typeOptions = provenanceNodeTypes;
 
@@ -96,7 +96,7 @@ export default class NodeForm extends Vue {
     this.$emit('update:node', this.node, key, value);
   }
 
-  public updateInformationNode<K extends keyof Information>(information: Information, key: K, value: Information[K]) {
+  public updateInformationNode<K extends keyof InformationField>(information: InformationField, key: K, value: InformationField[K]) {
     this.$emit('update:information', information, key, value);
   }
 }

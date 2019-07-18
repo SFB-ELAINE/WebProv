@@ -17,15 +17,15 @@ import {
 import { 
   ProvenanceAPI, 
   ProvenanceNodeSchema, 
-  SimulationStudyModel, 
+  SimulationStudySchema, 
   DependsRelationship, 
   InformationRelationship, 
-  InformationSchema,
+  InformationFieldSchema,
   BackendError,
   BackendNotFound,
   BackendSuccess,
   uniqueId,
-  Information, 
+  InformationField, 
 } from 'common';
 
 export function literal<T extends string>(o: T): T {
@@ -63,14 +63,14 @@ export const resetDatabase = async () => {
   }
 
   for (const study of data.studies) {
-    const result = await updateOrCreate(SimulationStudyModel, study);
+    const result = await updateOrCreate(SimulationStudySchema, study);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating stufy: ${result.message}`);
     }
   }
 
   for (const node of data.informationNodes) {
-    const result = await updateOrCreate(InformationSchema, node);
+    const result = await updateOrCreate(InformationFieldSchema, node);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating information: ${result.message}`);
     }
@@ -104,15 +104,15 @@ const create = () => {
   });
 
   router.get('/information', async () => {
-    return await getItems(InformationSchema);
+    return await getItems(InformationFieldSchema);
   });
 
   router.post('/information', async (req) => {
-    return await updateOrCreate(InformationSchema, req.body);
+    return await updateOrCreate(InformationFieldSchema, req.body);
   });
 
   router.delete('/information', async (req) => {
-    return await deleteItem(InformationSchema, req.query.id);
+    return await deleteItem(InformationFieldSchema, req.query.id);
   });
 
   router.get('/nodes', async () => {
@@ -120,7 +120,7 @@ const create = () => {
   });
 
   router.get('/studies', async () => {
-    return await getItems(SimulationStudyModel);
+    return await getItems(SimulationStudySchema);
   })
 
   router.delete('/nodes', async (req) => {
@@ -128,7 +128,7 @@ const create = () => {
   })
 
   router.delete('/studies', async (req) => {
-    return await deleteItem(SimulationStudyModel, req.query.id);
+    return await deleteItem(SimulationStudySchema, req.query.id);
   })
 
   router.post('/nodes', async (req) => {
@@ -148,7 +148,7 @@ const create = () => {
   })
 
   router.post('/nodes/information', async (req) => {
-    const result1 = await updateOrCreate(InformationSchema, req.body.information);
+    const result1 = await updateOrCreate(InformationFieldSchema, req.body.information);
     if (result1.result !== 'success') {
       return result1;
     }
@@ -157,7 +157,7 @@ const create = () => {
   })
 
   router.post('/studies', async (req) => {
-    return await updateOrCreate(SimulationStudyModel, req.body.item);
+    return await updateOrCreate(SimulationStudySchema, req.body.item);
   })
 
   router.delete('/nodes/dependencies', async (req) => {

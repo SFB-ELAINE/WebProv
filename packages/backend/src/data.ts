@@ -2,13 +2,20 @@ import {
   SimulationStudy,
   ProvenanceNode,
   uniqueId,
-  Information,
-  Relationship,
+  InformationField,
   InformationRelationship,
   RelationshipSchema,
   Schema,
   DependsRelationship,
+  TypeOf,
 } from 'common';
+
+export interface Relationship<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>> {
+  schema: R;
+  source: TypeOf<A>;
+  target: TypeOf<B>;
+  properties: TypeOf<R>;
+}
 
 export const connections: Relationship<Schema, Schema, RelationshipSchema<Schema, Schema>>[] = [];
 
@@ -27,7 +34,7 @@ const WX_7: ProvenanceNode = {
   classification: 'entity',
 };
 
-const WX_7_INFORMATION: Information = {
+const WX_7_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'Xenopus egg extract',
@@ -50,7 +57,7 @@ const W1_1: ProvenanceNode = {
   classification: 'entity',
 };
 
-const W1_1_INFORMATION: Information = {
+const W1_1_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'Xenopus egg extract',
@@ -73,7 +80,7 @@ const W1_2: ProvenanceNode = {
   classification: 'entity',
 };
 
-const W1_2_INFORMATION: Information = {
+const W1_2_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'Xenopus egg extract',
@@ -217,7 +224,7 @@ const W12_1: ProvenanceNode = {
   classification: 'entity',
 };
 
-const W12_1_INFORMATION: Information = {
+const W12_1_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'hNPCs',
@@ -240,7 +247,7 @@ const WX_1: ProvenanceNode = {
   classification: 'entity',
 };
 
-const WX_1_INFORMATION: Information = {
+const WX_1_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'HEK293T',
@@ -263,7 +270,7 @@ const WX_2: ProvenanceNode = {
   classification: 'entity',
 };
 
-const WX_2_INFORMATION: Information = {
+const WX_2_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
@@ -370,7 +377,7 @@ const W12_2: ProvenanceNode = {
   classification: 'entity',
 };
 
-const W12_2_INFORMATION: Information = {
+const W12_2_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'hNPCs',
@@ -393,7 +400,7 @@ const W12_3: ProvenanceNode = {
   classification: 'entity',
 };
 
-const W12_3_INFORMATION: Information = {
+const W12_3_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
@@ -416,7 +423,7 @@ const WX_3: ProvenanceNode = {
   classification: 'entity',
 };
 
-const WX_3_INFORMATION: Information = {
+const WX_3_INFORMATION: InformationField = {
   id: uniqueId(),
   key: 'Cell line',
   value: 'hNPCs',
@@ -540,7 +547,7 @@ export const nodes: ProvenanceNode[] = [
   S1_2,
 ];
 
-export const informationNodes: Information[] = [
+export const informationNodes: InformationField[] = [
   WX_7_INFORMATION,
   W1_1_INFORMATION,
   W1_2_INFORMATION,

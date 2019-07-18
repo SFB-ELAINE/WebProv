@@ -9,7 +9,7 @@ import {
   BackendRelationships,
   getType,
   keys,
-  RelationshipBasics
+  RelationshipInformation
 } from 'common';
 
 import * as dotenv from 'dotenv';
@@ -266,7 +266,7 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
 };
 
 export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
-  schema: R, information: RelationshipBasics<TypeOf<R>>,
+  schema: R, information: RelationshipInformation<TypeOf<R>>,
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
     const type = getType(schema);

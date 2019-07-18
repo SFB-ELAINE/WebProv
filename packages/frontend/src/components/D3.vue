@@ -465,12 +465,12 @@ export default class D3<N extends D3Node> extends Vue implements ID3<N> {
     this.doRender();
   }
 
-  @Watch<D3<any>>('nodes')
+  @Watch<D3<N>>('nodes')
   public reRenderNodes() {
     this.doRender();
   }
 
-  @Watch<D3<any>>('links')
+  @Watch<D3<N>>('links')
   public reRenderLinks() {
     this.doRender();
   }

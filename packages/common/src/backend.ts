@@ -1,4 +1,4 @@
-import { ProvenanceNode, SimulationStudy, Depends, HasInformation, Information } from './schemas';
+import { ProvenanceNode, SimulationStudy, Depends, HasInformation, InformationField } from './schemas';
 import { RelationshipBasics } from './neon';
 
 export interface BackendSuccess {
@@ -36,11 +36,11 @@ export interface ProvenanceAPI {
 
   '/information': {
     GET: {
-      response: BackendError | BackendItems<Information>,
+      response: BackendError | BackendItems<InformationField>,
     }
 
     POST: {
-      body: Information;
+      body: InformationField;
       response: BackendSuccess | BackendError;
     }
 
@@ -110,7 +110,7 @@ export interface ProvenanceAPI {
     POST: {
       body: {
         relationship: RelationshipBasics<HasInformation>,
-        information: Information,
+        information: InformationField,
       };
       response: BackendSuccess | BackendError;
     }
