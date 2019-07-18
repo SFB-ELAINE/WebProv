@@ -12,7 +12,6 @@ import {
   getRelationships,
   deleteRelationship,
   deleteRelationshipByType,
-  getItemsByConnection,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -24,8 +23,6 @@ import {
   BackendError,
   BackendNotFound,
   BackendSuccess,
-  uniqueId,
-  InformationField, 
 } from 'common';
 
 export function literal<T extends string>(o: T): T {

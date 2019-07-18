@@ -1,5 +1,4 @@
-import { Watch as W } from 'vue-property-decorator';
-import Vue, { WatchOptions, ComponentOptions } from 'vue';
+import Vue, { ComponentOptions } from 'vue';
 import {
   ProvenanceNode,
   ProvenanceNodeType,
@@ -52,16 +51,6 @@ export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
 };
 
 export interface Lookup<T> { [k: string]: T; }
-
-/**
- * Similar to the vue-property-decorator, but with better type checking.
- *
- * @param path The value to watch.
- * @param options The options.
- */
-export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
-  return W(path, options);
-}
 
 interface SimulationStudyLookup {
   [studyId: number]: SimulationStudy | undefined;

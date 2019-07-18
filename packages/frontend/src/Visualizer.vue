@@ -47,7 +47,7 @@
         type="is-text"
         @click="addModel"
       >
-        Add Model
+        Add Study
       </b-button>
       
       <b-button
@@ -119,6 +119,8 @@
       v-model="showHelp"
     ></information-modal>
 
+    <div class="version">v{{ version }}</div>
+
   </div>
 </template>
 
@@ -174,6 +176,7 @@ import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
 import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
+import { version } from '../package.json';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -240,6 +243,9 @@ const logger = getLogger();
 export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowHeight!: number;
   @Prop({ type: Number, required: true }) public windowWidth!: number;
+
+  // The package version number
+  public version = version;
 
   public provenanceNodes: ProvenanceNode[] = [];
 
@@ -428,9 +434,6 @@ export default class Visualizer extends Vue {
   }
 
   public showProvenanceGraph(r: SearchItem) {
-    // Reset every time this function is called
-    this.nodesToShow = {};
-
     const showNode = (id: string) => {
       this.nodesToShow[id] = true;
       const info = this.highLevelNodeLookup[id];
@@ -1140,5 +1143,12 @@ export default class Visualizer extends Vue {
 
 .clear-button {
   margin: 0 10px;
+}
+
+.version {
+  position: absolute;
+  right: 25px;
+  bottom: 15px;
+  color: rgba(0, 0, 0, 0.5);
 }
 </style>

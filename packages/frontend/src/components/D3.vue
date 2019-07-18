@@ -13,7 +13,7 @@ import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } fro
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { makeLookup, Lookup, Watch, intersection, createComponent } from '@/utils';
+import { makeLookup, Lookup, intersection, createComponent } from '@/utils';
 import { computed, watch, onMounted, value } from 'vue-function-api';
 
 type HullListener = (node: D3Hull) => void;
