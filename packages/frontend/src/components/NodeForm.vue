@@ -96,7 +96,9 @@ export default class NodeForm extends Vue {
     this.$emit('update:node', this.node, key, value);
   }
 
-  public updateInformationNode<K extends keyof InformationField>(information: InformationField, key: K, value: InformationField[K]) {
+  public updateInformationNode<K extends keyof InformationField>(
+    information: InformationField, key: K, value: InformationField[K],
+  ) {
     this.$emit('update:information', information, key, value);
   }
 }

@@ -33,8 +33,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-export default Vue.extend({
+import { createComponent } from '@/utils';
+
+export default createComponent({
   props: {
     title: String,
     noCollapse: Boolean,

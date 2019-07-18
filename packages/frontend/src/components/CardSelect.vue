@@ -15,15 +15,17 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
+import { createComponent } from '@/utils';
 
-@Component({
+export default createComponent({
+  name: 'CardSelect',
   components: { Card },
-})
-export default class CardSelect extends Vue {
-  @Prop({ type: Array, required: true }) public options!: string[];
-  @Prop({ type: String, required: true }) public value!: string;
-  @Prop({ type: String, required: true }) public title!: string;
-}
+  props: {
+    options: { type: Array as () => string[], required: true },
+    value: { type: String, required: true },
+    title: { type: String, required: true },
+  },
+});
 </script>
 
 <style lang="sass" scoped>

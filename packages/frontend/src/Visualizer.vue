@@ -12,6 +12,7 @@
       drag
       hulls
       :hull-dblclick="hullDblclick"
+      :color-changes="colorChanges"
     ></d3>
     
     <!-- This is the dashed line you see when creating new links -->
@@ -163,7 +164,7 @@ import {
   isDefined,
   getLogger,
 } from '@/utils';
-import { D3Hull, D3Node, D3Link } from '@/d3';
+import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import Search from '@/components/Search.vue';
 import NodeForm from '@/components/NodeForm.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
@@ -293,9 +294,7 @@ export default class Visualizer extends Vue {
 
   public debouncedRenderGraph = debounce(this.renderGraph, 500);
 
-  public $refs!: {
-    d3: D3<SingleNode>;
-  };
+  public colorChanges: D3NodeColorCombo[] = [];
 
   get height() {
     // OK, so for some reason we have to remove 7 here so that there is no overlow
@@ -543,7 +542,7 @@ export default class Visualizer extends Vue {
       };
     };
 
-    this.$refs.d3.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
+    this.colorChanges.push({ node, color: VALID_ENDPOINT_OUTLINE });
 
     // Get all nodes that contain the given point
     const getNodesInRange = (point: MouseEvent) => {
@@ -581,7 +580,7 @@ export default class Visualizer extends Vue {
         // reset the color of the previously selected node
         // TODO this will cause a bug if the node was initially colored something else
         if (selectedNode) {
-          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+          this.colorChanges.push({ node: selectedNode, color: NODE_OUTLINE });
           selectedNode = null;
         }
 
@@ -596,7 +595,7 @@ export default class Visualizer extends Vue {
         const relationship = getRelationship(a, b);
         const valid = isValidRelationship(a, b, relationship);
         const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
-        this.$refs.d3.setStrokeColor(selectedNode, color);
+        this.colorChanges.push({ node: selectedNode, color });
       },
       mouseup: async (ev: MouseEvent) => {
         if (ev.which !== 3) {
@@ -607,9 +606,9 @@ export default class Visualizer extends Vue {
         this.lineStart = null;
         this.lineEnd = null;
 
-        this.$refs.d3.setStrokeColor(node, NODE_OUTLINE);
+        this.colorChanges.push({ node, color: NODE_OUTLINE });
         if (selectedNode) {
-          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+          this.colorChanges.push({ node: selectedNode, color: NODE_OUTLINE });
         }
 
         const nodesInRange = getNodesInRange(ev);
@@ -691,12 +690,12 @@ export default class Visualizer extends Vue {
         this.nodeRightClick(e, node);
       },
       onDidClick: () => {
-        this.$refs.d3.setStrokeColor(node, SELECTED_NODE_OUTLINE);
+        this.colorChanges.push({ node, color: SELECTED_NODE_OUTLINE });
 
         if (this.selectedNode) {
           const selectedNode = this.nodeLookup[this.selectedNode.id];
           if (selectedNode && !selectedNode.isGroup) {
-            this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+            this.colorChanges.push({ node: selectedNode, color: NODE_OUTLINE });
           }
         }
 
@@ -1060,7 +1059,9 @@ export default class Visualizer extends Vue {
     this.debouncedRenderGraph();
   }
 
-  public async editInformationNode<K extends keyof InformationField>(node: InformationField, key: K, value: InformationField[K]) {
+  public async editInformationNode<K extends keyof InformationField>(
+    node: InformationField, key: K, value: InformationField[K],
+  ) {
     node[key] = value;
     makeRequest(() => backend.updateOrCreateInformationNode(node));
     this.debouncedRenderGraph();

@@ -26,6 +26,11 @@ export interface D3Node {
   onDidRightClick?: (e: MouseEvent) => void;
 }
 
+export interface D3NodeColorCombo {
+  node: D3Node;
+  color: string;
+}
+
 // tslint:disable-next-line: ban-types
 type FunctionPropertyNames<T> = { [K in keyof T]: Exclude<T[K], undefined> extends Function ? K : never }[keyof T];
 
@@ -35,11 +40,10 @@ export interface ID3<N extends D3Node> {
   isD3: true;
   addLink(link: D3Link): void;
   addNode(node: N): void;
-  setStrokeColor(node: N, color: string): void;
 }
 
 export const isD3 = <N extends D3Node>(component: any): component is ID3<N> => {
-  return component.isD3 === true;
+  return component.addLink !== undefined && component.addNode !== undefined;
 };
 
 export interface D3Hull {
