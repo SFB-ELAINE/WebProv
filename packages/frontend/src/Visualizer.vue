@@ -137,10 +137,9 @@ import {
   ProvenanceNodeType,
   ProvenanceNode,
   relationshipRules,
-  ProvenanceNodeRelationships,
+  DependencyType,
   provenanceNodeTypes,
   SimulationStudy,
-  DependsRelationship,
   RelationshipInformation,
   uniqueId,
   tuple,
@@ -173,7 +172,7 @@ import { SearchItem, search } from '@/search';
 import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
-import { Depends, InformationField, HasInformation } from 'common/dist/schemas';
+import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
 
 interface BaseNode extends D3Node {
   model?: number;
@@ -197,9 +196,9 @@ interface Link extends D3Link {
 }
 
 interface Connection {
-  properties: Depends;
-  relationship: ProvenanceNodeRelationships;
-  original: RelationshipInformation<Depends>; // TODO is this sufficient?
+  properties: DependencyRelationship;
+  relationship: DependencyType;
+  original: RelationshipInformation<DependencyRelationship>; // TODO is this sufficient?
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -220,7 +219,7 @@ interface Point {
 
 export type RelationshipCache = {
   [A in ProvenanceNodeType]?: {
-    [B in ProvenanceNodeType]?: ProvenanceNodeRelationships;
+    [B in ProvenanceNodeType]?: DependencyType;
   };
 };
 
@@ -244,8 +243,8 @@ export default class Visualizer extends Vue {
   public provenanceNodes: ProvenanceNode[] = [];
 
   public informationNodes: InformationField[] = [];
-  public dependencies: Array<RelationshipInformation<Depends>> = [];
-  public information: Array<{ source: string, target: string, properties: HasInformation }> = [];
+  public dependencies: Array<RelationshipInformation<DependencyRelationship>> = [];
+  public information: Array<{ source: string, target: string, properties: InformationRelationship }> = [];
 
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
@@ -269,8 +268,8 @@ export default class Visualizer extends Vue {
   public lineEnd: Point | null = null;
 
   public selectedConnection: Connection | null = null;
-  public currentRelationship: ProvenanceNodeRelationships | null = null;
-  public possibleRelationships: ProvenanceNodeRelationships[] | null = null;
+  public currentRelationship: DependencyType | null = null;
+  public possibleRelationships: DependencyType[] | null = null;
 
   // used to display information on a card
   public selectedNode: ProvenanceNode | null = null;
@@ -899,7 +898,7 @@ export default class Visualizer extends Vue {
     this.possibleRelationships = null;
   }
 
-  public async changeRelationship(relationship: ProvenanceNodeRelationships) {
+  public async changeRelationship(relationship: DependencyType) {
     if (!this.selectedConnection) {
       return;
     }

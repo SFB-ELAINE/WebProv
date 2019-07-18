@@ -4,7 +4,7 @@ import {
   ProvenanceNode,
   ProvenanceNodeType,
   relationshipRules,
-  ProvenanceNodeRelationships,
+  DependencyType,
   SimulationStudy,
   uniqueId,
   BackendError,
@@ -14,7 +14,7 @@ import {
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
-import { Depends } from 'common/dist/schemas';
+import { DependencyRelationship } from 'common/dist/schemas';
 
 // The following methods are useful for making lookups.
 
@@ -111,7 +111,7 @@ interface Can {
   connection: {
     source: string;
     target: string;
-    properties: Depends;
+    properties: DependencyRelationship;
   };
 }
 
@@ -120,7 +120,7 @@ interface Cant {
 }
 
 export const createRelationship = (
-  a: ProvenanceNode, b: ProvenanceNode, type?: ProvenanceNodeRelationships,
+  a: ProvenanceNode, b: ProvenanceNode, type?: DependencyType,
 ): Can | Cant => {
   if (!type) {
     return {

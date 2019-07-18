@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { Schema } from "./neon";
-import { relationshipRules, ProvenanceNode, ProvenanceNodeRelationships } from './schemas';
+import { relationshipRules, ProvenanceNode, DependencyType } from './schemas';
 
 export const uniqueId = () => {
   // HTML IDs must begin with a non numeric character or something like that.
@@ -13,12 +13,12 @@ export const keys = <T extends object>(arg: T) => Object.keys(arg) as Array<keyo
 export const tuple = <T extends any[]>(...args: T): T => args;
 
 export const isValidRelationship = (
-  a: ProvenanceNode, b: ProvenanceNode, type?: ProvenanceNodeRelationships,
+  a: ProvenanceNode, b: ProvenanceNode, type?: DependencyType,
 ) => {
   if (!type) {
     return false;
   }
-  
+
   const rulesForA = relationshipRules[a.type];
   const rules = rulesForA[b.type];
   if (!rules) {

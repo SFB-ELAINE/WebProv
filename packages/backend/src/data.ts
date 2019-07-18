@@ -3,10 +3,10 @@ import {
   ProvenanceNode,
   uniqueId,
   InformationField,
-  InformationRelationship,
+  InformationRelationshipSchema,
   RelationshipSchema,
   Schema,
-  DependsRelationship,
+  DependencyRelationshipSchema,
   TypeOf,
 } from 'common';
 
@@ -41,7 +41,7 @@ const WX_7_INFORMATION: InformationField = {
 };
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: WX_7,
   target: WX_7_INFORMATION,
   properties: {
@@ -64,7 +64,7 @@ const W1_1_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: W1_1,
   target: W1_1_INFORMATION,
   properties: {
@@ -87,7 +87,7 @@ const W1_2_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: W1_2,
   target: W1_2_INFORMATION,
   properties: {
@@ -103,7 +103,7 @@ const MBA_3: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_3,
   target: WX_7,
   properties: {
@@ -113,7 +113,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_3,
   target: W1_1,
   properties: {
@@ -123,7 +123,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_3,
   target: W1_2,
   properties: {
@@ -142,7 +142,7 @@ const S1_1: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: S1_1,
   target: MBA_3,
   properties: {
@@ -165,7 +165,7 @@ const model3: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: model3,
   target: MBA_3,
   properties: {
@@ -182,7 +182,7 @@ const MEA: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MEA,
   target: model3,
   properties: {
@@ -200,7 +200,7 @@ const S1_2: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: S1_2,
   target: MEA,
   properties: {
@@ -231,7 +231,7 @@ const W12_1_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: W12_1,
   target: W12_1_INFORMATION,
   properties: {
@@ -254,7 +254,7 @@ const WX_1_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: WX_1,
   target: WX_1_INFORMATION,
   properties: {
@@ -277,7 +277,7 @@ const WX_2_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: WX_2,
   target: WX_2_INFORMATION,
   properties: {
@@ -294,7 +294,7 @@ const MBA_1: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_1,
   target: W12_1,
   properties: {
@@ -304,7 +304,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_1,
   target: WX_2,
   properties: {
@@ -314,7 +314,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_1,
   target: WX_1,
   properties: {
@@ -324,7 +324,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_1,
   target: S1_2,
   properties: {
@@ -343,7 +343,7 @@ const S12_1: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: S12_1,
   target: MBA_1,
   properties: {
@@ -360,7 +360,7 @@ const model1: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: model1,
   target: MBA_1,
   properties: {
@@ -384,7 +384,7 @@ const W12_2_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: W12_2,
   target: W12_2_INFORMATION,
   properties: {
@@ -407,7 +407,7 @@ const W12_3_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: W12_3,
   target: W12_3_INFORMATION,
   properties: {
@@ -430,7 +430,7 @@ const WX_3_INFORMATION: InformationField = {
 }
 
 addRelationship({
-  schema: InformationRelationship,
+  schema: InformationRelationshipSchema,
   source: WX_3,
   target: WX_3_INFORMATION,
   properties: {
@@ -446,7 +446,7 @@ const MBA_2: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_2,
   target: WX_3,
   properties: {
@@ -456,7 +456,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_2,
   target: W12_2,
   properties: {
@@ -466,7 +466,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_2,
   target: W12_3,
   properties: {
@@ -476,7 +476,7 @@ addRelationship({
 })
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: MBA_2,
   target: model1,
   properties: {
@@ -495,7 +495,7 @@ const S12_2: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: S12_2,
   target: MBA_2,
   properties: {
@@ -512,7 +512,7 @@ const model2: ProvenanceNode = {
 };
 
 addRelationship({
-  schema: DependsRelationship,
+  schema: DependencyRelationshipSchema,
   source: model2,
   target: MBA_2,
   properties: {

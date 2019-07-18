@@ -18,8 +18,8 @@ import {
   ProvenanceAPI, 
   ProvenanceNodeSchema, 
   SimulationStudySchema, 
-  DependsRelationship, 
-  InformationRelationship, 
+  DependencyRelationshipSchema, 
+  InformationRelationshipSchema, 
   InformationFieldSchema,
   BackendError,
   BackendNotFound,
@@ -34,7 +34,7 @@ export function literal<T extends string>(o: T): T {
 
 const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | BackendNotFound> => {
   // Ok, first delete all of the information nodes attached to the given provenance node
-  const result1 = await deleteRelationshipByType(InformationRelationship, id);
+  const result1 = await deleteRelationshipByType(InformationRelationshipSchema, id);
   if (result1.result !== 'success') {
     return result1;
   }
@@ -136,15 +136,15 @@ const create = () => {
   })
 
   router.get('/nodes/dependencies', async () => {
-    return await getRelationships(DependsRelationship);
+    return await getRelationships(DependencyRelationshipSchema);
   })
 
   router.post('/nodes/dependencies', async (req) => {
-    return await updateOrCreateConnection(DependsRelationship, req.body);
+    return await updateOrCreateConnection(DependencyRelationshipSchema, req.body);
   })
 
   router.get('/nodes/information', async () => {
-    return await getRelationships(InformationRelationship);
+    return await getRelationships(InformationRelationshipSchema);
   })
 
   router.post('/nodes/information', async (req) => {
@@ -153,7 +153,7 @@ const create = () => {
       return result1;
     }
 
-    return await updateOrCreateConnection(InformationRelationship, req.body.relationship);
+    return await updateOrCreateConnection(InformationRelationshipSchema, req.body.relationship);
   })
 
   router.post('/studies', async (req) => {
@@ -161,7 +161,7 @@ const create = () => {
   })
 
   router.delete('/nodes/dependencies', async (req) => {
-    return await deleteRelationship(DependsRelationship, req.query.id);
+    return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   })
 
   return app;

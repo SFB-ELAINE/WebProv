@@ -1,6 +1,6 @@
 import axios from 'restyped-axios';
 import { SimulationStudy, ProvenanceNode, ProvenanceAPI, RelationshipInformation } from 'common';
-import { Depends, HasInformation, InformationField } from 'common/dist/schemas';
+import { DependencyRelationship, InformationRelationship, InformationField } from 'common/dist/schemas';
 import { getLogger } from '@/utils';
 
 const logger = getLogger();
@@ -32,13 +32,13 @@ export const updateOrCreateModel = async (
 };
 
 export const updateOrCreateDependency = async (
-  information: RelationshipInformation<Depends>,
+  information: RelationshipInformation<DependencyRelationship>,
 ) => {
   return (await api.post('/nodes/dependencies', information)).data;
 };
 
 export const addInformationEntry = async (
-  relationship: RelationshipInformation<HasInformation>,
+  relationship: RelationshipInformation<InformationRelationship>,
   information: InformationField,
 ) => {
   return (await api.post('/nodes/information', { relationship, information  })).data;

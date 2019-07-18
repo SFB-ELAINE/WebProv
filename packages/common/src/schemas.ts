@@ -4,7 +4,7 @@ interface RelationshipConstraints {
   /**
    * The type of relationship.
    */
-  relationship: ProvenanceNodeRelationships;
+  relationship: DependencyType;
 
   /**
    * Whether this relationship is a one-to-ony relationship. By default, it is a one-to-many relationship.
@@ -14,7 +14,7 @@ interface RelationshipConstraints {
 
 type RelationshipRules = {
   [A in ProvenanceNodeType]: {
-    [B in ProvenanceNodeType]?: Array<ProvenanceNodeRelationships | RelationshipConstraints>
+    [B in ProvenanceNodeType]?: Array<DependencyType | RelationshipConstraints>
   }
 };
 
@@ -163,7 +163,7 @@ export type ProvenanceNodeType = ProvenanceNode['type'];
 
 export const provenanceNodeTypes = ProvenanceNodeSchema.required.type.type.types.map((t) => t.value);
 
-export const InformationRelationship = n.relationship({
+export const InformationRelationshipSchema = n.relationship({
   name: 'HAS_INFORMATION',
   source: ProvenanceNodeSchema,
   target: InformationFieldSchema,
@@ -175,7 +175,7 @@ export const InformationRelationship = n.relationship({
   },
 });
 
-export const DependsRelationship = n.relationship({
+export const DependencyRelationshipSchema = n.relationship({
   name: 'DEPENDS',
   source: ProvenanceNodeSchema,
   target: ProvenanceNodeSchema,
@@ -196,10 +196,8 @@ export const DependsRelationship = n.relationship({
   },
 });
 
-export type Depends = n.TypeOf<typeof DependsRelationship>;
+export type DependencyRelationship = n.TypeOf<typeof DependencyRelationshipSchema>;
 
-export type ProvenanceNodeRelationships = Depends['type'];
+export type DependencyType = DependencyRelationship['type'];
 
-export type HasInformation = n.TypeOf<typeof InformationRelationship>;
-
-export const provenanceNodeRelationships = DependsRelationship.required.type.type.types.map((t) => t.value);
+export type InformationRelationship = n.TypeOf<typeof InformationRelationshipSchema>;
