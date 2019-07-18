@@ -13,7 +13,6 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
 import { createComponent } from '@/utils';
 

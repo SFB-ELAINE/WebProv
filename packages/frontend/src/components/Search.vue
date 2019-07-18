@@ -14,7 +14,7 @@
         ></b-input>
         <p class="control">
           <button 
-            @click="search"
+            @click="startSearch"
             class="button is-primary"
           >
             Search
@@ -70,55 +70,65 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator';
+import Vue from 'vue';
 import Card from '@/components/Card.vue';
 import { SearchItem, search } from '@/search';
+import { createComponent } from '@/utils';
+import { value } from 'vue-function-api';
 
-@Component({
+export default createComponent({
+  name: 'Search',
   components: { Card },
   filters: {
     format(strings: string[]) {
       return strings.join(' • ');
     },
   },
-})
-export default class Search extends Vue {
-  @Prop({ type: Array, required: true }) public items!: SearchItem[];
-  public results: SearchItem[] = [];
+  props: {
+    items: { type: Array as () => SearchItem[], required: true },
+  },
+  setup(props, context) {
+    const results = value<SearchItem[]>([]);
+    const searchText = value('');
 
-  public searchText = '';
-
-  public $refs!: {
-    input: Vue & { focus: () => void },
-  };
-
-  public checkEnter(e: MouseEvent) {
-    if (e.which === 13) { // ENTER
-      this.search();
+    function checkEnter(e: MouseEvent) {
+      if (e.which === 13) { // ENTER
+        startSearch();
+      }
     }
-  }
 
-  public checkEmpty() {
-    if (this.searchText === '') {
-      this.results = [];
+    function checkEmpty() {
+      if (searchText.value === '') {
+        results.value = [];
+      }
     }
-  }
 
-  public search() {
-    const loadingComponent = this.$loading.open({
-      container: this.$el,
-    });
+    function startSearch() {
+      const loadingComponent = context.root.$loading.open({
+        container: context.root.$el,
+      });
 
-    setTimeout(() => loadingComponent.close(), 0.5 * 1000);
-    this.results = search(this.items, this.searchText);
-  }
+      setTimeout(() => loadingComponent.close(), 0.5 * 1000);
+      results.value = search(props.items, searchText.value);
+    }
 
-  public clear() {
-    this.results = [];
-    this.searchText = '';
-    this.$refs.input.focus();
-  }
-}
+    function clear() {
+      results.value = [];
+      searchText.value = '';
+      const input = context.refs.input as Vue & { focus: () => void };
+      input.focus();
+    }
+
+    return {
+      startSearch,
+      searchText,
+      results,
+      checkEmpty,
+      checkEnter,
+      clear,
+    };
+  },
+});
 </script>
 
 <style lang="scss" scoped>

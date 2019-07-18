@@ -3,7 +3,7 @@
 
     <b-field label="Type">
       <b-select :value="node.type" @input="typeChange" expanded>
-        <option v-for="option in typeOptions" :key="option" :value="option">{{ option }}</option>
+        <option v-for="option in provenanceNodeTypes" :key="option" :value="option">{{ option }}</option>
       </b-select>
     </b-field>
 
@@ -43,63 +43,73 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from 'vue-property-decorator';
 import Card from '@/components/Card.vue';
-import { makeRequest, setVue } from '../utils';
+import { createComponent } from '../utils';
 import { provenanceNodeTypes, ProvenanceNode, InformationField, uniqueId, ProvenanceNodeType } from 'common';
-import * as backend from '@/backend';
 
-@Component({
+export default createComponent({
+  name: 'NodeForm',
   components: { Card },
-})
-export default class NodeForm extends Vue {
-  @Prop({ type: Object, required: true }) public node!: ProvenanceNode;
-  @Prop({ type: Array, required: true }) public information!: InformationField[];
+  props: {
+    node: { type: Object as () => ProvenanceNode, required: true },
+    fields: { type: Array as () => InformationField[], required: true },
+  },
+  setup(props, context) {
+    function updateKey(index: number, newValue: string) {
+      updateInformationNode(props.fields[index], 'key', newValue);
+    }
 
-  public typeOptions = provenanceNodeTypes;
+    function updateValue(index: number, newValue: string) {
+      updateInformationNode(props.fields[index], 'value', newValue);
+    }
 
-  public updateKey(index: number, newValue: string) {
-    this.updateInformationNode(this.information[index], 'key', newValue);
-  }
+    function addField() {
+      const information = {
+        id: uniqueId(),
+        key: '',
+        value: '',
+      };
 
-  public updateValue(index: number, newValue: string) {
-    this.updateInformationNode(this.information[index], 'value', newValue);
-  }
+      context.emit('update:information:add', information);
+    }
 
-  public addField() {
-    const information = {
-      id: uniqueId(),
-      key: '',
-      value: '',
+    function deleteField(j: number) {
+      context.emit('update:information:delete', props.fields[j]);
+    }
+
+    function labelChange(value: string) {
+      updateNode('label', value);
+    }
+
+    function typeChange(value: ProvenanceNodeType) {
+      updateNode('type', value);
+    }
+
+    function studyIdChange(value: string) {
+      updateNode('studyId', value ? +value : undefined);
+    }
+
+    function updateNode<K extends keyof ProvenanceNode>(key: K, value: ProvenanceNode[K]) {
+      context.emit('update:node', props.node, key, value);
+    }
+
+    function updateInformationNode<K extends keyof InformationField>(
+      information: InformationField, key: K, value: InformationField[K],
+    ) {
+      context.emit('update:information', information, key, value);
+    }
+
+    return {
+      provenanceNodeTypes,
+      deleteField,
+      labelChange,
+      typeChange,
+      studyIdChange,
+      updateNode,
+      addField,
+      updateValue,
+      updateKey,
     };
-
-    this.$emit('update:information:add', information);
-  }
-
-  public deleteField(j: number) {
-    this.$emit('update:information:delete', this.information[j]);
-  }
-
-  public labelChange(value: string) {
-    this.updateNode('label', value);
-  }
-
-  public typeChange(value: ProvenanceNodeType) {
-    this.updateNode('type', value);
-  }
-
-  public studyIdChange(value: string) {
-    this.updateNode('studyId', value ? +value : undefined);
-  }
-
-  public updateNode<K extends keyof ProvenanceNode>(key: K, value: ProvenanceNode[K]) {
-    this.$emit('update:node', this.node, key, value);
-  }
-
-  public updateInformationNode<K extends keyof InformationField>(
-    information: InformationField, key: K, value: InformationField[K],
-  ) {
-    this.$emit('update:information', information, key, value);
-  }
-}
+  },
+});
 </script>

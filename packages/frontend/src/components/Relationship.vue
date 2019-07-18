@@ -1,31 +1,33 @@
 <script lang="ts">
 import * as d3 from 'd3';
-import { ID3, isD3 } from '@/d3';
-import { Component, Vue, Prop } from 'vue-property-decorator';
+import { isD3 } from '@/d3';
+import { createComponent } from '@/utils';
+import { onMounted } from 'vue-function-api';
 
-// Called Relationship because <link> is a builtin html tag
-@Component
-export default class Relationship extends Vue {
-  @Prop({ type: String, required: true }) public target!: string;
-  @Prop({ type: String, required: true }) public source!: string;
-  @Prop({ type: String, required: false }) public color?: string;
+export default createComponent({
+  name: 'Relationship',
+  props: {
+    target: { type: String, required: true },
+    source: { type: String, required: true },
+    color: { type: String, required: false },
+  },
+  setup(props, context) {
+    onMounted(() => {
+      if (!isD3(context.parent)) {
+        throw Error('parent must be D3');
+      }
 
-  public mounted() {
-    if (!isD3(this.$parent)) {
-      throw Error('parent must be D3');
-    }
-
-    this.$parent.addLink({
-      target: this.target,
-      source: this.source,
-      color: this.color,
+      context.parent.addLink({
+        target: props.target,
+        source: props.source,
+        color: props.color,
+      });
     });
-  }
-
-  public render() {
-    return null;
-  }
-}
+  },
+  render() {
+    return null as any;
+  },
+});
 </script>
 
 
