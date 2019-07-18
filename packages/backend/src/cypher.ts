@@ -64,8 +64,6 @@ export const updateOrCreate = async <S extends Schema>(
     }
 
     // Create an encoding of the object
-    const object = type.encode(obj);
-
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<S>]> = await session.run(
       `
@@ -76,8 +74,7 @@ export const updateOrCreate = async <S extends Schema>(
       `, 
       {
         id: obj.id,
-        object,
-        partial,
+        partial: type.encode(partial),
       }
     )
 

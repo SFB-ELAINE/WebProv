@@ -1046,8 +1046,8 @@ export default class Visualizer extends Vue {
     }
 
     const relationship = {
-      source: node.id,
-      target: this.selectedNode.id,
+      source: this.selectedNode.id,
+      target: node.id,
       properties: {
         id: uniqueId(),
       },
