@@ -47,35 +47,39 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from 'vue-property-decorator';
 import { relationshipColors } from '@/constants';
 import Card from '@/components/Card.vue';
 import D3 from '@/components/D3.vue';
 import Relationship from '@/components/Relationship.vue';
 import Node from '@/components/Node.vue';
-import { uppercase } from '@/utils';
+import { uppercase, createComponent } from '@/utils';
+import { computed } from 'vue-function-api';
 
-@Component({
+export default createComponent({
+  name: 'ProvLegend',
   components: { Node, Card, Relationship, D3 },
   filters: {
     uppercase,
   },
-})
-export default class ProvLegend extends Vue {
-  @Prop({ type: Number, required: true }) public nodeRadius!: number;
-  @Prop({ type: String, required: true }) public nodeOutline!: string;
-
-  get relationshipLegend() {
-    return Object.entries(relationshipColors).map(([relationship, info]) => {
-      return {
-        ...info,
-        sourceRadius: info.source === 'entity' ? this.nodeRadius : 0,
-        targetRadius: info.target === 'entity' ? this.nodeRadius : 0,
-        relationship,
-      };
-    });
-  }
-}
+  props: {
+    nodeRadius: { type: Number, required: true },
+    nodeOutline: { type: String, required: true },
+  },
+  setup(props) {
+    return {
+      relationshipLegend: computed(() => {
+        return Object.entries(relationshipColors).map(([relationship, info]) => {
+          return {
+            ...info,
+            sourceRadius: info.source === 'entity' ? props.nodeRadius : 0,
+            targetRadius: info.target === 'entity' ? props.nodeRadius : 0,
+            relationship,
+          };
+        });
+      }),
+    };
+  },
+});
 </script>
 
 

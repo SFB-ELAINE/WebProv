@@ -1,0 +1,16 @@
+{
+  "name": "common",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^3.4.3"
+  },
+  "dependencies": {
+    "fp-ts": "^2.0.2",
+    "io-ts": "^2.0.0"
+  }
+}

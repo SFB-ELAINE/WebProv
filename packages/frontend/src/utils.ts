@@ -1,18 +1,21 @@
-import { Watch as W } from 'vue-property-decorator';
-import Vue, { WatchOptions, ComponentOptions } from 'vue';
+import Vue, { ComponentOptions } from 'vue';
 import {
   ProvenanceNode,
   ProvenanceNodeType,
   relationshipRules,
-  ProvenanceNodeRelationships,
-  ModelInformation,
-  ProvenanceNodeLookup,
-  provenanceNodeTypes,
-} from '@/specification';
+  DependencyType,
+  SimulationStudy,
+  uniqueId,
+  BackendError,
+  BackendNotFound,
+  isValidRelationship,
+} from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
-import * as backend from '@/backend';
+import { DependencyRelationship } from 'common/dist/schemas';
+
+// The following methods are useful for making lookups.
 
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
@@ -22,128 +25,128 @@ export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>
   return lookup;
 };
 
+export const makeLookupBy = <T, F extends (t: T) => string | number>(
+  array: Iterable<T>, f: F,
+) => {
+  const lookup: Lookup<T> = {};
+  for (const item of array) {
+    lookup[f(item)] = item;
+  }
+  return lookup;
+};
+
+export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
+  array: Iterable<T>, f: F,
+) => {
+  const lookup: Lookup<T[]> = {};
+  for (const item of array) {
+    const key = f(item);
+    if (!lookup[key]) {
+      lookup[key] = [];
+    }
+
+    lookup[key].push(item);
+  }
+  return lookup;
+};
+
 export interface Lookup<T> { [k: string]: T; }
 
-export function Watch<T>(path: keyof T & string, options?: WatchOptions) {
-  return W(path, options);
+interface SimulationStudyLookup {
+  [studyId: number]: SimulationStudy | undefined;
 }
 
-interface ModelInformationLookup {
-  [studyId: number]: ModelInformation | undefined;
-}
+/**
+ * Determine the label for the provenance node. If a label is defined, that is used.
+ *
+ * @param n The node.
+ * @param lookup The simulation study lookup. We need this to determine the default label for the model node.
+ */
+export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): string {
+  if (n.label) {
+    return n.label;
+  }
 
-export function getText(n: ProvenanceNode, lookup: ModelInformationLookup): string {
   switch (n.type) {
-    case 'wet-lab-data':
-      return n.name || 'None';
-    case 'model-building-activity':
+    case 'WetLabData':
+      return 'No Label';
+    case 'ModelBuildingActivity':
       return 'MBA';
-    case 'simulation-data':
-      return n.name || 'None';
-    case 'model-exploration-activity':
+    case 'SimulationData':
+      return 'None';
+    case 'ModelExplorationActivity':
       return 'MEA';
-    case 'model':
+    case 'Model':
+      if (n.label) {
+        return n.label;
+      }
+
       if (n.studyId === undefined) {
         return 'None';
       }
 
-      let text = `M${n.studyId}`;
-
-      if (n.version === undefined || n.version === 1) {
-        // Do nothing is the version is 1
-      } else if (n.version === 2) {
-        // Just add an apostrophe if the version is 2
-        text += `'`;
-      } else {
-        // Add an explicit version number if > 2
-        text += `v${n.version}`;
-      }
-
-      const modelInformation = lookup[n.studyId];
-      if (!modelInformation) {
+      const text = `M${n.studyId}`;
+      const simulationStudy = lookup[n.studyId];
+      if (!simulationStudy) {
         return text;
       }
 
-      return text + ` (${modelInformation.source})`;
+      return text + ` (${simulationStudy.source})`;
   }
 }
 
-export const notNull = <T>(t: T | null): t is T => {
-  return t !== null;
-};
-
-export function getInformationFields(node: ProvenanceNode, title: string) {
-  const fields: Array<[string, string]> = [['Title', title], ['Model', '' + node.studyId]];
-
-  switch (node.type) {
-    case 'model-building-activity':
-      break;
-    case 'model-exploration-activity':
-      break;
-    case 'model':
-      fields.push(['Version', '' + node.version]);
-      break;
-    case 'wet-lab-data':
-      fields.push(...(node.information || []));
-      break;
-    case 'simulation-data':
-      break;
-  }
-
-  return fields;
+interface Can {
+  can: true;
+  connection: {
+    source: string;
+    target: string;
+    properties: DependencyRelationship;
+  };
 }
 
-interface ConnectionOptions { type: ProvenanceNodeRelationships | undefined; doConnection?: boolean; }
+interface Cant {
+  can: false;
+}
 
-export const makeConnection = (a: ProvenanceNode, b: ProvenanceNode, opts: ConnectionOptions ): boolean => {
-  const { doConnection = true } = opts;
-  if (!a.connections) {
-    Vue.set(a, 'connections', []);
+export const createRelationship = (
+  a: ProvenanceNode, b: ProvenanceNode, type?: DependencyType,
+): Can | Cant => {
+  if (!type) {
+    return {
+      can: false,
+    };
   }
 
-  const rulesForA = relationshipRules[a.type];
-  const rules = rulesForA[b.type];
-  if (!rules) {
-    return false;
-  }
-
-  if (!opts.type) {
-    return false;
-  }
-
-  const isValid = rules.some((rule) => {
-    if (typeof rule === 'string') {
-      return rule === opts.type;
-    } else {
-      return rule.relationship === opts.type;
-    }
-  });
-
+  const isValid = isValidRelationship(a, b, type);
   if (!isValid) {
-    return false;
+    return {
+      can: false,
+    };
   }
 
-  if (doConnection) {
-    a.connections!.push({
-      id: uniqueId(),
-      type: opts.type,
-      targetId: b.id,
-    });
-  }
-
-  return true;
-};
-
-export const isValidConnection = (
-  a: ProvenanceNode, b: ProvenanceNode, type: ProvenanceNodeRelationships | undefined,
-) => {
-  return makeConnection(a, b, { doConnection: false, type });
+  return {
+    can: true,
+    connection: {
+      source: a.id,
+      target: b.id,
+      properties: {
+        id: uniqueId(),
+        type,
+      },
+    },
+  };
 };
 
 type Events = keyof WindowEventMap;
 
 type EventListener<K extends Events> = (ev: WindowEventMap[K]) => any;
 
+/**
+ * Add an event listener and remove it when the event occurs.
+ * @param type
+ * @param listener
+ * @param options
+ */
 export const once = <K extends Events>(
   type: K,
   listener: EventListener<K>,
@@ -157,6 +160,13 @@ export const once = <K extends Events>(
   window.addEventListener(type, callAndRemove, options);
 };
 
+/**
+ * Add an event listener (like normal) but return an object with a dispose method to remove the same listener.
+ *
+ * @param type The event.
+ * @param ev The listener.
+ * @param options The options.
+ */
 export const addEventListener = <K extends Events>(
   type: K,
   ev: EventListener<K>,
@@ -164,8 +174,10 @@ export const addEventListener = <K extends Events>(
 ) => {
   window.addEventListener(type, ev, options);
 
-  return () => {
-    window.removeEventListener(type, ev);
+  return {
+    dispose: () => {
+      window.removeEventListener(type, ev);
+    },
   };
 };
 
@@ -173,6 +185,12 @@ type EventListeners = {
   [P in keyof WindowEventMap]?: EventListener<P> | 'remove';
 };
 
+/**
+ * Add 0 or more event listeners and return an object with a dispose method to remove the listeners.
+ *
+ * @param events The events.
+ * @param options The options.
+ */
 export const addEventListeners = (
   events: EventListeners,
   options?: boolean | AddEventListenerOptions,
@@ -202,9 +220,19 @@ export const addEventListeners = (
   }
 
 
-  return remove;
+  return {
+    dispose: remove,
+  };
 };
 
+/**
+ * Determines the default relationship between two nodes based on the valid relationship types. If none exist, nothing
+ * is returned.
+ *
+ * @param a The source node.
+ * @param b The target node.
+ * @returns The default relationship (the first in the list) or nothing if the list of valid relationships is empty.
+ */
 export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceNodeType) => {
   const aRules = relationshipRules[a];
 
@@ -221,40 +249,11 @@ export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceN
   }
 };
 
-
-export const uniqueId = () => {
-  // HTML IDs must begin with a non numeric character or something like that.
-  // Thus, we prepend 'A'
-  return 'A' + Math.random().toString().substr(2, 9);
-};
-
-export interface FieldInformation<T extends string> {
-  name: T;
-  type: 'string' | 'number';
-  multiple?: boolean;
-  options?: Array<string | number>;
-}
-
-type NodeFields = { [T in ProvenanceNodeType]: Array<FieldInformation<keyof ProvenanceNodeLookup[T] & string>> };
-
-const typeSelect: FieldInformation<'type'> = { name: 'type', type: 'string', options: provenanceNodeTypes };
-const modelSelect: FieldInformation<'studyId'> = { name: 'studyId', type: 'number' };
-
-// TODO Remove this and use io-ts instead!
-// We can infer this information from there instead!
-export const nodeFields: NodeFields = {
-  'model': [typeSelect, modelSelect, { name: 'version', type: 'number' }],
-  'model-building-activity': [typeSelect, modelSelect],
-  'model-exploration-activity': [typeSelect, modelSelect],
-  'simulation-data': [typeSelect, modelSelect, { name: 'name', type: 'string' }],
-  'wet-lab-data': [
-    typeSelect,
-    modelSelect,
-    { name: 'name', type: 'string' },
-    { name: 'information', type: 'string', multiple: true },
-  ],
-};
-
+/**
+ * Uppercase the first character of the string.
+ *
+ * @param s The string to uppercase.
+ */
 export function uppercase(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
 }
@@ -270,6 +269,7 @@ export function wordCase(s: string) {
   );
 }
 
+// A getter function with defaults
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o): T | undefined;
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue: T): T;
 export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue?: T) {
@@ -306,24 +306,23 @@ export function createComponent<Props>(
 ): ComponentOptions<Vue> {
   return (compOptions as any) as ComponentOptions<Vue>;
 }
-
 // Remove until here
 
 export async function makeRequest<T extends { result: 'success' }>(
-  f: () => Promise<T | backend.BackendError | backend.BackendNotFound>, cb?: (result: T) => void,
+  f: () => Promise<T | BackendError | BackendNotFound>, cb?: (result: T) => void,
 ) {
   const result = await f();
 
   if (result.result === 'error') {
     NotificationProgrammatic.open({
-      duration: 10000,
+      indefinite: true,
       message: result.message,
       position: 'is-bottom-right',
       type: 'is-danger',
     });
   } else if (result.result === 'not-found') {
     NotificationProgrammatic.open({
-      duration: 10000,
+      indefinite: true,
       message: 'Item not found in database',
       position: 'is-bottom-right',
       type: 'is-danger',
@@ -333,6 +332,8 @@ export async function makeRequest<T extends { result: 'success' }>(
       cb(result);
     }
   }
+
+  return result;
 }
 
 interface Point {
@@ -340,6 +341,16 @@ interface Point {
   y: number;
 }
 
+/**
+ * Find the intersection between two lines defined by four points.
+ *
+ * @param l1Start The start of the first line.
+ * @param l1End The end of the first line.
+ * @param l2Start The start of the second line.
+ * @param l2End The end of the second line.
+ * @returns The position of their intersection and information on whether the intersection actually occurred or whether
+ * the intersection would have only occurred if the lines extended to infinite.
+ */
 export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End: Point) {
   // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and
   // booleans for whether line segment 1 or line segment 2 contain the point
@@ -374,3 +385,13 @@ export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End
     // if line1 and line2 are segments, they intersect if both of the above are true
   };
 }
+
+export const isDefined = <T>(o: T | undefined): o is T => {
+  return o !== undefined;
+};
+
+// This seems weird, but I'm just doing it to avoid tslint warnings.
+// Also, we can easily modify this method to return other objects rather than console
+export const getLogger = () => {
+  return console;
+};

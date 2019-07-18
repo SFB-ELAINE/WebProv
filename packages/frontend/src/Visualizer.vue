@@ -12,6 +12,7 @@
       drag
       hulls
       :hull-dblclick="hullDblclick"
+      :color-changes="colorChanges"
     ></d3>
     
     <!-- This is the dashed line you see when creating new links -->
@@ -56,14 +57,6 @@
       >
         Add Node
       </b-button>
-      
-      <b-button
-        class="clear-button overlay-child"
-        type="is-text"
-        @click="renderGraph"
-      >
-        Refresh
-      </b-button>
 
       <b-button
         class="clear-button overlay-child"
@@ -98,15 +91,17 @@
         ></card-select>
         <div class="spacer"></div>
         
-        <form-card
-          title="Node Information"
+        <node-form
           v-if="selectedNode"
-          :fields="nodeFields[selectedNode.type]"
           :node="selectedNode"
+          :information="selectedNodeInformation"
           @close="deselectNode"
           @delete="deleteNode"
-          @input="onNodeChange"
-        ></form-card>
+          @update:information:delete="deleteInformationNode"
+          @update:information:add="addInformationNode"
+          @update:information="editInformationNode"
+          @update:node="editNode"
+        ></node-form>
       
       </div>
     </div>
@@ -130,7 +125,6 @@
 </template>
 
 <script lang="ts">
-import * as testData from '@/testData';
 import {
   relationshipColors,
   NODE_OUTLINE,
@@ -146,40 +140,42 @@ import {
   ProvenanceNodeType,
   ProvenanceNode,
   relationshipRules,
-  ProvenanceNodeRelationships,
-  ProvenanceNodeConnection,
+  DependencyType,
   provenanceNodeTypes,
-  ModelInformation,
-} from '@/specification';
+  SimulationStudy,
+  RelationshipInformation,
+  uniqueId,
+  tuple,
+  TypeOf,
+  isValidRelationship,
+} from 'common';
 import ProvLegend from '@/components/ProvLegend.vue';
 import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';
 import {
   Lookup,
-  getText,
+  getLabel,
   makeLookup,
-  getInformationFields,
-  once,
   addEventListeners,
-  makeConnection,
-  isValidConnection,
-  Watch,
+  createRelationship,
   getDefaultRelationshipType,
-  uniqueId,
-  nodeFields,
-  FieldInformation,
   get,
   makeRequest,
+  makeLookupBy,
+  makeArrayLookupBy,
+  isDefined,
+  getLogger,
 } from '@/utils';
-import { D3Hull, D3Node, D3Link } from '@/d3';
+import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import Search from '@/components/Search.vue';
-import FormCard from '@/components/FormCard.vue';
+import NodeForm from '@/components/NodeForm.vue';
 import ModelsCard from '@/components/ModelsCard.vue';
 import CardSelect from '@/components/CardSelect.vue';
 import { SearchItem, search } from '@/search';
 import { Component, Vue, Mixins, Prop } from 'vue-property-decorator';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
+import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
 import { version } from '../package.json';
 
 interface BaseNode extends D3Node {
@@ -204,9 +200,9 @@ interface Link extends D3Link {
 }
 
 interface Connection {
-  id: string;
-  relationship: ProvenanceNodeRelationships;
-  original: ProvenanceNodeConnection;
+  properties: DependencyRelationship;
+  relationship: DependencyType;
+  original: RelationshipInformation<DependencyRelationship>; // TODO is this sufficient?
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -214,6 +210,7 @@ interface Connection {
 
 interface HighLevelNode {
   id: string;
+  information: Array<[string, string]>;
   node: ProvenanceNode;
   outgoing: Connection[];
   incoming: Connection[];
@@ -226,7 +223,7 @@ interface Point {
 
 export type RelationshipCache = {
   [A in ProvenanceNodeType]?: {
-    [B in ProvenanceNodeType]?: ProvenanceNodeRelationships;
+    [B in ProvenanceNodeType]?: DependencyType;
   };
 };
 
@@ -234,12 +231,14 @@ const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
 };
 
+const logger = getLogger();
+
 // Some important information
 // 1. The wet lab data that does not come from a specific publication should appear in all of
 // the models that use that data.
 
 @Component({
-  components: { ProvLegend, D3, Search, CardSelect, FormCard, ModelsCard, InformationModal },
+  components: { ProvLegend, D3, Search, CardSelect, NodeForm, ModelsCard, InformationModal },
 })
 export default class Visualizer extends Vue {
   @Prop({ type: Number, required: true }) public windowHeight!: number;
@@ -249,6 +248,10 @@ export default class Visualizer extends Vue {
   public version = version;
 
   public provenanceNodes: ProvenanceNode[] = [];
+
+  public informationNodes: InformationField[] = [];
+  public dependencies: Array<RelationshipInformation<DependencyRelationship>> = [];
+  public information: Array<{ source: string, target: string, properties: InformationRelationship }> = [];
 
   // which models are currently expanded
   public expanded: Lookup<boolean> = {};
@@ -272,8 +275,8 @@ export default class Visualizer extends Vue {
   public lineEnd: Point | null = null;
 
   public selectedConnection: Connection | null = null;
-  public currentRelationship: ProvenanceNodeRelationships | null = null;
-  public possibleRelationships: ProvenanceNodeRelationships[] | null = null;
+  public currentRelationship: DependencyType | null = null;
+  public possibleRelationships: DependencyType[] | null = null;
 
   // used to display information on a card
   public selectedNode: ProvenanceNode | null = null;
@@ -283,20 +286,21 @@ export default class Visualizer extends Vue {
   // will be of the cached type.
   public cachedConnections: RelationshipCache = {};
 
-  public nodeFields = nodeFields;
-  public models: ModelInformation[] = [];
+  public models: SimulationStudy[] = [];
 
+  // Whether to show the help information
   public showHelp = false;
 
-  public selectedModel: ModelInformation | null = null;
+  // The selected model. This is set automatically when a new model is created or it can be opened from the search.
+  public selectedModel: SimulationStudy | null = null;
 
+  // Used so find group IDs for group nodes that have already been created.
+  // We don't want to use a different ID every time we render.
   public savedGroupIds: Lookup<string> = {};
 
-  public $refs!: {
-    d3: D3<SingleNode>;
-  };
-
   public debouncedRenderGraph = debounce(this.renderGraph, 500);
+
+  public colorChanges: D3NodeColorCombo[] = [];
 
   get height() {
     // OK, so for some reason we have to remove 7 here so that there is no overlow
@@ -311,27 +315,42 @@ export default class Visualizer extends Vue {
     return makeLookup(this.nodes);
   }
 
+  get selectedNodeInformation() {
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const relationships = this.getInformationRelationship(this.selectedNode.id);
+    logger.info(`There are ${relationships.length} information fields for the selected node`);
+    return relationships.map((relationship) => this.getInformationNode(relationship.target)).filter(isDefined);
+  }
+
   get highLevelNodes(): HighLevelNode[] {
     const nodeLookup: Lookup<HighLevelNode> = {};
     this.provenanceNodes.forEach((node) => {
+      const fields = this.getInformationNodesFromProvenance(node);
+      const tuples = fields.filter(isDefined).map((field) => tuple(field.key, field.value));
+
       nodeLookup[node.id] = {
         id: node.id,
+        information: tuples,
         node,
         incoming: [],
         outgoing: [],
       };
     });
 
-    const highLevelNodes = this.provenanceNodes.map((n) => {
+    this.provenanceNodes.forEach((n) => {
       const sourceId = n.id;
 
       const source = nodeLookup[sourceId];
-      if (!n.connections) {
+      const connections = this.getConnections(sourceId);
+      if (!connections) {
         return;
       }
 
-      n.connections.forEach((connection) => {
-        const targetId = connection.targetId;
+      connections.forEach((connection) => {
+        const targetId = connection.target;
         const target: HighLevelNode | undefined = nodeLookup[targetId];
         if (!target) {
           this.$notification.open({
@@ -344,10 +363,10 @@ export default class Visualizer extends Vue {
         }
 
         const d3Connection: Connection = {
-          id: connection.id,
-          relationship: connection.type,
+          relationship: connection.properties.type,
+          properties: connection.properties,
           original: connection,
-          color: relationshipColors[connection.type].color,
+          color: relationshipColors[connection.properties.type].color,
           source,
           target,
         };
@@ -364,12 +383,54 @@ export default class Visualizer extends Vue {
     return makeLookup(this.highLevelNodes);
   }
 
-  get modelInformationLookup() {
-    return makeLookup(this.models);
+  get simulationStudyLookup() {
+    return makeLookupBy(this.models, (study) => study.studyId);
+  }
+
+  get dependenciesLookup() {
+    return makeArrayLookupBy(this.dependencies, (d) => d.source);
+  }
+
+  get informationLookup() {
+    return makeArrayLookupBy(this.information, (i) => i.source);
+  }
+
+  get informationNodeLookup() {
+    return makeLookup(this.informationNodes);
   }
 
   public openHelp() {
     this.showHelp = true;
+  }
+
+  public getConnections(id: string) {
+    if (!this.dependenciesLookup[id]) {
+      return undefined;
+    }
+    return this.dependenciesLookup[id];
+  }
+
+  public getInformationNode(id: string) {
+    if (!this.informationNodeLookup[id]) {
+      return undefined;
+    }
+
+    return this.informationNodeLookup[id];
+  }
+
+  public getInformationRelationship(id: string) {
+    if (!this.informationLookup[id]) {
+      return [];
+    }
+
+    return this.informationLookup[id];
+  }
+
+  public getInformationNodesFromProvenance(node: ProvenanceNode) {
+    const relationships = this.getInformationRelationship(node.id);
+    return relationships
+      .map((relationship) => this.getInformationNode(relationship.target))
+      .filter(isDefined);
   }
 
   public showProvenanceGraph(r: SearchItem) {
@@ -393,30 +454,32 @@ export default class Visualizer extends Vue {
     this.selectedModel = null;
   }
 
-  public saveSelectedModel() {
+  public async saveSelectedModel() {
     if (!this.selectedModel) {
       return;
     }
 
     const model = this.selectedModel;
-    makeRequest(() => backend.updateOrCreateModel(model, ['id', 'source', 'signalingPathway']));
+    const result = await makeRequest(() => backend.updateOrCreateModel(model));
+    if (result.result === 'success') {
+      this.selectedModel = null;
+    }
   }
 
-  public deleteSelectedModel() {
+  public async deleteSelectedModel() {
     if (!this.selectedModel) {
       return;
     }
 
     const model = this.selectedModel;
-    makeRequest(() => backend.deleteModel(model.id));
+    const result = await makeRequest(() => backend.deleteModel(model.id));
+    if (result.result === 'success') {
+      this.selectedModel = null;
+    }
   }
 
   public openModel(result: SearchItem) {
     if (result.studyId === undefined) {
-      this.$notification.open({
-        message: 'Please assign a model first.',
-      });
-
       this.$notification.open({
         message: 'Please assign a model first.',
         position: 'is-bottom-right',
@@ -426,7 +489,7 @@ export default class Visualizer extends Vue {
       return;
     }
 
-    this.selectedModel = this.modelInformationLookup[result.studyId];
+    this.selectedModel = this.simulationStudyLookup[result.studyId];
   }
 
   public clearNodes() {
@@ -435,6 +498,9 @@ export default class Visualizer extends Vue {
   }
 
   public openResult(result: SearchItem) {
+    // Reset every time this function is called.
+    this.nodesToShow = {};
+
     if (result.studyId !== undefined) {
       this.expanded[result.studyId] = true;
     }
@@ -449,18 +515,15 @@ export default class Visualizer extends Vue {
   }
 
   get searchItems() {
-    return this.provenanceNodes.map((n): SearchItem => {
-      const information =
-        n.type === 'wet-lab-data' &&
-        n.information ?
-        n.information.map(([_, value]) => value) : [];
+    return this.highLevelNodes.map((n): SearchItem => {
+      const information = n.information.map(([_, value]) => value);
 
       return {
         id: n.id,
-        title: getText(n, this.modelInformationLookup),
-        type: n.type,
-        studyId: n.studyId,
-        model: n.studyId !== undefined ? `Model ${n.studyId}` : undefined,
+        title: getLabel(n.node, this.simulationStudyLookup),
+        type: n.node.type,
+        studyId: n.node.studyId,
+        model: n.node.studyId !== undefined ? `Model ${n.node.studyId}` : undefined,
         information,
       };
     });
@@ -468,12 +531,11 @@ export default class Visualizer extends Vue {
 
   public addModel() {
     this.selectedModel = {
-      id: 0,
-      source: '',
+      id: uniqueId(),
+      studyId: 0,
     };
   }
 
-  // Ok, it's bad that I'm using any here as the generic but I can't seem to get the types to work without this
   public nodeRightClick(e: MouseEvent, node: SingleNode) {
     e.preventDefault();
     const setCenter = () => {
@@ -483,7 +545,7 @@ export default class Visualizer extends Vue {
       };
     };
 
-    this.$refs.d3.setStrokeColor(node, VALID_ENDPOINT_OUTLINE);
+    this.colorChanges.push({ node, color: VALID_ENDPOINT_OUTLINE });
 
     // Get all nodes that contain the given point
     const getNodesInRange = (point: MouseEvent) => {
@@ -512,7 +574,7 @@ export default class Visualizer extends Vue {
 
 
     let selectedNode: SingleNode | null = null;
-    const remove = addEventListeners({
+    const disposer = addEventListeners({
       mousemove: (ev: MouseEvent) => {
         this.lineEnd = ev;
         setCenter();
@@ -521,7 +583,7 @@ export default class Visualizer extends Vue {
         // reset the color of the previously selected node
         // TODO this will cause a bug if the node was initially colored something else
         if (selectedNode) {
-          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+          this.colorChanges.push({ node: selectedNode, color: NODE_OUTLINE });
           selectedNode = null;
         }
 
@@ -534,22 +596,22 @@ export default class Visualizer extends Vue {
         const b = top.provenanceNode;
 
         const relationship = getRelationship(a, b);
-        const valid = isValidConnection(a, b, relationship);
+        const valid = isValidRelationship(a, b, relationship);
         const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
-        this.$refs.d3.setStrokeColor(selectedNode, color);
+        this.colorChanges.push({ node: selectedNode, color });
       },
-      mouseup: (ev: MouseEvent) => {
+      mouseup: async (ev: MouseEvent) => {
         if (ev.which !== 3) {
           return;
         }
 
-        remove();
+        disposer.dispose();
         this.lineStart = null;
         this.lineEnd = null;
 
-        this.$refs.d3.setStrokeColor(node, NODE_OUTLINE);
+        this.colorChanges.push({ node, color: NODE_OUTLINE });
         if (selectedNode) {
-          this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+          this.colorChanges.push({ node: selectedNode, color: NODE_OUTLINE });
         }
 
         const nodesInRange = getNodesInRange(ev);
@@ -562,11 +624,18 @@ export default class Visualizer extends Vue {
         const b = nodeToMakeConnection.provenanceNode;
         const relationship = getRelationship(a, b);
 
-        const madeConnection = makeConnection(a, b, { type: relationship });
-        if (madeConnection) {
-          makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
-          this.renderGraph();
+        const connection = createRelationship(a, b, relationship);
+        if (!connection.can) {
+          return;
         }
+
+        const result = await makeRequest(() => backend.updateOrCreateDependency(connection.connection));
+        if (result.result !== 'success') {
+          return;
+        }
+
+        this.dependencies.push(connection.connection);
+        this.renderGraph();
       },
     });
   }
@@ -596,9 +665,8 @@ export default class Visualizer extends Vue {
       return !this.nodesToShow[dep.source.id];
     });
 
-    const text = getText(n, this.modelInformationLookup);
+    const text = getLabel(n, this.simulationStudyLookup);
     const { x, y } = this.nodeLookup[sourceId] ? this.nodeLookup[sourceId] : this.pointToPlaceNode;
-    const isEntity = n.type === 'wet-lab-data' || n.type === 'simulation-data' || n.type === 'model';
     const node: SingleNode = {
       isGroup: false,
       id: sourceId,
@@ -614,7 +682,7 @@ export default class Visualizer extends Vue {
       vy: 0,
       index: 0,
       provenanceNode: n,
-      rx: isEntity ? 10 : 0,
+      rx: n.classification === 'entity' ? 10 : 0,
       // width and height are essential
       // TODO add requirement to type file
       // they are used in the other js files
@@ -625,12 +693,12 @@ export default class Visualizer extends Vue {
         this.nodeRightClick(e, node);
       },
       onDidClick: () => {
-        this.$refs.d3.setStrokeColor(node, SELECTED_NODE_OUTLINE);
+        this.colorChanges.push({ node, color: SELECTED_NODE_OUTLINE });
 
         if (this.selectedNode) {
           const selectedNode = this.nodeLookup[this.selectedNode.id];
           if (selectedNode && !selectedNode.isGroup) {
-            this.$refs.d3.setStrokeColor(selectedNode, NODE_OUTLINE);
+            this.colorChanges.push({ node: selectedNode, color: NODE_OUTLINE });
           }
         }
 
@@ -807,21 +875,22 @@ export default class Visualizer extends Vue {
     this.links = links;
   }
 
-  public addNode() {
+  public async addNode() {
     const node: ProvenanceNode = {
-      type: 'model-building-activity',
+      type: 'ModelBuildingActivity',
+      classification: 'activity',
       id: uniqueId(),
     };
 
-    this.provenanceNodes.push(node);
-    this.selectedNode = node;
-    makeRequest(() => backend.updateOrCreateNode(node));
-
-    this.nodesToShow[node.id] = true;
-    if (node.studyId !== undefined) {
-      this.expanded[node.studyId] = true;
+    const result = await makeRequest(() => backend.updateOrCreateNode(node));
+    if (result.result !== 'success') {
+      return;
     }
 
+    this.provenanceNodes.push(node);
+    this.selectedNode = node;
+
+    this.nodesToShow[node.id] = true;
     this.renderGraph();
   }
 
@@ -831,7 +900,7 @@ export default class Visualizer extends Vue {
     this.possibleRelationships = null;
   }
 
-  public changeRelationship(relationship: ProvenanceNodeRelationships) {
+  public async changeRelationship(relationship: DependencyType) {
     if (!this.selectedConnection) {
       return;
     }
@@ -844,135 +913,192 @@ export default class Visualizer extends Vue {
     const cached = this.cachedConnections[a.type] = this.cachedConnections[a.type] || {};
     cached[b.type] = relationship;
 
+    const newProperties = {
+      ...originalConnection.properties,
+      type: relationship,
+    };
+
+    const result = await makeRequest(() => backend.updateOrCreateDependency({
+      source: originalConnection.source,
+      target: originalConnection.target,
+      properties: newProperties,
+    }));
+    if (result.result !== 'success') {
+      return;
+    }
+
+    // This feels a bit messy
+    // Set the relationship
+    // Set the relationship of the actual data
+    // Then render the graph again
     this.currentRelationship = relationship;
-    originalConnection.type = relationship;
+    originalConnection.properties = newProperties;
     this.renderGraph();
     this.cancelRelationshipSelection();
-
-    makeRequest(() => backend.updateOrCreateNode(a, ['connections']));
   }
 
-  public deleteRelationship() {
+  public async deleteRelationship() {
     if (!this.selectedConnection) {
       return;
     }
 
     const selectedConnection = this.selectedConnection;
-    const source = this.selectedConnection.source;
-    if (!source.node.connections) {
+    const result = await makeRequest(() => backend.deleteDependency(selectedConnection.properties.id));
+    if (result.result !== 'success') {
       return;
     }
 
-    source.node.connections = source.node.connections.filter((connection) => {
-      return connection.id !== selectedConnection.original.id;
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return dependency.properties.id !== selectedConnection.properties.id;
     });
 
     this.renderGraph();
     this.cancelRelationshipSelection();
-
-    makeRequest(() => backend.updateOrCreateNode(source.node, ['connections']));
   }
 
   public deselectNode() {
     this.selectedNode = null;
   }
 
-  public deleteNode() {
+  public async deleteNode() {
     if (!this.selectedNode) {
       return;
     }
 
     const selected = this.selectedNode;
 
-    // Remove all incoming connections
-    const { incoming } = this.highLevelNodeLookup[selected.id];
-    incoming.forEach(({ source }) => {
-      if (!source.node.connections) {
-        return;
-      }
+    // This request will delete all of the dependency relationships
+    // It will also delete information relationships and nodes
+    const result = await makeRequest(() => backend.deleteNode(selected.id));
+    if (result.result !== 'success') {
+      return;
+    }
 
-      source.node.connections = source.node.connections.filter(({ targetId }) => selected.id !== targetId);
-    });
-
+    // We have to delte the same data that the backend deletes
     this.provenanceNodes = this.provenanceNodes.filter((n) => {
       return n.id !== selected.id;
     });
 
-    makeRequest(() => backend.deleteNode(selected.id));
-    incoming.forEach(({ source }) => {
-      backend.updateOrCreateNode(source.node, ['connections']);
+    const nodeIds = new Set(this.provenanceNodes.map(({ id }) => id));
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return nodeIds.has(dependency.target) && nodeIds.has(dependency.source);
+    });
+
+    this.information = this.information.filter((node) => {
+      return nodeIds.has(node.source);
+    });
+
+    const informationNodeIds = new Set(this.information.map(({ target }) => target));
+    this.informationNodes = this.informationNodes.filter((node) => {
+      return informationNodeIds.has(node.id);
     });
 
     this.selectedNode = null;
     this.renderGraph();
   }
 
-  public onNodeChange(node: ProvenanceNode, key: keyof ProvenanceNode) {
-    // This is a bit inefficient
-    this.nodes.forEach((n) => {
-      if (n.id !== node.id) {
-        return;
-      }
-
-      if (n.isGroup) {
-        return;
-      }
-
-      const newText = getText(node, this.modelInformationLookup);
-      if (newText !== n.text) {
-        const newNode = this.createNewNode(node);
-        this.$refs.d3.replaceNode(newNode);
-      }
-    });
-
+  public async validateConnections(node: ProvenanceNode) {
     // Here we are revalidating all of the connections to see if they are still valid
     // If the type of node changed, they may no longer be valid
     const { outgoing, incoming } = this.highLevelNodeLookup[node.id];
-
-    const nodesToSave: ProvenanceNode[] = [];
-    const addIfNotInArray = <T>(arr: T[], value: T) => {
-      if (!arr.includes(value)) {
-        arr.push(value);
-      }
-    };
+    const toRemove = new Set<string>();
 
     [...incoming, ...outgoing].forEach((c) => {
-      const { source, target, relationship } = c;
-      if (isValidConnection(source.node, target.node, relationship)) {
+      if (isValidRelationship(c.source.node, c.target.node, c.relationship)) {
         return;
       }
 
-      addIfNotInArray(nodesToSave, source.node);
-      addIfNotInArray(nodesToSave, target.node);
-      if (!source.node.connections) {
-        return;
-      }
-
-      source.node.connections = source.node.connections
-        .filter((connection) => connection.targetId !== target.node.id);
+      toRemove.add(c.properties.id);
     });
 
-    makeRequest(() => backend.updateOrCreateNode(node, [key]));
+    if (toRemove.size === 0) {
+      return;
+    }
 
-    nodesToSave.map((n) => {
-      makeRequest(() => backend.updateOrCreateNode(node, ['connections']));
+    for (const id of toRemove) {
+      logger.info('Deleting dependency: ' + id);
+      makeRequest(() => backend.deleteDependency(id));
+    }
+
+    this.dependencies = this.dependencies.filter((dependency) => {
+      return !toRemove.has(dependency.properties.id);
     });
 
-    // We are calling the render function since we will likely need to redraw something
-    // We debounce because we don't want to be rerendering all of the time
     this.debouncedRenderGraph();
   }
 
-  public async mounted() {
-    // TODO Remove this
-    // await backend.resetDatabase();
+  public async deleteInformationNode(node: InformationField) {
+    const result = await makeRequest(() => backend.deleteInformationNode(node.id));
+    if (result.result !== 'success') {
+      return;
+    }
 
-    makeRequest(backend.getModels, (good) => {
-      this.models = good.items;
+    this.informationNodes = this.informationNodes.filter((n) => n.id !== node.id);
+    this.information = this.information.filter((n) => n.target !== node.id);
+    this.debouncedRenderGraph();
+  }
+
+  public async addInformationNode(node: InformationField) {
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const relationship = {
+      source: this.selectedNode.id,
+      target: node.id,
+      properties: {
+        id: uniqueId(),
+      },
+    };
+
+    logger.info('Creating new information node and relationship: ' + node.id);
+    const result = await makeRequest(() => backend.addInformationEntry(relationship, node));
+    if (result.result !== 'success') {
+      return;
+    }
+
+    this.information.push(relationship);
+    this.informationNodes.push(node);
+    this.debouncedRenderGraph();
+  }
+
+  public async editInformationNode<K extends keyof InformationField>(
+    node: InformationField, key: K, value: InformationField[K],
+  ) {
+    node[key] = value;
+    makeRequest(() => backend.updateOrCreateInformationNode(node));
+    this.debouncedRenderGraph();
+  }
+
+  public editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, value: ProvenanceNode[K]) {
+    node[key] = value;
+    makeRequest(() => backend.updateOrCreateNode(node));
+    this.debouncedRenderGraph();
+
+    if (key === 'type') {
+      this.validateConnections(node);
+    }
+  }
+
+  public async mounted() {
+    makeRequest(backend.getStudies, (result) => {
+      this.models = result.items;
     });
 
-    makeRequest(backend.getProvenanceNodes, (good) => {
-      this.provenanceNodes = good.items;
+    makeRequest(backend.getNodes, (result) => {
+      this.provenanceNodes = result.items;
+    });
+
+    makeRequest(backend.getNodeDependencies, (result) => {
+      this.dependencies = result.items;
+    });
+
+    makeRequest(backend.getNodeInformation, (result) => {
+      this.information = result.items;
+    });
+
+    makeRequest(backend.getInformationNodes, (result) => {
+      this.informationNodes = result.items;
     });
   }
 }
@@ -981,6 +1107,9 @@ export default class Visualizer extends Vue {
 <style lang="scss" scoped>
 .cards {
   width: 350px;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 20px 1px;
 }
 
 .search {
@@ -995,7 +1124,7 @@ export default class Visualizer extends Vue {
 
 .overlay {
   position: absolute;
-  margin: 20px;
+  margin: 0 20px;
   top: 0;
   left: 0;
   right: 0;
@@ -1006,6 +1135,10 @@ export default class Visualizer extends Vue {
 
 .overlay-child {
   pointer-events: auto;
+}
+
+.overlay-child:not(.cards) {
+  margin-top: 20px;
 }
 
 .clear-button {

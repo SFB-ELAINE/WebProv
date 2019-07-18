@@ -1,7 +1,7 @@
-import { ProvenanceNodeRelationships } from '@/specification';
+import { DependencyType } from 'common';
 
 export type RelationshipColors = {
-  [r in ProvenanceNodeRelationships]: {
+  [r in DependencyType]: {
     color: string,
     source: 'entity' | 'activity',
     target: 'entity' | 'activity',

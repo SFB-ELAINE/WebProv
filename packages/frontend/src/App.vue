@@ -32,8 +32,6 @@ function useWindowSize() {
   return { windowWidth, windowHeight };
 }
 
-// This just uses vue-function-api for fun!
-// See https://github.com/vuejs/rfcs/blob/function-apis/active-rfcs/0000-function-api.md
 export default createComponent({
   components: { Visualizer },
   setup(props) {

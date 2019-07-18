@@ -26,16 +26,15 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { ModelInformation } from '@/specification';
-import { uniqueId, setVue, createComponent, makeRequest } from '@/utils';
-import * as backend from '@/backend';
+import { SimulationStudy, uniqueId } from 'common';
+import { setVue, createComponent, makeRequest } from '@/utils';
 import { value } from 'vue-function-api';
 
 export default createComponent({
   components: { Card },
   props: {
     model: {
-      type: Object as () => ModelInformation,
+      type: Object as () => SimulationStudy,
       required: true,
     },
   },
@@ -48,7 +47,6 @@ export default createComponent({
 
     const deleteModel = () => {
       context.emit('delete');
-      cancel();
     };
 
     const setModel = (model: string) => {
@@ -67,7 +65,6 @@ export default createComponent({
 
     const save = () => {
       context.emit('save');
-      cancel();
     };
 
     return {
