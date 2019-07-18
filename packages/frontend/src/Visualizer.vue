@@ -661,8 +661,11 @@ export default class Visualizer extends Vue {
   public createNewNode(n: ProvenanceNode): SingleNode {
     const sourceId = n.id;
 
-    const moreLeftToShow = this.highLevelNodeLookup[sourceId].incoming.some((dep) => {
-      return !this.nodesToShow[dep.source.id];
+    const source = this.highLevelNodeLookup[sourceId];
+    const moreLeftToShow = source.incoming.some((connection) => {
+      return !this.nodesToShow[connection.source.id];
+    }) || source.outgoing.some((connection) => {
+      return !this.nodesToShow[connection.target.id];
     });
 
     const text = getLabel(n, this.simulationStudyLookup);
@@ -709,30 +712,18 @@ export default class Visualizer extends Vue {
         }
       },
       onDidActionClick: () => {
-        const seen = new Set<string>();
+        const highLevel = this.highLevelNodeLookup[node.id];
 
-        // OK so, when the user wants to see the incoming connections by clicking "See more",
-        // we need to (recursively) expand all outgoing connections for all of the incoming nodes
-        // Right now, there is no way for a user to expand outgoing nodes which is why we do this
-        const expandDependencies = (id: string, direction: 'incoming' | 'outgoing' = 'incoming') => {
-          seen.add(id);
+        // Show all incoming connections
+        highLevel.incoming.forEach((connection) => {
+          this.nodesToShow[connection.source.id] = true;
+        });
 
-          const st = direction === 'outgoing' ? 'target' : 'source'; // source or target
-          this.highLevelNodeLookup[id][direction].forEach((connection) => {
-            if (seen.has(connection[st].id)) {
-              return;
-            }
+        // And show all outgoing connections
+        highLevel.outgoing.forEach((connection) => {
+          this.nodesToShow[connection.target.id] = true;
+        });
 
-            const studyId = connection[st].node.studyId;
-            if (studyId !== undefined) {
-              this.expanded[studyId] = true;
-            }
-            this.nodesToShow[connection[st].id] = true;
-            expandDependencies(connection[st].id, 'outgoing');
-          });
-        };
-
-        expandDependencies(node.id);
         this.pointToPlaceNode = node;
         this.renderGraph();
       },
