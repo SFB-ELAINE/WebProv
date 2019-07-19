@@ -33,19 +33,19 @@
 
     <div class="overlay">
       
-      <search
+      <search-card
         class="search overlay-child" 
         :items="searchItems"
-        @open="openResult"
+        @open="expandStudy"
         @dependency="showProvenanceGraph"
-        @open-model="openModel"
-      ></search>
+        @open-study="openStudy"
+      ></search-card>
       <div style="flex: 1"></div>
 
       <b-button
         class="clear-button overlay-child"
         type="is-text"
-        @click="addModel"
+        @click="createStudy"
       >
         Add Study
       </b-button>
@@ -68,19 +68,19 @@
 
       <div class="cards overlay-child">
 
-        <prov-legend v-bind="legendProps"></prov-legend>
+        <prov-legend-card v-bind="legendProps"></prov-legend-card>
         <div class="spacer"></div>
 
-        <models-card
-          v-if="selectedModel"
-          :model="selectedModel"
-          @cancel="cancelSelectedModel"
-          @delete="deleteSelectedModel"
-          @save="saveSelectedModel"
-        ></models-card>
-        <div v-if="selectedModel" class="spacer"></div>
+        <simulation-study-card
+          v-if="selectedStudy"
+          :study="selectedStudy"
+          @cancel="cancelSelectedStudy"
+          @delete="deleteSelectedStudy"
+          @save="saveSelectedStudy"
+        ></simulation-study-card>
+        <div v-if="selectedStudy" class="spacer"></div>
         
-        <card-select
+        <select-card
           title="Relationship" 
           v-if="currentRelationship"
           :value="currentRelationship"
@@ -88,10 +88,10 @@
           :options="possibleRelationships"
           @close="cancelRelationshipSelection"
           @delete="deleteRelationship"
-        ></card-select>
+        ></select-card>
         <div class="spacer"></div>
         
-        <node-form
+        <node-form-card
           v-if="selectedNode"
           :node="selectedNode"
           :fields="selectedNodeInformation"
@@ -101,7 +101,7 @@
           @update:information:add="addInformationNode"
           @update:information="editInformationNode"
           @update:node="editNode"
-        ></node-form>
+        ></node-form-card>
       
       </div>
     </div>
@@ -149,7 +149,7 @@ import {
   TypeOf,
   isValidRelationship,
 } from 'common';
-import ProvLegend from '@/components/ProvLegend.vue';
+import ProvLegendCard from '@/components/ProvLegendCard.vue';
 import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';
 import {
@@ -168,10 +168,10 @@ import {
   createComponent,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
-import Search from '@/components/Search.vue';
-import NodeForm from '@/components/NodeForm.vue';
-import ModelsCard from '@/components/ModelsCard.vue';
-import CardSelect from '@/components/CardSelect.vue';
+import SearchCard from '@/components/SearchCard.vue';
+import NodeFormCard from '@/components/NodeFormCard.vue';
+import SimulationStudyCard from '@/components/SimulationStudyCard.vue';
+import SelectCard from '@/components/SelectCard.vue';
 import { SearchItem, search } from '@/search';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
@@ -180,7 +180,7 @@ import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
 
 interface BaseNode extends D3Node {
-  model?: number;
+  studyId?: number;
   text: string;
 }
 
@@ -203,7 +203,7 @@ interface Link extends D3Link {
 interface Connection {
   properties: DependencyRelationship;
   relationship: DependencyType;
-  original: RelationshipInformation<DependencyRelationship>; // TODO is this sufficient?
+  original: RelationshipInformation<DependencyRelationship>;
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -236,7 +236,7 @@ const logger = getLogger();
 
 export default createComponent({
   name: 'Visualizer',
-  components: { ProvLegend, D3, Search, CardSelect, NodeForm, ModelsCard, InformationModal },
+  components: { ProvLegendCard, D3, SearchCard, SelectCard, NodeFormCard, SimulationStudyCard, InformationModal },
   props: {
     windowHeight: { type: Number, required: true },
     windowWidth: { type: Number, required: true },
@@ -249,7 +249,7 @@ export default createComponent({
     const dependencies = value<Array<RelationshipInformation<DependencyRelationship>>>([]);
     const information = value<Array<RelationshipInformation<InformationRelationship>>>([]);
 
-    // which models are currently expanded
+    // which studies are currently expanded
     const expanded = value<Lookup<boolean>>({});
 
     // The current nodes that are passed to D3
@@ -282,13 +282,13 @@ export default createComponent({
     // will be of the cached type.
     const cachedConnections = value<RelationshipCache>({});
 
-    const models = value<SimulationStudy[]>([]);
+    const simulationStudies = value<SimulationStudy[]>([]);
 
     // Whether to show the help information
     const showHelp = value(false);
 
-    // The selected model. This is set automatically when a new model is created or it can be opened from the search.
-    const selectedModel = value<SimulationStudy | null>(null);
+    // The selected study. This is set automatically when a new study is created or it can be opened from the search.
+    const selectedStudy = value<SimulationStudy | null>(null);
 
     // Used so find group IDs for group nodes that have already been created.
     // We don't want to use a different ID every time we render.
@@ -380,7 +380,7 @@ export default createComponent({
     });
 
     const simulationStudyLookup = computed(() => {
-      return makeLookupBy(models.value, (study) => study.studyId);
+      return makeLookupBy(simulationStudies.value, (study) => study.studyId);
     });
 
     const dependenciesLookup = computed(() => {
@@ -446,54 +446,35 @@ export default createComponent({
       renderGraph();
     }
 
-    function cancelSelectedModel() {
-      selectedModel.value = null;
+    function cancelSelectedStudy() {
+      selectedStudy.value = null;
     }
 
-    async function saveSelectedModel() {
-      if (!selectedModel.value) {
+    async function saveSelectedStudy() {
+      if (!selectedStudy.value) {
         return;
       }
 
-      const model = selectedModel.value;
-      const result = await makeRequest(() => backend.updateOrCreateModel(model));
+      const study = selectedStudy.value;
+      const result = await makeRequest(() => backend.updateOrCreateStudy(study));
       if (result.result === 'success') {
-        selectedModel.value = null;
+        selectedStudy.value = null;
       }
     }
 
-    async function deleteSelectedModel() {
-      if (!selectedModel.value) {
+    async function deleteSelectedStudy() {
+      if (!selectedStudy.value) {
         return;
       }
 
-      const model = selectedModel.value;
-      const result = await makeRequest(() => backend.deleteModel(model.id));
+      const study = selectedStudy.value;
+      const result = await makeRequest(() => backend.deleteStudy(study.id));
       if (result.result === 'success') {
-        selectedModel.value = null;
+        selectedStudy.value = null;
       }
     }
 
-    function openModel(result: SearchItem) {
-      if (result.studyId === undefined) {
-        context.root.$notification.open({
-          message: 'Please assign a model first.',
-          position: 'is-bottom-right',
-          type: 'is-warning',
-        });
-
-        return;
-      }
-
-      selectedModel.value = simulationStudyLookup.value[result.studyId];
-    }
-
-    function clearNodes() {
-      nodesToShow.value = {};
-      renderGraph();
-    }
-
-    function openResult(result: SearchItem) {
+    function expandStudy(result: SearchItem) {
       // Reset every time this function is called.
       nodesToShow.value = {};
 
@@ -512,21 +493,21 @@ export default createComponent({
 
     const searchItems = computed(() => {
       return highLevelNodes.value.map((n): SearchItem => {
-        const fields = n.information.map(([_, val]) => val);
+        const values = n.information.map(([_, val]) => val);
 
         return {
           id: n.id,
           title: getLabel(n.node, simulationStudyLookup.value),
           type: n.node.type,
           studyId: n.node.studyId,
-          model: n.node.studyId !== undefined ? `Model ${n.node.studyId}` : undefined,
-          information: fields,
+          studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
+          extra: values,
         };
       });
     });
 
-    function addModel() {
-      selectedModel.value = {
+    function createStudy() {
+      selectedStudy.value = {
         id: uniqueId(),
         studyId: 0,
       };
@@ -636,24 +617,6 @@ export default createComponent({
       });
     }
 
-    function hullDblclick(d: D3Hull) {
-      expanded.value[d.group] = false;
-
-      const point = { x: 0, y: 0 };
-      d.nodes.forEach((n) => {
-        point.x += n.x;
-        point.y += n.y;
-      });
-
-      // Place the new node at the center of all of the nodes its consumming
-      point.x /= d.nodes.length;
-      point.y /= d.nodes.length;
-
-      pointToPlaceNode.value = point;
-
-      renderGraph();
-    }
-
     function createNewNode(n: ProvenanceNode): SingleNode {
       const sourceId = n.id;
 
@@ -672,7 +635,7 @@ export default createComponent({
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
         type: n.type,
-        model: n.studyId,
+        studyId: n.studyId,
         hullGroup: n.studyId,
         stroke: NODE_OUTLINE,
         x,
@@ -707,7 +670,10 @@ export default createComponent({
             selectedNode.value = n;
           }
         },
-        onDidActionClick: () => {
+        onDidActionClick: (e) => {
+          // Stop propagation so that the onDidClick event above is not fired
+          e.stopPropagation();
+
           const highLevel = highLevelNodeLookup.value[node.id];
 
           // Show all incoming connections
@@ -736,8 +702,8 @@ export default createComponent({
       // We don't care about any nodes that don't need to be shown.
       const filtered = provenanceNodes.value.filter((n) => nodesToShow.value[n.id]);
 
-      // First, create all of the model nodes.
-      // These are the collapsed nodes. We only need to create one per model.
+      // First, create all of the simulation study nodes.
+      // These are the collapsed nodes. We only need to create one per simulation study.
       filtered.forEach((n) => {
         if (n.studyId === undefined) {
           return;
@@ -751,13 +717,13 @@ export default createComponent({
           return;
         }
 
-        const model = n.studyId;
-        const groupId = savedGroupIds.value[n.studyId] = get(savedGroupIds.value, n.studyId, uniqueId());
+        const studyId = n.studyId;
+        const groupId = savedGroupIds.value[studyId] = get(savedGroupIds.value, studyId, uniqueId());
         const point = nodeLookup.value[groupId] ? nodeLookup.value[groupId] : pointToPlaceNode.value;
         const node: GroupNode = {
           ...point,
           isGroup: true,
-          model,
+          studyId,
           id: groupId,
           index: 0,
           vx: 0,
@@ -768,7 +734,7 @@ export default createComponent({
           width: MODEL_WIDTH,
           height: NODE_HEIGHT,
           onDidDblclick: () => {
-            expanded.value[model] = true;
+            expanded.value[studyId] = true;
             pointToPlaceNode.value = node;
             renderGraph();
           },
@@ -778,7 +744,7 @@ export default createComponent({
         newNodes.push(node);
       });
 
-      // Now, we add the other nodes that don't have a model or that are in a model that is expanded
+      // Now, we add the other nodes that don't have a study or that are in a study that is expanded
       filtered.forEach((n) => {
         const sourceId = n.id;
 
@@ -790,18 +756,18 @@ export default createComponent({
             return;
           }
 
-          const determineLinkId = (id: string, model: number | undefined) => {
-            if (model === undefined || expanded.value[model]) {
+          const determineLinkId = (id: string, studyId: number | undefined) => {
+            if (studyId === undefined || expanded.value[studyId]) {
               return id;
             }
 
-            return collapsedNodes[model].id;
+            return collapsedNodes[studyId].id;
           };
 
           const source = determineLinkId(sourceId, c.source.node.studyId);
           const target = determineLinkId(targetId, c.target.node.studyId);
 
-          // This happens for nodes in the same model when the model hasn't been expanded
+          // This happens for nodes in the same strudy when the study hasn't been expanded
           if (target === source) {
             return;
           }
@@ -845,7 +811,7 @@ export default createComponent({
           newLinks.push(link);
         });
 
-        // don't add nodes that are a model that isn't expanded
+        // don't add nodes that are a study that isn't expanded
         if (n.studyId !== undefined && !expanded.value[n.studyId]) {
           return;
         }
@@ -1070,7 +1036,7 @@ export default createComponent({
 
     onMounted(() => {
       makeRequest(backend.getStudies, (result) => {
-        models.value = result.items;
+        simulationStudies.value = result.items;
       });
 
       makeRequest(backend.getNodes, (result) => {
@@ -1103,19 +1069,50 @@ export default createComponent({
       lineStart,
       lineEnd,
       searchItems,
-      openResult,
+      expandStudy,
       legendProps,
       showProvenanceGraph,
-      openModel,
-      hullDblclick,
+      openStudy: (result: SearchItem) => {
+        if (result.studyId === undefined) {
+          context.root.$notification.open({
+            message: 'Please assign a study ID first.',
+            position: 'is-bottom-right',
+            type: 'is-warning',
+          });
+
+          return;
+        }
+
+        selectedStudy.value = simulationStudyLookup.value[result.studyId];
+      },
+      hullDblclick: (d: D3Hull) => {
+        expanded.value[d.group] = false;
+
+        const point = { x: 0, y: 0 };
+        d.nodes.forEach((n) => {
+          point.x += n.x;
+          point.y += n.y;
+        });
+
+        // Place the new node at the center of all of the nodes its consumming
+        point.x /= d.nodes.length;
+        point.y /= d.nodes.length;
+
+        pointToPlaceNode.value = point;
+
+        renderGraph();
+      },
       colorChanges,
-      addModel,
+      createStudy,
       addNode,
-      clearNodes,
-      selectedModel,
-      cancelSelectedModel,
-      deleteSelectedModel,
-      saveSelectedModel,
+      clearNodes: () => {
+        nodesToShow.value = {};
+        renderGraph();
+      },
+      selectedStudy,
+      cancelSelectedStudy,
+      deleteSelectedStudy,
+      saveSelectedStudy,
       selectedNode,
       selectedNodeInformation,
       deselectNode,

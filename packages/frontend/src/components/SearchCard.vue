@@ -30,7 +30,7 @@
         <div style="display: flex; align-items: flex-start">
           <div>
             <h4 class="result--title">{{ result.title }}</h4>
-            <h6 class="result--type">{{ result.model === undefined ? 'No Study' : result.model }}</h6>
+            <h6 class="result--type">{{ result.studyText === undefined ? 'No Study' : result.studyText }}</h6>
             <p class="result--extra">{{ result.information | format }}</p>
           </div>
           <div style="flex: 1"></div>
@@ -39,7 +39,7 @@
               <b-button
                 type="is-text"
                 icon-right="information-outline"
-                @click="$emit('open-model', result)"
+                @click="$emit('open-study', result)"
               ></b-button>
             </b-tooltip>
             <b-tooltip label="Show Provenance Graph" position="is-left">
@@ -77,7 +77,7 @@ import { createComponent } from '@/utils';
 import { value } from 'vue-function-api';
 
 export default createComponent({
-  name: 'Search',
+  name: 'SearchCard',
   components: { Card },
   filters: {
     format(strings: string[]) {

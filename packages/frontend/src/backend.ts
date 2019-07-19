@@ -25,10 +25,10 @@ export const updateOrCreateInformationNode = async (node: InformationField) => {
   return (await api.post('/information', node)).data;
 };
 
-export const updateOrCreateModel = async (
-  model: SimulationStudy,
+export const updateOrCreateStudy = async (
+  study: SimulationStudy,
 ) => {
-  return (await api.post('/studies', { item: model })).data;
+  return (await api.post('/studies', { item: study })).data;
 };
 
 export const updateOrCreateDependency = async (
@@ -48,7 +48,7 @@ export const deleteNode = async (id: string) => {
   return (await api.delete('/nodes', { params: { id } })).data;
 };
 
-export const deleteModel = async (id: string) => {
+export const deleteStudy = async (id: string) => {
   return (await api.delete('/studies', { params: { id } })).data;
 };
 

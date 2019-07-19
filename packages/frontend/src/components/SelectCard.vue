@@ -17,7 +17,7 @@ import Card from '@/components/Card.vue';
 import { createComponent } from '@/utils';
 
 export default createComponent({
-  name: 'CardSelect',
+  name: 'SelectCard',
   components: { Card },
   props: {
     options: { type: Array as () => string[], required: true },

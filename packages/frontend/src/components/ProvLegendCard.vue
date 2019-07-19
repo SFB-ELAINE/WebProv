@@ -56,7 +56,7 @@ import { uppercase, createComponent } from '@/utils';
 import { computed } from 'vue-function-api';
 
 export default createComponent({
-  name: 'ProvLegend',
+  name: 'ProvLegendCard',
   components: { Node, Card, Relationship, D3 },
   filters: {
     uppercase,

@@ -16,7 +16,6 @@ import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 import { DependencyRelationship } from 'common/dist/schemas';
 
 // The following methods are useful for making lookups.
-
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
   for (const item of array) {

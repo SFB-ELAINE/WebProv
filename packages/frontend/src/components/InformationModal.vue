@@ -15,7 +15,7 @@
         <h1>
           Editing Nodes
         </h1>
-        <p>To edit a node, just click a node that is shown in the graph. This will open up a form card that has all of the avaiable fields. When editing, your changes will be automatically saved to the database. Note, it is not possible to edit a contracted model node.</p>
+        <p>To edit a node, just click a node that is shown in the graph. This will open up a form card that has all of the avaiable fields. When editing, your changes will be automatically saved to the database. Note, it is not possible to edit a contracted study node.</p>
       </div>
     </div>
   </b-modal>

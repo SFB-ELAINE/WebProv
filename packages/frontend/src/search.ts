@@ -5,20 +5,17 @@ export interface SearchItem {
   title: string;
   type: string;
   studyId: number | undefined;
-  model: string | undefined;
-  information: string[];
+  studyText: string | undefined;
+  extra: string[];
 }
 
-
-const options: Fuse.FuseOptions<SearchItem> = {
-  keys: ['information', 'title', 'id', 'model'],
-};
+const keys: Array<keyof SearchItem> = ['extra', 'title', 'id', 'studyText'];
 
 export const search = (items: SearchItem[], pattern: string) => {
   if (pattern.trim() === '') {
     return items;
   }
 
-  const fuse = new Fuse(items, options);
+  const fuse = new Fuse(items, { keys });
   return fuse.search(pattern);
 };

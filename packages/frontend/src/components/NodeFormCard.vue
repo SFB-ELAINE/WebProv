@@ -48,7 +48,7 @@ import { createComponent } from '../utils';
 import { provenanceNodeTypes, ProvenanceNode, InformationField, uniqueId, ProvenanceNodeType } from 'common';
 
 export default createComponent({
-  name: 'NodeForm',
+  name: 'NodeFormCard',
   components: { Card },
   props: {
     node: { type: Object as () => ProvenanceNode, required: true },
