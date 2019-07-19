@@ -1,5 +1,5 @@
 <template>
-  <card>
+  <card ref="el">
     <template v-slot:header>
       <b-field style="margin: 1.5rem 1.5rem 0">
         <b-input
@@ -104,8 +104,9 @@ export default createComponent({
     }
 
     function startSearch() {
+      const card = context.refs.el as Vue;
       const loadingComponent = context.root.$loading.open({
-        container: context.root.$el,
+        container: card.$el,
       });
 
       setTimeout(() => loadingComponent.close(), 0.5 * 1000);

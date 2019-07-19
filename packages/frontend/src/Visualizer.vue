@@ -1091,6 +1091,7 @@ export default createComponent({
     });
 
     return {
+      dependencies,
       version,
       showHelp,
       openHelp,

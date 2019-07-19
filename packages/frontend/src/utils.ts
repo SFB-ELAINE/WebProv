@@ -73,9 +73,11 @@ export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): stri
     case 'ModelBuildingActivity':
       return 'MBA';
     case 'SimulationData':
-      return 'None';
+      return 'No Label';
     case 'ModelExplorationActivity':
       return 'MEA';
+    case 'TheoreticalKnowledge':
+      return 'TK';
     case 'Model':
       if (n.label) {
         return n.label;
@@ -395,3 +397,13 @@ export const isDefined = <T>(o: T | undefined): o is T => {
 export const getLogger = () => {
   return console;
 };
+
+
+export function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
