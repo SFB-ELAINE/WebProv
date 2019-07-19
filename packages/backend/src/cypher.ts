@@ -9,7 +9,9 @@ import {
   BackendRelationships,
   getType,
   keys,
-  RelationshipInformation
+  RelationshipInformation,
+  schemas,
+  relationships
 } from 'common';
 
 import * as dotenv from 'dotenv';
@@ -44,11 +46,6 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
     };
   }
 };
-
-interface Statement<> {
-  statement: string;
-  parameters?: { [k: string]: any };
-}
 
 export const updateOrCreate = async <S extends Schema>(
   schema: S, obj: TypeOf<S>
@@ -301,4 +298,24 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
       result: 'success',
     };
   });
+}
+
+/**
+ * Initializes the constraints!
+ */
+export const initialize = async () => {
+  [...schemas, ...relationships].forEach(schema => {
+    const fields = {
+      ...schema.required,
+      ...(schema.optional || {}),
+    }
+    
+    const session = driver.session();
+    keys(fields).forEach(fieldName => {
+      const fieldInformation = fields[fieldName];
+      if (fieldInformation.unique || fieldInformation.primary) {
+        session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
+      }
+    })
+  })
 }

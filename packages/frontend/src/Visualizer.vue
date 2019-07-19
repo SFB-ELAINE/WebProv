@@ -211,7 +211,6 @@ interface Connection {
 
 interface HighLevelNode {
   id: string;
-  information: Array<[string, string]>;
   node: ProvenanceNode;
   outgoing: Connection[];
   incoming: Connection[];
@@ -244,10 +243,9 @@ export default createComponent({
   setup(props, context) {
     // The package version number
     const provenanceNodes = value<ProvenanceNode[]>([]);
-
     const informationNodes = value<InformationField[]>([]);
     const dependencies = value<Array<RelationshipInformation<DependencyRelationship>>>([]);
-    const information = value<Array<RelationshipInformation<InformationRelationship>>>([]);
+    const informationRelations = value<Array<RelationshipInformation<InformationRelationship>>>([]);
 
     // which studies are currently expanded
     const expanded = value<Lookup<boolean>>({});
@@ -295,7 +293,15 @@ export default createComponent({
     const savedGroupIds = value<Lookup<string>>({});
 
     const debouncedRenderGraph = debounce(renderGraph, 500);
+    const debouncedUpdateOrCreateNode = debounce((node: ProvenanceNode) => {
+      return makeRequest(() => backend.updateOrCreateNode(node));
+    }, 500);
 
+    const debouncedUpdateOrCreateInformationNode = debounce((field: InformationField) => {
+      return makeRequest(() => backend.updateOrCreateInformationNode(field));
+    }, 500);
+
+    // Used to change the color of individual nodes without having to re-render the whole graph
     const colorChanges = value<D3NodeColorCombo[]>([]);
 
     const height = computed(() => {
@@ -317,19 +323,15 @@ export default createComponent({
       }
 
       const relationships = getInformationRelationship(selectedNode.value.id);
-      logger.info(`There are ${relationships.length} information fields for the selected node`);
+      logger.debug(`There are ${relationships.length} information fields for the selected node`);
       return relationships.map((relationship) => getInformationNode(relationship.target)).filter(isDefined);
     });
 
     const highLevelNodes = computed((): HighLevelNode[] => {
       const lookup: Lookup<HighLevelNode> = {};
       provenanceNodes.value.forEach((node) => {
-        const fields = getInformationNodesFromProvenance(node);
-        const tuples = fields.filter(isDefined).map((field) => tuple(field.key, field.value));
-
         lookup[node.id] = {
           id: node.id,
-          information: tuples,
           node,
           incoming: [],
           outgoing: [],
@@ -388,7 +390,7 @@ export default createComponent({
     });
 
     const informationLookup = computed(() => {
-      return makeArrayLookupBy(information.value, (i) => i.source);
+      return makeArrayLookupBy(informationRelations.value, (i) => i.source);
     });
 
     const informationNodeLookup = computed(() => {
@@ -493,7 +495,8 @@ export default createComponent({
 
     const searchItems = computed(() => {
       return highLevelNodes.value.map((n): SearchItem => {
-        const values = n.information.map(([_, val]) => val);
+        const fields = getInformationNodesFromProvenance(n.node);
+        const values = fields.filter(isDefined).map((field) => field.value);
 
         return {
           id: n.id,
@@ -937,11 +940,11 @@ export default createComponent({
         return nodeIds.has(dependency.target) && nodeIds.has(dependency.source);
       });
 
-      information.value = information.value.filter((node) => {
+      informationRelations.value = informationRelations.value.filter((node) => {
         return nodeIds.has(node.source);
       });
 
-      const informationNodeIds = new Set(information.value.map(({ target }) => target));
+      const informationNodeIds = new Set(informationRelations.value.map(({ target }) => target));
       informationNodes.value = informationNodes.value.filter((node) => {
         return informationNodeIds.has(node.id);
       });
@@ -987,7 +990,7 @@ export default createComponent({
       }
 
       informationNodes.value = informationNodes.value.filter((n) => n.id !== node.id);
-      information.value = information.value.filter((n) => n.target !== node.id);
+      informationRelations.value = informationRelations.value.filter((n) => n.target !== node.id);
       debouncedRenderGraph();
     }
 
@@ -1010,7 +1013,7 @@ export default createComponent({
         return;
       }
 
-      information.value.push(relationship);
+      informationRelations.value.push(relationship);
       informationNodes.value.push(node);
       debouncedRenderGraph();
     }
@@ -1019,13 +1022,13 @@ export default createComponent({
       node: InformationField, key: K, newValue: InformationField[K],
     ) {
       node[key] = newValue;
-      makeRequest(() => backend.updateOrCreateInformationNode(node));
+      debouncedUpdateOrCreateInformationNode(node);
       debouncedRenderGraph();
     }
 
     function editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, newValue: ProvenanceNode[K]) {
       node[key] = newValue;
-      makeRequest(() => backend.updateOrCreateNode(node));
+      debouncedUpdateOrCreateNode(node);
       debouncedRenderGraph();
 
       // Only validate the connections if the type of node changed.
@@ -1048,7 +1051,7 @@ export default createComponent({
       });
 
       makeRequest(backend.getNodeInformation, (result) => {
-        information.value = result.items;
+        informationRelations.value = result.items;
       });
 
       makeRequest(backend.getInformationNodes, (result) => {

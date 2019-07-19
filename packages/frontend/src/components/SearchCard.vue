@@ -31,7 +31,7 @@
           <div>
             <h4 class="result--title">{{ result.title }}</h4>
             <h6 class="result--type">{{ result.studyText === undefined ? 'No Study' : result.studyText }}</h6>
-            <p class="result--extra">{{ result.information | format }}</p>
+            <p class="result--extra">{{ result.extra | format }}</p>
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">

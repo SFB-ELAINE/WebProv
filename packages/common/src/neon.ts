@@ -46,13 +46,19 @@ export interface RelationshipInformation<T> {
   properties: T,
 }
 
+export const schemas: Schema[] = [];
+
+export const relationships: RelationshipSchema<Schema, Schema>[] = [];
+
 export const schema = <S extends Schema>(s: S): S => {
+  schemas.push(s);
   return s;
 };
 
 export const relationship = <
   A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>
 >(r: R) => {
+  relationships.push(r);
   return r;
 };
 

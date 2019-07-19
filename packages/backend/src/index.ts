@@ -12,6 +12,7 @@ import {
   getRelationships,
   deleteRelationship,
   deleteRelationshipByType,
+  initialize,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -82,9 +83,7 @@ export const resetDatabase = async () => {
   }
 }
 
-resetDatabase();
-
-const create = () => {
+const create = async () => {
   // SETUP FOR EXPRESS //
   const app = express();
   app.use(bodyParser.json());
@@ -94,6 +93,9 @@ const create = () => {
   const apiRouter = express.Router();
   app.use('/', apiRouter);
   const router = RestypedRouter<ProvenanceAPI>(apiRouter);
+
+  await initialize();
+  await resetDatabase();
 
   // ROUTES //
   router.get('/health', async () => {
@@ -161,12 +163,10 @@ const create = () => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   })
 
-  return app;
+  const PORT = 3000;
+  app.listen(PORT, () => {
+    console.log(`Backend listening on port ${PORT}!`);
+  })
 };
 
-const server = create();
-
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Backend listening on port ${PORT}!`);
-})
+create();

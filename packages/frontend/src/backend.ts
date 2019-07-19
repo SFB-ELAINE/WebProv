@@ -11,7 +11,7 @@ const api = axios.create<ProvenanceAPI>({
 });
 
 api.interceptors.request.use((request) => {
-  logger.info(`REQUEST to ${request.url}`, request);
+  logger.debug(`REQUEST to ${request.url}`, request);
   return request;
 });
 
