@@ -53,6 +53,21 @@ npm run build
 
 This will automatically place the application in the `docs` folder. Then, all you have to do is create a PR for your branch. Once the branch is merged, the new application will automatically be deployed.
 
+### Backend
+The following commands were used to set up the Heroku backend.
+```
+export app=web-prov-backend
+heroku apps:create $app
+
+# add free hosting database
+heroku addons:create graphenedb:dev-free --app $app
+```
+
+To re-deploy the backend server, just run the following command:
+```
+git push heroku master
+```
+
 ## Dependencies/Acknowledgements
 - [@types/d3](https://www.npmjs.com/package/@types/d3) (MIT)
 - [@types/@types/lodash.debounce](https://www.npmjs.com/package/@types/@types/lodash.debounce) (MIT)

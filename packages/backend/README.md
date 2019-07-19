@@ -38,7 +38,7 @@ Other commands include `stop`, `restart`, `console` and `status`.
 ### Connection Configuration
 Also, create a `.env` file if you don't already have one:
 ```
-DB_URI=bolt://localhost:7687
-DB_USER=neo4j
-DB_PASSWORD=test
+GRAPHENEDB_BOLT_URL=bolt://localhost:7687
+GRAPHENEDB_BOLT_USER=neo4j
+GRAPHENEDB_BOLT_PASSWORD=test
 ```

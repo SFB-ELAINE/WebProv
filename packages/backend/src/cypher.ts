@@ -18,20 +18,20 @@ import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
 dotenv.config();
 
-const uri = process.env.DB_URI;
-const user = process.env.DB_USER;
-const password = process.env.DB_PASSWORD;
+const uri = process.env.GRAPHENEDB_BOLT_URL;
+const user = process.env.GRAPHENEDB_BOLT_USER;
+const password = process.env.GRAPHENEDB_BOLT_PASSWORD;
 
 if (!uri) {
-  throw Error('DB_URI is required.');
+  throw Error('GRAPHENEDB_BOLT_URL is required.');
 }
 
 if (!user) {
-  throw Error('DB_USER is required.');
+  throw Error('GRAPHENEDB_BOLT_USER is required.');
 }
 
 if (!password) {
-  throw Error('DB_PASSWORD is required.');
+  throw Error('GRAPHENEDB_BOLT_PASSWORD is required.');
 }
 
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));

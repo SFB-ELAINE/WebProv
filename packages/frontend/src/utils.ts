@@ -312,7 +312,16 @@ export function createComponent<Props>(
 export async function makeRequest<T extends { result: 'success' }>(
   f: () => Promise<T | BackendError | BackendNotFound>, cb?: (result: T) => void,
 ) {
-  const result = await f();
+  let result: T | BackendError | BackendNotFound;
+  try {
+    result = await f();
+  } catch (e) {
+    // catch network errors & other errors
+    result = {
+      result: 'error',
+      message: e.message,
+    };
+  }
 
   if (result.result === 'error') {
     NotificationProgrammatic.open({
