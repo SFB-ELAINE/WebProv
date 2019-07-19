@@ -20,9 +20,7 @@
     "lodash.uniqueid": "^4.0.1",
     "restyped-axios": "^2.0.0",
     "vue": "^2.6.10",
-    "vue-class-component": "^7.1.0",
-    "vue-function-api": "^2.0.6",
-    "vue-property-decorator": "^8.1.1"
+    "vue-function-api": "^2.0.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",

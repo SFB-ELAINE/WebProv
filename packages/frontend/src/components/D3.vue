@@ -10,7 +10,6 @@
 <script lang="ts">
 import * as d3 from 'd3';
 import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
-import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { makeLookup, Lookup, intersection, createComponent } from '@/utils';
