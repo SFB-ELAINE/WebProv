@@ -9,11 +9,29 @@ import {
   BackendError,
   BackendNotFound,
   isValidRelationship,
+  RelationshipInformation,
+  keys,
 } from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 import { DependencyRelationship } from 'common/dist/schemas';
+
+export interface Connection {
+  properties: DependencyRelationship;
+  relationship: DependencyType;
+  original: RelationshipInformation<DependencyRelationship>;
+  source: HighLevelNode;
+  target: HighLevelNode;
+  color: string;
+}
+
+export interface HighLevelNode {
+  id: string;
+  node: ProvenanceNode;
+  outgoing: Connection[];
+  incoming: Connection[];
+}
 
 // The following methods are useful for making lookups.
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
@@ -61,7 +79,9 @@ interface SimulationStudyLookup {
  * @param n The node.
  * @param lookup The simulation study lookup. We need this to determine the default label for the model node.
  */
-export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): string {
+export function getLabel(
+  n: ProvenanceNode, lookup: SimulationStudyLookup, modelNumberLookup: Lookup<number | undefined>,
+): string {
   if (n.label) {
     return n.label;
   }
@@ -86,7 +106,9 @@ export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): stri
         return 'None';
       }
 
-      const text = `M${n.studyId}`;
+      // TODO version name is good, lets use it in other locations
+      const version = modelNumberLookup[n.studyId];
+      const text = version !== undefined ? `M${version}` : 'M';
       const simulationStudy = lookup[n.studyId];
       if (!simulationStudy) {
         return text;
@@ -415,3 +437,87 @@ export function getRandomColor() {
   }
   return color;
 }
+
+export interface LinkedNode {
+  node: ProvenanceNode;
+  next?: LinkedNode;
+  previous?: LinkedNode;
+}
+
+export const insertAfter = (node: ProvenanceNode, list?: LinkedNode): LinkedNode => {
+  const newNode: LinkedNode = {
+    node,
+  };
+
+  if (!list) {
+    return newNode;
+  }
+
+  if (list.previous) {
+    list.previous.next = newNode;
+    newNode.previous = list.previous;
+  }
+
+  if (list.next) {
+    list.next.previous = newNode;
+  }
+
+  newNode.next = list;
+  list.previous = newNode;
+
+  return newNode;
+};
+
+export const createStudyModelNumberLookup = (highLevelNodes: HighLevelNode[]) => {
+  const counts: Lookup<number> = {};
+  const seen = new Set<string>();
+
+  const traverse = (node: HighLevelNode): number => {
+    if (counts[node.id] !== undefined) {
+      return counts[node.id];
+    }
+
+    // This detects cyclic dependencies
+    if (seen.has(node.id)) {
+      throw Error('Cyclic dependency detected in graph');
+    }
+
+    seen.add(node.id);
+
+    let count = 0;
+    node.outgoing.forEach((outgoing) => {
+      count += traverse(outgoing.target);
+
+      if (outgoing.target.node.type === 'Model') {
+        count++;
+      }
+    });
+
+    counts[node.id] = count;
+    return count;
+  };
+
+  const modelNodes = highLevelNodes.filter((n) => n.node.type === 'Model');
+  modelNodes.forEach((node) => {
+    traverse(node);
+  });
+
+  // sort smallest to largest by count
+  const sorted = modelNodes.sort((a, b) => counts[a.id] - counts[b.id]);
+
+  const lookup: Lookup<number> = {};
+  sorted.forEach((node, i) => {
+    // start the number at 1, not 0
+    lookup[node.id] = i + 1;
+  });
+
+  return lookup;
+};
+
+export const merge = <T>(objects: Array<Lookup<T>>) => {
+  const lookup: Lookup<T> = {};
+  objects.forEach((o) => {
+    keys(o).forEach((key) => lookup[key] = o[key]);
+  });
+  return lookup;
+};

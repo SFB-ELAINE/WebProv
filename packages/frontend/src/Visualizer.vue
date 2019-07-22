@@ -167,6 +167,12 @@ import {
   isDefined,
   getLogger,
   createComponent,
+  LinkedNode,
+  insertAfter,
+  createStudyModelNumberLookup,
+  Connection,
+  HighLevelNode,
+  merge,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -199,22 +205,6 @@ type Node = SingleNode | GroupNode;
 
 interface Link extends D3Link {
   color: string;
-}
-
-interface Connection {
-  properties: DependencyRelationship;
-  relationship: DependencyType;
-  original: RelationshipInformation<DependencyRelationship>;
-  source: HighLevelNode;
-  target: HighLevelNode;
-  color: string;
-}
-
-interface HighLevelNode {
-  id: string;
-  node: ProvenanceNode;
-  outgoing: Connection[];
-  incoming: Connection[];
 }
 
 interface Point {
@@ -394,6 +384,29 @@ export default createComponent({
       return makeLookup(informationNodes.value);
     });
 
+    const sortedHighLevelNodes = computed(() => {
+      const allNodes: { [studyId: number]: HighLevelNode[] } = {};
+      highLevelNodes.value.forEach((highLevelNode) => {
+        const studyId = highLevelNode.node.studyId;
+        if (studyId === undefined) {
+          return;
+        }
+
+        if (!allNodes[studyId]) {
+          allNodes[studyId] = [];
+        }
+
+        allNodes[studyId].push(highLevelNode);
+      });
+
+      return Object.values(allNodes);
+    });
+
+    const modelVersionLookup = computed(() => {
+      const lookups = sortedHighLevelNodes.value.map(createStudyModelNumberLookup);
+      return merge(lookups);
+    });
+
     function getConnections(id: string) {
       if (!dependenciesLookup.value[id]) {
         return undefined;
@@ -491,7 +504,7 @@ export default createComponent({
 
         return {
           id: n.id,
-          title: getLabel(n.node, simulationStudyLookup.value),
+          title: getLabel(n.node, simulationStudyLookup.value, modelVersionLookup.value),
           type: n.node.type,
           studyId: n.node.studyId,
           studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
@@ -629,7 +642,7 @@ export default createComponent({
         return !nodesToShow.value[connection.target.id];
       });
 
-      const text = getLabel(n, simulationStudyLookup.value);
+      const text = getLabel(n, simulationStudyLookup.value, modelVersionLookup.value);
       const { x, y } = nodeLookup.value[sourceId] ? nodeLookup.value[sourceId] : pointToPlaceNode.value;
       const node: SingleNode = {
         isGroup: false,

@@ -13,6 +13,8 @@
 
     <b-field label="Study ID">
       <b-select :value="node.studyId" @input="studyIdChange" expanded>
+        <!-- Undefined is a valid value -->
+        <option :value="undefined"></option>
         <option 
           v-for="study in studies" 
           :key="study.studyId" 
@@ -22,6 +24,7 @@
         </option>
       </b-select>
     </b-field>
+
 
     <b-field label="InformationField" style="flex-direction: column; align-items: flex-start;">
       <div v-for="(field, j) in fields" :key="j" style="display: flex">
