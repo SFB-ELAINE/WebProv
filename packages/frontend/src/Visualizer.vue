@@ -133,8 +133,8 @@ import {
   INVALID_ENDPOINT_OUTLINE,
   NODE_HEIGHT,
   NODE_RADIUS,
-  MODEL_STROKE,
-  MODEL_WIDTH,
+  SIMULATION_STUDY_STROKE,
+  SIMULATION_STUDY_WIDTH,
   SELECTED_NODE_OUTLINE,
 } from '@/constants';
 import {
@@ -245,7 +245,11 @@ export default createComponent({
     const nodes = value<Node[]>([]);
     const links = value<Link[]>([]);
 
-    const legendProps = { nodeOutline: NODE_OUTLINE, nodeRadius: NODE_RADIUS };
+    const legendProps = {
+      nodeOutline: NODE_OUTLINE,
+      nodeRadius: NODE_RADIUS,
+      simulationStudyOutline: SIMULATION_STUDY_STROKE,
+    };
 
     // All of the nodes to show
     // If a node is in a group that isn't expanded, it will not actually be shown
@@ -738,10 +742,10 @@ export default createComponent({
           index: 0,
           vx: 0,
           vy: 0,
-          stroke: MODEL_STROKE,
+          stroke: SIMULATION_STUDY_STROKE,
           rx: 0,
           text: `M${studyId}`,
-          width: MODEL_WIDTH,
+          width: SIMULATION_STUDY_WIDTH,
           height: NODE_HEIGHT,
           onDidDblclick: () => {
             expanded.value[studyId] = true;

@@ -2,17 +2,17 @@
   <card title="Prov DM Legend">
     <div class="legend">
       
-      <div v-for="type in ['entity', 'activity']" :key="type" class="legend--item">
+      <div v-for="node in nodes" :key="node.type" class="legend--item">
         <d3 :height="25" :width="100">
           <node
             class="legend--block"
-            :rx="type === 'entity' ? nodeRadius : 0"
-            :id="type"
+            :rx="node.rx || 0"
+            :id="node.type"
             :size="25"
-            :stroke="nodeOutline"
+            :stroke="node.color"
           ></node>
         </d3>
-        <div class="legend--text">{{ type | uppercase }}</div>
+        <div class="legend--text">{{ node.type }}</div>
       </div>
 
       <div class="legend--item" v-for="item in relationshipLegend" :key="item.relationship">
@@ -52,18 +52,16 @@ import Card from '@/components/Card.vue';
 import D3 from '@/components/D3.vue';
 import Relationship from '@/components/Relationship.vue';
 import Node from '@/components/Node.vue';
-import { uppercase, createComponent } from '@/utils';
+import { createComponent } from '@/utils';
 import { computed } from 'vue-function-api';
 
 export default createComponent({
   name: 'ProvLegendCard',
   components: { Node, Card, Relationship, D3 },
-  filters: {
-    uppercase,
-  },
   props: {
     nodeRadius: { type: Number, required: true },
     nodeOutline: { type: String, required: true },
+    simulationStudyOutline: { type: String, required: true },
   },
   setup(props) {
     return {
@@ -77,6 +75,21 @@ export default createComponent({
           };
         });
       }),
+      nodes: [
+        {
+          type: 'Entity',
+          color: props.nodeOutline,
+          rx: props.nodeRadius,
+        },
+        {
+          type: 'Activity',
+          color: props.nodeOutline,
+        },
+        {
+          type: 'Simulation Study',
+          color: props.simulationStudyOutline,
+        },
+      ],
     };
   },
 });
