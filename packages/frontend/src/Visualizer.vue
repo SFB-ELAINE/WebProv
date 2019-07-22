@@ -169,7 +169,7 @@ import {
   createComponent,
   LinkedNode,
   insertAfter,
-  createStudyModelNumberLookup,
+  createModelVersionLookup,
   Connection,
   HighLevelNode,
   merge,
@@ -403,7 +403,8 @@ export default createComponent({
     });
 
     const modelVersionLookup = computed(() => {
-      const lookups = sortedHighLevelNodes.value.map(createStudyModelNumberLookup);
+      const lookups = sortedHighLevelNodes.value.map(createModelVersionLookup);
+      // Since the IDs are used as keys, there will be no clashing when we merge objects
       return merge(lookups);
     });
 

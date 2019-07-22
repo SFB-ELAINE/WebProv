@@ -80,7 +80,7 @@ interface SimulationStudyLookup {
  * @param lookup The simulation study lookup. We need this to determine the default label for the model node.
  */
 export function getLabel(
-  n: ProvenanceNode, lookup: SimulationStudyLookup, modelNumberLookup: Lookup<number | undefined>,
+  n: ProvenanceNode, lookup: SimulationStudyLookup, modelVersionLookup: Lookup<number | undefined>,
 ): string {
   if (n.label) {
     return n.label;
@@ -106,8 +106,7 @@ export function getLabel(
         return 'None';
       }
 
-      // TODO version name is good, lets use it in other locations
-      const version = modelNumberLookup[n.studyId];
+      const version = modelVersionLookup[n.id];
       const text = version !== undefined ? `M${version}` : 'M';
       const simulationStudy = lookup[n.studyId];
       if (!simulationStudy) {
@@ -468,7 +467,20 @@ export const insertAfter = (node: ProvenanceNode, list?: LinkedNode): LinkedNode
   return newNode;
 };
 
-export const createStudyModelNumberLookup = (highLevelNodes: HighLevelNode[]) => {
+/**
+ * Creates a model version lookup. The ID of the model nodes are used as a key and the values are their version numbers.
+ *
+ * The algorithm constrains:
+ * 1. Every version must be unique.
+ * 2. A model of a higher version should not depend on a model of a lower version.
+ *
+ * To accomplish this, we count how many models each node depends on. Then, we sort the model nodes based on the
+ * amount of model nodes each depends on. Then, we use the index as version number (we add one so that the version
+ * numbers start at 1).
+ *
+ * @param highLevelNodes
+ */
+export const createModelVersionLookup = (highLevelNodes: HighLevelNode[]): Lookup<number> => {
   const counts: Lookup<number> = {};
   const seen = new Set<string>();
 
