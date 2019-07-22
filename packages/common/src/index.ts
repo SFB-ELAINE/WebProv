@@ -28,6 +28,7 @@ export {
   BackendItems,
   BackendNotFound,
   ProvenanceAPI,
+  BackendItem,
   BackendRelationships,
 } from './backend';
 

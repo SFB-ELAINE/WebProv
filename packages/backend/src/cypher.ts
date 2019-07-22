@@ -11,7 +11,8 @@ import {
   keys,
   RelationshipInformation,
   schemas,
-  relationships
+  relationships,
+  BackendItem
 } from 'common';
 
 import * as dotenv from 'dotenv';
@@ -262,6 +263,21 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
   });
 };
 
+export const getMax = async <S extends Schema, K extends keyof TypeOf<S>>(schema: S, key: K) => {
+  return await withHandling(async (): Promise<BackendItem<number> | BackendError> => {
+    const session = driver.session();
+    const result: StatementResult<[number | null]> = await session.run(`
+    MATCH (n:${schema.name}) RETURN MAX(n.${key})
+    `)
+
+    session.close();
+    return {
+      result: 'success',
+      item: result.records[0].get(0) || 0,
+    }
+  });
+}
+
 export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
   schema: R, information: RelationshipInformation<TypeOf<R>>,
 ) => {
@@ -304,18 +320,18 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
  * Initializes the constraints!
  */
 export const initialize = async () => {
-  [...schemas, ...relationships].forEach(schema => {
+  await Promise.all([...schemas, ...relationships].map(async (schema) => {
     const fields = {
       ...schema.required,
       ...(schema.optional || {}),
     }
     
     const session = driver.session();
-    keys(fields).forEach(fieldName => {
+    await Promise.all(keys(fields).map(async (fieldName) => {
       const fieldInformation = fields[fieldName];
       if (fieldInformation.unique || fieldInformation.primary) {
-        session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
+        return await session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
       }
-    })
-  })
+    }));
+  }));
 }

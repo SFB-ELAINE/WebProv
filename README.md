@@ -63,23 +63,17 @@ heroku apps:create $app
 heroku addons:create graphenedb:dev-free --app $app
 ```
 
-To re-deploy the backend server, just run the following command:
-```
-git push heroku master
-```
+Then, using the online dashboard, connect this repository to GitHub for automatic deployments on merge. Once this connection is made, merged PRs will automatically be deployed.
 
 ## Dependencies/Acknowledgements
 - [@types/d3](https://www.npmjs.com/package/@types/d3) (MIT)
 - [@types/@types/lodash.debounce](https://www.npmjs.com/package/@types/@types/lodash.debounce) (MIT)
-- [@types/@types/lodash.uni](https://www.npmjs.com/package/@types/@types/lodash.uni) (MIT)
 - [buefy](https://www.npmjs.com/package/buefy) (MIT)
 - [core-js](https://www.npmjs.com/package/core-js) (MIT)
 - [d3](https://www.npmjs.com/package/d3) (BSD 3-Clause)
-- [firebase](https://www.npmjs.com/package/firebase) (Apache-2.0)
 - [fuse.js](https://www.npmjs.com/package/fuse.js) (Apache-2.0)
 - [lodash.debounce](https://www.npmjs.com/package/lodash.debounce) (MIT)
 - [vue](https://www.npmjs.com/package/vue) (MIT)
-- [vue-class-component](https://www.npmjs.com/package/vue-class-component) (MIT)
 - [vue-function-api](https://www.npmjs.com/package/vue-function-api) (MIT)
 - [@vue/cli-plugin-babel](https://www.npmjs.com/package/@vue/cli-plugin-babel) (MIT)
 - [@vue/cli-plugin-typescript](https://www.npmjs.com/package/@vue/cli-plugin-typescript) (MIT)

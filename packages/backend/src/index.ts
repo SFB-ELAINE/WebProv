@@ -13,6 +13,7 @@ import {
   deleteRelationship,
   deleteRelationshipByType,
   initialize,
+  getMax,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -120,6 +121,10 @@ const create = async () => {
 
   router.get('/studies', async () => {
     return await getItems(SimulationStudySchema);
+  })
+
+  router.get('/studies/study-id/max', async () => {
+    return await getMax(SimulationStudySchema, 'studyId');
   })
 
   router.delete('/nodes', async (req) => {

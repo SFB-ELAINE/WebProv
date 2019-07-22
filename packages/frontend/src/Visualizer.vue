@@ -288,10 +288,6 @@ export default createComponent({
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
     const selectedStudy = value<SimulationStudy | null>(null);
 
-    // Used so find group IDs for group nodes that have already been created.
-    // We don't want to use a different ID every time we render.
-    const savedGroupIds = value<Lookup<string>>({});
-
     const debouncedRenderGraph = debounce(renderGraph, 500);
     const debouncedUpdateOrCreateNode = debounce((node: ProvenanceNode) => {
       return makeRequest(() => backend.updateOrCreateNode(node));
@@ -397,10 +393,6 @@ export default createComponent({
       return makeLookup(informationNodes.value);
     });
 
-    function openHelp() {
-      showHelp.value = true;
-    }
-
     function getConnections(id: string) {
       if (!dependenciesLookup.value[id]) {
         return undefined;
@@ -478,8 +470,6 @@ export default createComponent({
 
     function expandStudy(result: SearchItem) {
       // Reset every time this function is called.
-      nodesToShow.value = {};
-
       if (result.studyId !== undefined) {
         expanded.value[result.studyId] = true;
       }
@@ -705,35 +695,29 @@ export default createComponent({
       // We don't care about any nodes that don't need to be shown.
       const filtered = provenanceNodes.value.filter((n) => nodesToShow.value[n.id]);
 
+      let groupNodeIds = filtered.map((n) => n.studyId).filter(isDefined);
+      groupNodeIds = Array.from(new Set(groupNodeIds)); // get all unique study IDs
+      groupNodeIds = groupNodeIds.filter((studyId) => !expanded.value[studyId]); // Remove study IDs that are expanded
+
       // First, create all of the simulation study nodes.
       // These are the collapsed nodes. We only need to create one per simulation study.
-      filtered.forEach((n) => {
-        if (n.studyId === undefined) {
-          return;
-        }
-
-        if (expanded.value[n.studyId]) {
-          return;
-        }
-
-        if (collapsedNodes[n.studyId]) {
-          return;
-        }
-
-        const studyId = n.studyId;
-        const groupId = savedGroupIds.value[studyId] = get(savedGroupIds.value, studyId, uniqueId());
-        const point = nodeLookup.value[groupId] ? nodeLookup.value[groupId] : pointToPlaceNode.value;
+      groupNodeIds.forEach((studyId) => {
+        // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed
+        // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
+        // us to easily lookup the location of the collapsed node when re-rendering.
+        const id = '' + studyId;
+        const point = nodeLookup.value[id] ? nodeLookup.value[id] : pointToPlaceNode.value;
         const node: GroupNode = {
           ...point,
           isGroup: true,
           studyId,
-          id: groupId,
+          id,
           index: 0,
           vx: 0,
           vy: 0,
           stroke: MODEL_STROKE,
           rx: 0,
-          text: `M${n.studyId}`,
+          text: `M${studyId}`,
           width: MODEL_WIDTH,
           height: NODE_HEIGHT,
           onDidDblclick: () => {
@@ -743,11 +727,10 @@ export default createComponent({
           },
         };
 
-        collapsedNodes[n.studyId] = node;
+        collapsedNodes[studyId] = node;
         newNodes.push(node);
       });
 
-      // Now, we add the other nodes that don't have a study or that are in a study that is expanded
       filtered.forEach((n) => {
         const sourceId = n.id;
 
@@ -813,8 +796,10 @@ export default createComponent({
 
           newLinks.push(link);
         });
+      });
 
-        // don't add nodes that are a study that isn't expanded
+      filtered.forEach((n) => {
+        // don't add nodes that are in a study that isn't expanded
         if (n.studyId !== undefined && !expanded.value[n.studyId]) {
           return;
         }
@@ -1063,7 +1048,9 @@ export default createComponent({
       dependencies,
       version,
       showHelp,
-      openHelp,
+      openHelp() {
+        showHelp.value = true;
+      },
       height,
       width,
       links,

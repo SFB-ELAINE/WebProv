@@ -68,6 +68,12 @@ export interface ProvenanceAPI {
     },
   };
 
+  '/studies/study-id/max': {
+    GET: {
+      response: BackendItem<number> | BackendError,
+    }
+  }
+
   '/studies': {
     GET: {
       response: BackendError | BackendItems<SimulationStudy>,
