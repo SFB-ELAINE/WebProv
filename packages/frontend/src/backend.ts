@@ -1,6 +1,13 @@
 import axios from 'restyped-axios';
-import { SimulationStudy, ProvenanceNode, ProvenanceAPI, RelationshipInformation } from 'common';
-import { DependencyRelationship, InformationRelationship, InformationField } from 'common/dist/schemas';
+import {
+  SimulationStudy,
+  ProvenanceNode,
+  ProvenanceAPI,
+  RelationshipInformation,
+  InformationField,
+  InformationRelationship,
+  DependencyRelationship,
+} from 'common';
 import { getLogger } from '@/utils';
 
 const logger = getLogger();
@@ -23,6 +30,10 @@ export const updateOrCreateNode = async (
 
 export const updateOrCreateInformationNode = async (node: InformationField) => {
   return (await api.post('/information', node)).data;
+};
+
+export const getMaxStudyId = async () => {
+  return (await api.get('/studies/study-id/max')).data;
 };
 
 export const updateOrCreateStudy = async (

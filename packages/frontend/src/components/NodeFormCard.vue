@@ -12,7 +12,15 @@
     </b-field>
 
     <b-field label="Study ID">
-      <b-input type="number" :value="node.studyId" @input="studyIdChange"></b-input>
+      <b-select :value="node.studyId" @input="studyIdChange" expanded>
+        <option 
+          v-for="study in studies" 
+          :key="study.studyId" 
+          :value="study.studyId"
+        >
+          {{ study.studyId }}
+        </option>
+      </b-select>
     </b-field>
 
     <b-field label="InformationField" style="flex-direction: column; align-items: flex-start;">
@@ -45,7 +53,14 @@
 <script lang="ts">
 import Card from '@/components/Card.vue';
 import { createComponent } from '../utils';
-import { provenanceNodeTypes, ProvenanceNode, InformationField, uniqueId, ProvenanceNodeType } from 'common';
+import {
+  provenanceNodeTypes,
+  ProvenanceNode,
+  InformationField,
+  uniqueId,
+  ProvenanceNodeType,
+  SimulationStudy,
+} from 'common';
 
 export default createComponent({
   name: 'NodeFormCard',
@@ -53,6 +68,7 @@ export default createComponent({
   props: {
     node: { type: Object as () => ProvenanceNode, required: true },
     fields: { type: Array as () => InformationField[], required: true },
+    studies: { type: Array as () => SimulationStudy[], required: true },
   },
   setup(props, context) {
     function updateKey(index: number, newValue: string) {

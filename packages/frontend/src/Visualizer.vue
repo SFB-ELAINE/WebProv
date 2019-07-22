@@ -95,6 +95,7 @@
           v-if="selectedNode"
           :node="selectedNode"
           :fields="selectedNodeInformation"
+          :studies="simulationStudies"
           @close="deselectNode"
           @delete="deleteNode"
           @update:information:delete="deleteInformationNode"
@@ -499,10 +500,18 @@ export default createComponent({
       });
     });
 
-    function createStudy() {
+    async function createStudy() {
+      const result = await makeRequest(() => backend.getMaxStudyId());
+      if (result.result !== 'success') {
+        return;
+      }
+
       selectedStudy.value = {
         id: uniqueId(),
-        studyId: 0,
+        // Once we have the max, we just add 1 to creat the new study ID
+        // If we have concurrent users creating studies, this might cause issues
+        // But this solution works for now
+        studyId: result.item + 1,
       };
     }
 
@@ -1115,6 +1124,7 @@ export default createComponent({
       possibleRelationships,
       cancelRelationshipSelection,
       deleteRelationship,
+      simulationStudies,
     };
   },
 });

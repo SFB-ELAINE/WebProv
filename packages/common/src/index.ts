@@ -20,6 +20,7 @@ export {
   ProvenanceNodeSchema,
   SimulationStudySchema,
   InformationFieldSchema,
+  DependencyRelationship,
 } from './schemas';
 
 export {

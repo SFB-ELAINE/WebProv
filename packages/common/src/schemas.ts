@@ -60,8 +60,8 @@ export const relationshipRules: RelationshipRules = {
     // no possible relationships
   },
   TheoreticalKnowledge: {
-    
-  }
+
+  },
 };
 
 export const SimulationStudySchema = n.schema({
@@ -110,7 +110,7 @@ export const InformationFieldSchema = n.schema({
     },
     value: {
       type: n.string,
-    }
+    },
   },
 });
 

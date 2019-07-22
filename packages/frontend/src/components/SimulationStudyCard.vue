@@ -1,13 +1,6 @@
 <template>
   <card title="Simulation Study">
     <div>
-      <b-field class="field" label="Study ID">
-        <b-input 
-          type="number" 
-          :value="study.id"
-          @input="setId"
-        ></b-input>
-      </b-field>
       <b-field class="field" label="Source">
         <b-input 
           :value="study.source"
@@ -56,12 +49,6 @@ export default createComponent({
       context.emit('delete');
     };
 
-    const setId = (id: string) => {
-      // convert the id to a number if possible
-      // if it is a number but the given string is empty, set to undefined
-      setVue(props.study, 'id', id === '' ? undefined : +id);
-    };
-
     const setSource = (source: string) => {
       setVue(props.study, 'source', source);
     };
@@ -76,7 +63,6 @@ export default createComponent({
 
     return {
       deleteStudy,
-      setId,
       setSignalingPathway,
       searchModel,
       setSource,
