@@ -196,7 +196,6 @@ export default createComponent({
 
     let svgPanZoomInstance: SvgPanZoom.Instance | undefined;
     function doRender() {
-      console.log('RENDER');
       const svg = d3.select(refs.svg);
       svg.selectAll('*').remove();
 
