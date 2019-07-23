@@ -168,9 +168,10 @@ const create = async () => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
 
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Backend listening at http://localhost:${PORT}!`);
+  const PORT = Number.parseInt(process.env.PORT || '') || 3000;
+  const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+  app.listen(PORT, HOST, () => {
+    console.log(`Backend listening at http://${HOST}:${PORT}`);
   });
 };
 
