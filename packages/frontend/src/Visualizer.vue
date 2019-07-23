@@ -8,8 +8,10 @@
       :links="links"
       :nodes="nodes"
       force 
+      zoom
       arrows
       drag
+      :pan.sync="pan"
       hulls
       :hull-dblclick="hullDblclick"
       :color-changes="colorChanges"
@@ -279,6 +281,9 @@ export default createComponent({
     // Whether to show the help information
     const showHelp = value(false);
 
+    // The pan of the visualization
+    const pan = value({ x: 0, y: 0 });
+
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
     const selectedStudy = value<SimulationStudy | null>(null);
 
@@ -534,10 +539,12 @@ export default createComponent({
 
     function nodeRightClick(e: MouseEvent, node: SingleNode) {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
       const setCenter = () => {
         lineStart.value = {
-          x: node.x + node.width / 2,
-          y: node.y + node.height / 2,
+          x: pan.value.x + node.x + node.width / 2,
+          y: pan.value.y + node.y + node.height / 2,
         };
       };
 
@@ -548,8 +555,8 @@ export default createComponent({
         return nodes.value
           .filter(isSingleNode) // we can't make connections to group nodes
           .filter((n) => {
-            const ul = n; // upper left corner
-            const lr = { x: n.x + n.width, y: n.y + n.height }; // lower right corner
+            const ul = { x: n.x + pan.value.x, y: n.y + pan.value.y }; // upper left corner
+            const lr = { x: ul.x + n.width, y: ul.y + n.height }; // lower right corner
             return n !== node && point.x > ul.x && point.y > ul.y && lr.x > point.x && lr.y > point.y;
           });
       };
@@ -673,7 +680,11 @@ export default createComponent({
         onDidRightClick: (e: MouseEvent) => {
           nodeRightClick(e, node);
         },
-        onDidClick: () => {
+        onDidMousedown: (e: MouseEvent) => {
+          // Stop the pan/zoom tool from panning when the user clicks on a node
+          e.stopPropagation();
+        },
+        onDidClick: (e: MouseEvent) => {
           colorChanges.value.push({ node, color: SELECTED_NODE_OUTLINE });
 
           if (selectedNode.value) {
@@ -1083,6 +1094,7 @@ export default createComponent({
       nodes,
       lineStart,
       lineEnd,
+      pan,
       searchItems,
       expandStudy,
       legendProps,

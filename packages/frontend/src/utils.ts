@@ -533,3 +533,10 @@ export const merge = <T>(objects: Array<Lookup<T>>) => {
   });
   return lookup;
 };
+
+
+export const update = <Props, K extends keyof Props, V extends Props[K]>(
+  props: Props, context: { emit: (event: string, value: V) => void }, key: K, value: V,
+) => {
+  context.emit(`update:${key}`, value);
+};

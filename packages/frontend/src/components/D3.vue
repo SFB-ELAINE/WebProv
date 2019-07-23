@@ -1,7 +1,9 @@
 <template>
-  <svg 
+  <svg
+    id="d3-svg"
     ref="svg" 
     class="svg"
+    @mousedown="startDrag"
     :height="height"
     :width="width"
   ><slot></slot></svg>
@@ -12,8 +14,9 @@ import * as d3 from 'd3';
 import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { makeLookup, Lookup, intersection, createComponent, getRandomColor } from '@/utils';
+import { makeLookup, Lookup, intersection, createComponent, getRandomColor, addEventListener, update } from '@/utils';
 import { computed, watch, onMounted, value } from 'vue-function-api';
+import svgPanZoom from 'svg-pan-zoom';
 
 type HullListener = (node: D3Hull) => void;
 type NodeListener = (node: D3Node) => void;
@@ -33,7 +36,9 @@ export default createComponent({
     arrows: { type: Boolean, default: false },
     force: { type: Boolean, default: false },
     drag: { type: Boolean, default: false },
+    zoom: { type: Boolean, default: false },
     hulls: { type: Boolean, default: false },
+    pan: { type: Object as () => { x: number, y: number } | undefined },
     height: { type: Number, default: 100 },
     width: { type: Number, default: 100 },
     arrowSize: { type: Number, default: 6 },
@@ -47,6 +52,8 @@ export default createComponent({
     colorChanges: { type: Array as () => D3NodeColorCombo[], default: () => [] },
   },
   setup(props, context) {
+    const refs = context.refs as { svg: SVGElement };
+
     const addedLinks = value<MyLink[]>([]);
     const addedNodes = value<D3Node[]>([]);
     let selection: d3.Selection<any, D3Node, any, any> | null = null;
@@ -187,8 +194,10 @@ export default createComponent({
         });
     }
 
+    let svgPanZoomInstance: SvgPanZoom.Instance | undefined;
     function doRender() {
-      const svg = d3.select(context.refs.svg as Element);
+      console.log('RENDER');
+      const svg = d3.select(refs.svg);
       svg.selectAll('*').remove();
 
       const checkAndCall = <V>(f?: (v: V) => void) => (v: V) => {
@@ -461,6 +470,38 @@ export default createComponent({
         });
       }
 
+
+      if (props.zoom) {
+        context.root.$nextTick(() => {
+          let pan = { x: 0, y: 0 };
+          let zoom = 1;
+
+          if (svgPanZoomInstance) {
+            pan = svgPanZoomInstance.getPan();
+            zoom = svgPanZoomInstance.getZoom();
+
+            try {
+              svgPanZoomInstance.destroy();
+            } catch (e) {
+              // Do nothing with the error because we don't care
+            }
+          }
+
+
+          svgPanZoomInstance = svgPanZoom(refs.svg, {
+            fit: false,
+            center: false,
+            dblClickZoomEnabled: false,
+            onPan: (newPan) => {
+              update(props, context, 'pan', newPan);
+            },
+          });
+
+          svgPanZoomInstance.pan(pan);
+          svgPanZoomInstance.zoom(zoom);
+        });
+      }
+
       // make sure we increase the id for next time render of this component
       id++;
     }
@@ -490,6 +531,14 @@ export default createComponent({
     return {
       addNode,
       addLink,
+      startDrag: () => {
+        const current = document.body.style.cursor;
+        document.body.style.cursor = 'grab';
+        const disposer = addEventListener('mouseup', () => {
+          document.body.style.cursor = current;
+          disposer.dispose();
+        });
+      },
     };
   },
 });
