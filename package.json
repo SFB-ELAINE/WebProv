@@ -8,7 +8,7 @@
     "build-frontend": "lerna run --scope frontend build",
     "backend": "lerna run --scope backend prod"
   },
-  "devDependencies": {
+  "dependencies": {
     "lerna": "^3.11.1"
   }
 }
