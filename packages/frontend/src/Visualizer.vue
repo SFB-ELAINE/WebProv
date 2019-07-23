@@ -8,6 +8,7 @@
       :links="links"
       :nodes="nodes"
       force 
+      zoom
       arrows
       drag
       hulls

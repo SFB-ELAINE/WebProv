@@ -1,5 +1,6 @@
 <template>
-  <svg 
+  <svg
+    id="d3-svg"
     ref="svg" 
     class="svg"
     :height="height"
@@ -14,6 +15,7 @@ import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
 import { makeLookup, Lookup, intersection, createComponent, getRandomColor } from '@/utils';
 import { computed, watch, onMounted, value } from 'vue-function-api';
+import svgPanZoom from 'svg-pan-zoom';
 
 type HullListener = (node: D3Hull) => void;
 type NodeListener = (node: D3Node) => void;
@@ -33,6 +35,7 @@ export default createComponent({
     arrows: { type: Boolean, default: false },
     force: { type: Boolean, default: false },
     drag: { type: Boolean, default: false },
+    zoom: { type: Boolean, default: false },
     hulls: { type: Boolean, default: false },
     height: { type: Number, default: 100 },
     width: { type: Number, default: 100 },
@@ -47,6 +50,8 @@ export default createComponent({
     colorChanges: { type: Array as () => D3NodeColorCombo[], default: () => [] },
   },
   setup(props, context) {
+    const refs = context.refs as { svg: SVGElement };
+
     const addedLinks = value<MyLink[]>([]);
     const addedNodes = value<D3Node[]>([]);
     let selection: d3.Selection<any, D3Node, any, any> | null = null;
@@ -187,8 +192,10 @@ export default createComponent({
         });
     }
 
+    let svgPanZoomInstance: SvgPanZoom.Instance | undefined;
     function doRender() {
-      const svg = d3.select(context.refs.svg as Element);
+      console.log('RENDER');
+      const svg = d3.select(refs.svg);
       svg.selectAll('*').remove();
 
       const checkAndCall = <V>(f?: (v: V) => void) => (v: V) => {
@@ -458,6 +465,36 @@ export default createComponent({
 
           g
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+        });
+      }
+
+
+      if (props.zoom) {
+        context.root.$nextTick(() => {
+          let pan = { x: 0, y: 0 };
+          let zoom = 1;
+
+          if (svgPanZoomInstance) {
+            pan = svgPanZoomInstance.getPan();
+            zoom = svgPanZoomInstance.getZoom();
+
+            try {
+              svgPanZoomInstance.destroy();
+            } catch (e) {
+              // Do nothing with the error because we don't care
+            }
+          }
+
+
+          svgPanZoomInstance = svgPanZoom(refs.svg, {
+            fit: false,
+            center: false,
+            controlIconsEnabled: true,
+            dblClickZoomEnabled: false,
+          });
+
+          svgPanZoomInstance.pan(pan);
+          svgPanZoomInstance.zoom(zoom);
         });
       }
 
