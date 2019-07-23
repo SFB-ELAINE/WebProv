@@ -168,9 +168,9 @@ const create = async () => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
 
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`Backend listening on port ${PORT}!`);
+    console.log(`Backend listening at http://localhost:${PORT}!`);
   });
 };
 
