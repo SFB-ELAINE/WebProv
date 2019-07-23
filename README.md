@@ -7,6 +7,8 @@ The goal of this project is the create a web platform to automatically visualize
 The first step to setting up your environment involves installing `Node.js` and `npm` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
 1. Install `Node.js` and `npm` using nvm: `nvm install node`
+1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
+1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
 
 This project uses [lerna](https://lerna.js.org/) as the repository is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. First, install `lerna`:
 ```
@@ -28,13 +30,12 @@ npm run build-libraries
 That's it! This command just ran `npm run build` in all of the library folders.
 
 ## Development
-As there is currently no backend, these instructions only detail how to run the frontend. After setting up your environment, navigate to `packages/frontend` and run: 
-
+A `Makefile` file is present within both the frontend and backend repositories. To start the development server, just run the following command:
 ```
-npm run serve
+make dev
 ```
 
-This starts a hot-reload development server. Navigate to the link that is outputted in the console.
+This starts a hot-reload development server for both the frontend and backend.
 
 ## Installing Dependencies
 If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, using the `lerna add` command. For example:
@@ -46,15 +47,8 @@ lerna add the-module-to-install --scope=frontend --dev
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Deployment
-This application is currently being deployed through `GitHub Pages`. To deploy, all you have to do is place the built application in the `docs` folder and merge your changes to the `master` branch. To build the application, navigate to the `packages/frontend` package and run:
-```
-npm run build
-```
-
-This will automatically place the application in the `docs` folder. Then, all you have to do is create a PR for your branch. Once the branch is merged, the new application will automatically be deployed.
-
 ### Backend
-The following commands were used to set up the Heroku backend.
+The backend is currently using `Heroku` for automatic deployments. The following commands were used to set up the Heroku backend.
 ```
 export app=web-prov-backend
 heroku apps:create $app
@@ -63,7 +57,21 @@ heroku apps:create $app
 heroku addons:create graphenedb:dev-free --app $app
 ```
 
-Then, using the online dashboard, connect this repository to GitHub for automatic deployments on merge. Once this connection is made, merged PRs will automatically be deployed.
+Then, using the online dashboard, connect this repository to GitHub for automatic deployments on merge by clicking `Enable Automatic Deploys`. Once this connection is made, merged PRs will automatically be deployed.
+> This requires admin access to the repository.
+
+The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. Within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
+
+### Frontend
+The frontend is currently being deployed using `Netlify`. The following instructions can be used to create the `Netlify` application.
+1. Create a `New site from Git`.
+1. Click `Continuous Deployment` > `GitHub`.
+1. Find the repository.
+1. Set the build command to `npm run build-frontend`.
+1. Set the publish directory to `_site`.
+1. Leave all other settings at their default values and click `Deploy site`.
+
+Whenever new commits are merged into `master`, the frontend will be built and deployed.
 
 ## Dependencies/Acknowledgements
 - [@types/d3](https://www.npmjs.com/package/@types/d3) (MIT)

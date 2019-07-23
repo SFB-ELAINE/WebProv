@@ -19,6 +19,8 @@ import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
 dotenv.config();
 
+// All of these are prepended with GRAPHENEDB because we are currently deploying using the Graphene Neo4j add-on for Heroku
+// If we ever change our deployment method, these will need to change as well.
 const uri = process.env.GRAPHENEDB_BOLT_URL;
 const user = process.env.GRAPHENEDB_BOLT_USER;
 const password = process.env.GRAPHENEDB_BOLT_PASSWORD;
