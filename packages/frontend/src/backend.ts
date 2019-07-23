@@ -12,9 +12,11 @@ import { getLogger } from '@/utils';
 
 const logger = getLogger();
 
+const baseURL = process.env.BACKEND_URL || 'http://localhost:3000/';
+
 // TODO(jacob) baseUrl
 const api = axios.create<ProvenanceAPI>({
-  baseURL: 'http://localhost:3000/',
+  baseURL,
 });
 
 api.interceptors.request.use((request) => {
