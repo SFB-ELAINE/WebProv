@@ -5,6 +5,7 @@
     "bootstrap": "npx lerna bootstrap",
     "build-libraries": "lerna run --scope common build",
     "postinstall": "npm run build-libraries && npm run bootstrap",
+    "build-frontend": "lerna run --scope frontend build",
     "backend": "lerna run --scope backend prod"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 module.exports = {
     publicPath: '/WebProv/',
-    outputDir: 'docs',
+    outputDir: '../../_site',
     chainWebpack: (config) => {
         config.resolve.symlinks(false)
     }
