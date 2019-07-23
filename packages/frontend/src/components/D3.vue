@@ -3,6 +3,7 @@
     id="d3-svg"
     ref="svg" 
     class="svg"
+    @mousedown="startDrag"
     :height="height"
     :width="width"
   ><slot></slot></svg>
@@ -13,7 +14,7 @@ import * as d3 from 'd3';
 import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { makeLookup, Lookup, intersection, createComponent, getRandomColor } from '@/utils';
+import { makeLookup, Lookup, intersection, createComponent, getRandomColor, addEventListener, update } from '@/utils';
 import { computed, watch, onMounted, value } from 'vue-function-api';
 import svgPanZoom from 'svg-pan-zoom';
 
@@ -37,6 +38,7 @@ export default createComponent({
     drag: { type: Boolean, default: false },
     zoom: { type: Boolean, default: false },
     hulls: { type: Boolean, default: false },
+    pan: { type: Object as () => { x: number, y: number } | undefined },
     height: { type: Number, default: 100 },
     width: { type: Number, default: 100 },
     arrowSize: { type: Number, default: 6 },
@@ -489,8 +491,10 @@ export default createComponent({
           svgPanZoomInstance = svgPanZoom(refs.svg, {
             fit: false,
             center: false,
-            controlIconsEnabled: true,
             dblClickZoomEnabled: false,
+            onPan: (newPan) => {
+              update(props, context, 'pan', newPan);
+            },
           });
 
           svgPanZoomInstance.pan(pan);
@@ -527,6 +531,14 @@ export default createComponent({
     return {
       addNode,
       addLink,
+      startDrag: () => {
+        const current = document.body.style.cursor;
+        document.body.style.cursor = 'grab';
+        const disposer = addEventListener('mouseup', () => {
+          document.body.style.cursor = current;
+          disposer.dispose();
+        });
+      },
     };
   },
 });
