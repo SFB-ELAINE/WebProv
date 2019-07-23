@@ -4,7 +4,7 @@
   "scripts": {
     "bootstrap": "npx lerna bootstrap",
     "build-libraries": "lerna run --scope common build",
-    "postinstall": "npm run build-libraries && npm run bootstrap",
+    "postinstall": "npm run bootstrap && npm run build-libraries",
     "build-frontend": "lerna run --scope frontend build",
     "backend": "lerna run --scope backend prod"
   },
