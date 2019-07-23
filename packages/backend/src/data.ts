@@ -31,7 +31,6 @@ const WX_7: ProvenanceNode = {
   studyId: 1,
   label: 'Wx_7',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const WX_7_INFORMATION: InformationField = {
@@ -54,7 +53,6 @@ const W1_1: ProvenanceNode = {
   studyId: 1,
   label: 'W1_1',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const W1_1_INFORMATION: InformationField = {
@@ -77,7 +75,6 @@ const W1_2: ProvenanceNode = {
   studyId: 1,
   label: 'W1_2',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const W1_2_INFORMATION: InformationField = {
@@ -99,7 +96,6 @@ const MBA_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'ModelBuildingActivity',
-  classification: 'activity',
 };
 
 addRelationship({
@@ -137,7 +133,6 @@ const S1_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'SimulationData',
-  classification: 'entity',
   label: 'S1_1',
 };
 
@@ -161,7 +156,6 @@ const model3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'Model',
-  classification: 'entity',
 };
 
 addRelationship({
@@ -178,7 +172,6 @@ const MEA: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'ModelExplorationActivity',
-  classification: 'activity',
 };
 
 addRelationship({
@@ -195,7 +188,6 @@ const S1_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'SimulationData',
-  classification: 'entity',
   label: 'S1_2',
 };
 
@@ -221,7 +213,6 @@ const W12_1: ProvenanceNode = {
   studyId: 12,
   label: 'W12_1',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const W12_1_INFORMATION: InformationField = {
@@ -244,7 +235,6 @@ const WX_1: ProvenanceNode = {
   studyId: 12,
   label: 'Wx_1',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const WX_1_INFORMATION: InformationField = {
@@ -267,7 +257,6 @@ const WX_2: ProvenanceNode = {
   studyId: 12,
   label: 'Wx_2',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const WX_2_INFORMATION: InformationField = {
@@ -290,7 +279,6 @@ const MBA_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'ModelBuildingActivity',
-  classification: 'activity',
 };
 
 addRelationship({
@@ -338,7 +326,6 @@ const S12_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'SimulationData',
-  classification: 'entity',
   label: 'S12_1',
 };
 
@@ -356,7 +343,6 @@ const model1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'Model',
-  classification: 'entity',
 };
 
 addRelationship({
@@ -374,7 +360,6 @@ const W12_2: ProvenanceNode = {
   studyId: 12,
   label: 'W12_2',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const W12_2_INFORMATION: InformationField = {
@@ -397,7 +382,6 @@ const W12_3: ProvenanceNode = {
   studyId: 12,
   label: 'W12_3',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const W12_3_INFORMATION: InformationField = {
@@ -420,7 +404,6 @@ const WX_3: ProvenanceNode = {
   studyId: 12,
   label: 'Wx_3',
   type: 'WetLabData',
-  classification: 'entity',
 };
 
 const WX_3_INFORMATION: InformationField = {
@@ -442,7 +425,6 @@ const MBA_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'ModelBuildingActivity',
-  classification: 'activity',
 };
 
 addRelationship({
@@ -490,7 +472,6 @@ const S12_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'SimulationData',
-  classification: 'entity',
   label: 'S12_2',
 };
 
@@ -508,7 +489,6 @@ const model2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'Model',
-  classification: 'entity',
 };
 
 addRelationship({

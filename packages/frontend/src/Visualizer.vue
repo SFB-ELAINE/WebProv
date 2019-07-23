@@ -167,12 +167,11 @@ import {
   isDefined,
   getLogger,
   createComponent,
-  LinkedNode,
-  insertAfter,
   createModelVersionLookup,
   Connection,
   HighLevelNode,
   merge,
+  getClassification,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -664,7 +663,7 @@ export default createComponent({
         vy: 0,
         index: 0,
         provenanceNode: n,
-        rx: n.classification === 'entity' ? 10 : 0,
+        rx: getClassification(n.type) === 'entity' ? 10 : 0,
         // width and height are essential
         // TODO add requirement to type file
         // they are used in the other js files
@@ -846,7 +845,6 @@ export default createComponent({
     async function addNode() {
       const node: ProvenanceNode = {
         type: 'ModelBuildingActivity',
-        classification: 'activity',
         id: uniqueId(),
       };
 

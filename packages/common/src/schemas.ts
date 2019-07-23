@@ -134,12 +134,6 @@ export const ProvenanceNodeSchema = n.schema({
         n.literal('TheoreticalKnowledge'),
       ]),
     },
-    classification: {
-      type: n.union([
-        n.literal('activity'),
-        n.literal('entity'),
-      ]),
-    },
   },
   optional: {
     /**

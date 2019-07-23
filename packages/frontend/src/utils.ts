@@ -437,36 +437,6 @@ export function getRandomColor() {
   return color;
 }
 
-export interface LinkedNode {
-  node: ProvenanceNode;
-  next?: LinkedNode;
-  previous?: LinkedNode;
-}
-
-export const insertAfter = (node: ProvenanceNode, list?: LinkedNode): LinkedNode => {
-  const newNode: LinkedNode = {
-    node,
-  };
-
-  if (!list) {
-    return newNode;
-  }
-
-  if (list.previous) {
-    list.previous.next = newNode;
-    newNode.previous = list.previous;
-  }
-
-  if (list.next) {
-    list.next.previous = newNode;
-  }
-
-  newNode.next = list;
-  list.previous = newNode;
-
-  return newNode;
-};
-
 /**
  * Creates a model version lookup. The ID of the model nodes are used as a key and the values are their version numbers.
  *
@@ -526,6 +496,36 @@ export const createModelVersionLookup = (highLevelNodes: HighLevelNode[]): Looku
   return lookup;
 };
 
+/**
+ * Gets the classification of the node base on the type.
+ *
+ * This method will need to be removed when a more general solution is created.
+ * We can't have hard coded information like this, it will need to be stored in the database.
+ *
+ * @param type
+ */
+export const getClassification = (type: ProvenanceNodeType): 'entity' | 'activity' => {
+  switch (type) {
+    case 'WetLabData':
+      return 'entity';
+    case 'ModelBuildingActivity':
+        return 'activity';
+    case 'SimulationData':
+      return 'entity';
+    case 'ModelExplorationActivity':
+      return 'activity';
+    case 'TheoreticalKnowledge':
+      return 'entity';
+    case 'Model':
+      return 'entity';
+  }
+};
+
+/**
+ * Merge an array of objects into one object.
+ *
+ * @param objects
+ */
 export const merge = <T>(objects: Array<Lookup<T>>) => {
   const lookup: Lookup<T> = {};
   objects.forEach((o) => {
