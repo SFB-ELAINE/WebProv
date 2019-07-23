@@ -12,9 +12,10 @@ import { getLogger } from '@/utils';
 
 const logger = getLogger();
 
-const baseURL = process.env.BACKEND_URL || 'http://localhost:3000/';
+// See https://cli.vuejs.org/guide/mode-and-env.html#using-env-variables-in-client-side-code for naming information
+const baseURL = process.env.VUE_APP_BACKEND_URL || 'http://localhost:3000/';
+logger.info(`VUE_APP_BACKEND_URL set to ${process.env.VUE_APP_BACKEND_URL}. Using ${baseURL} as the base URL.`);
 
-// TODO(jacob) baseUrl
 const api = axios.create<ProvenanceAPI>({
   baseURL,
 });

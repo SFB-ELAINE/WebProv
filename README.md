@@ -60,7 +60,7 @@ heroku addons:create graphenedb:dev-free --app $app
 Then, using the online dashboard, connect this repository to GitHub for automatic deployments on merge by clicking `Enable Automatic Deploys`. Once this connection is made, merged PRs will automatically be deployed.
 > This requires admin access to the repository.
 
-The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. Within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
+The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. Within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
 
 ### Frontend
 The frontend is currently being deployed using `Netlify`. The following instructions can be used to create the `Netlify` application.
