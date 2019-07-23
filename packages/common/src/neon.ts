@@ -1,6 +1,9 @@
 import * as t from 'io-ts';
 export { boolean, string, number, union, literal } from 'io-ts';
 
+// neon is just a random name
+// It's based on neo4j
+
 export type Primitive =
   t.BooleanC |
   t.StringC |
@@ -41,18 +44,24 @@ export interface RelationshipSchema<A extends Schema, B extends Schema> extends 
 }
 
 export interface RelationshipInformation<T> {
-  source: string, 
-  target: string, 
-  properties: T,
+  source: string;
+  target: string;
+  properties: T;
 }
 
+export const schemas: Schema[] = [];
+
+export const relationships: Array<RelationshipSchema<Schema, Schema>> = [];
+
 export const schema = <S extends Schema>(s: S): S => {
+  schemas.push(s);
   return s;
 };
 
 export const relationship = <
   A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>
 >(r: R) => {
+  relationships.push(r);
   return r;
 };
 
@@ -64,10 +73,10 @@ type Optional<F extends Fields> = t.TypeOf<t.PartialC<GetTypes<F>>>;
 
 type Defined<T> = Exclude<T, undefined>;
 
-export interface RelationshipBasics<T> { 
-  source: string, 
-  target: string, 
-  properties: T,
+export interface RelationshipBasics<T> {
+  source: string;
+  target: string;
+  properties: T;
 }
 
 export type TypeOf<T extends Schema> =

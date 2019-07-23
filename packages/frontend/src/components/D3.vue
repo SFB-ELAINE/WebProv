@@ -10,10 +10,9 @@
 <script lang="ts">
 import * as d3 from 'd3';
 import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
-import { Component, Vue, Prop } from 'vue-property-decorator';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { makeLookup, Lookup, intersection, createComponent } from '@/utils';
+import { makeLookup, Lookup, intersection, createComponent, getRandomColor } from '@/utils';
 import { computed, watch, onMounted, value } from 'vue-function-api';
 
 type HullListener = (node: D3Hull) => void;
@@ -22,8 +21,6 @@ type NodeListener = (node: D3Node) => void;
 interface MyLink extends D3Link {
   color: string;
 }
-
-const ordinalScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 // This id is used to ensure that the ID atttribute doesn't conflict with others
 // Since id is global
@@ -55,6 +52,21 @@ export default createComponent({
     let selection: d3.Selection<any, D3Node, any, any> | null = null;
     const curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
 
+    let colorIndex = 0;
+    const colorLookup: Lookup<string> = {};
+    const colors = [
+      '#1f77b4',
+      '#ff7f0e',
+      '#2ca02c',
+      '#d62728',
+      '#9467bd',
+      '#8c564b',
+      '#e377c2',
+      '#7f7f7f',
+      '#bcbd22',
+      '#17becf',
+    ];
+
     const allNodes = computed(() => {
       return [
         ...addedNodes.value,
@@ -76,7 +88,16 @@ export default createComponent({
     });
 
     function fill(d: { group: number }) {
-      return ordinalScale('' + d.group);
+      if (!colorLookup[d.group]) {
+        if (colorIndex < colors.length) {
+          colorLookup[d.group] = colors[colorIndex];
+          colorIndex++;
+        } else {
+          colorLookup[d.group] = getRandomColor();
+        }
+      }
+
+      return colorLookup[d.group];
     }
 
     function addLink(link: D3Link) {

@@ -9,27 +9,30 @@ import {
   BackendRelationships,
   getType,
   keys,
-  RelationshipInformation
+  RelationshipInformation,
+  schemas,
+  relationships,
+  BackendItem
 } from 'common';
 
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
 dotenv.config();
 
-const uri = process.env.DB_URI;
-const user = process.env.DB_USER;
-const password = process.env.DB_PASSWORD;
+const uri = process.env.GRAPHENEDB_BOLT_URL;
+const user = process.env.GRAPHENEDB_BOLT_USER;
+const password = process.env.GRAPHENEDB_BOLT_PASSWORD;
 
 if (!uri) {
-  throw Error('DB_URI is required.');
+  throw Error('GRAPHENEDB_BOLT_URL is required.');
 }
 
 if (!user) {
-  throw Error('DB_USER is required.');
+  throw Error('GRAPHENEDB_BOLT_USER is required.');
 }
 
 if (!password) {
-  throw Error('DB_PASSWORD is required.');
+  throw Error('GRAPHENEDB_BOLT_PASSWORD is required.');
 }
 
 const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
@@ -44,11 +47,6 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
     };
   }
 };
-
-interface Statement<> {
-  statement: string;
-  parameters?: { [k: string]: any };
-}
 
 export const updateOrCreate = async <S extends Schema>(
   schema: S, obj: TypeOf<S>
@@ -265,6 +263,21 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
   });
 };
 
+export const getMax = async <S extends Schema, K extends keyof TypeOf<S>>(schema: S, key: K) => {
+  return await withHandling(async (): Promise<BackendItem<number> | BackendError> => {
+    const session = driver.session();
+    const result: StatementResult<[number | null]> = await session.run(`
+    MATCH (n:${schema.name}) RETURN MAX(n.${key})
+    `)
+
+    session.close();
+    return {
+      result: 'success',
+      item: result.records[0].get(0) || 0,
+    }
+  });
+}
+
 export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
   schema: R, information: RelationshipInformation<TypeOf<R>>,
 ) => {
@@ -301,4 +314,24 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
       result: 'success',
     };
   });
+}
+
+/**
+ * Initializes the constraints!
+ */
+export const initialize = async () => {
+  await Promise.all([...schemas, ...relationships].map(async (schema) => {
+    const fields = {
+      ...schema.required,
+      ...(schema.optional || {}),
+    }
+    
+    const session = driver.session();
+    await Promise.all(keys(fields).map(async (fieldName) => {
+      const fieldInformation = fields[fieldName];
+      if (fieldInformation.unique || fieldInformation.primary) {
+        return await session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
+      }
+    }));
+  }));
 }

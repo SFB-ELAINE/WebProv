@@ -1,5 +1,5 @@
 {
-  "name": "web-provenance",
+  "name": "frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,19 +10,15 @@
   "dependencies": {
     "@types/d3": "^5.7.2",
     "@types/lodash.debounce": "^4.0.6",
-    "@types/lodash.uniqueid": "^4.0.6",
     "buefy": "^0.7.7",
     "common": "^0.1.0",
     "core-js": "^2.6.5",
     "d3": "^5.9.2",
     "fuse.js": "^3.4.5",
     "lodash.debounce": "^4.0.8",
-    "lodash.uniqueid": "^4.0.1",
     "restyped-axios": "^2.0.0",
     "vue": "^2.6.10",
-    "vue-class-component": "^7.1.0",
-    "vue-function-api": "^2.0.6",
-    "vue-property-decorator": "^8.1.1"
+    "vue-function-api": "^2.0.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",

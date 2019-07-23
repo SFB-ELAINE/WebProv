@@ -1,6 +1,13 @@
 import axios from 'restyped-axios';
-import { SimulationStudy, ProvenanceNode, ProvenanceAPI, RelationshipInformation } from 'common';
-import { DependencyRelationship, InformationRelationship, InformationField } from 'common/dist/schemas';
+import {
+  SimulationStudy,
+  ProvenanceNode,
+  ProvenanceAPI,
+  RelationshipInformation,
+  InformationField,
+  InformationRelationship,
+  DependencyRelationship,
+} from 'common';
 import { getLogger } from '@/utils';
 
 const logger = getLogger();
@@ -11,7 +18,7 @@ const api = axios.create<ProvenanceAPI>({
 });
 
 api.interceptors.request.use((request) => {
-  logger.info(`REQUEST to ${request.url}`, request);
+  logger.debug(`REQUEST to ${request.url}`, request);
   return request;
 });
 
@@ -25,10 +32,14 @@ export const updateOrCreateInformationNode = async (node: InformationField) => {
   return (await api.post('/information', node)).data;
 };
 
-export const updateOrCreateModel = async (
-  model: SimulationStudy,
+export const getMaxStudyId = async () => {
+  return (await api.get('/studies/study-id/max')).data;
+};
+
+export const updateOrCreateStudy = async (
+  study: SimulationStudy,
 ) => {
-  return (await api.post('/studies', { item: model })).data;
+  return (await api.post('/studies', { item: study })).data;
 };
 
 export const updateOrCreateDependency = async (
@@ -48,7 +59,7 @@ export const deleteNode = async (id: string) => {
   return (await api.delete('/nodes', { params: { id } })).data;
 };
 
-export const deleteModel = async (id: string) => {
+export const deleteStudy = async (id: string) => {
   return (await api.delete('/studies', { params: { id } })).data;
 };
 

@@ -12,6 +12,8 @@ import {
   getRelationships,
   deleteRelationship,
   deleteRelationshipByType,
+  initialize,
+  getMax,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -78,13 +80,11 @@ export const resetDatabase = async () => {
       source: connection.source.id,
       target: connection.target.id,
       properties: connection.properties,
-    })
+    });
   }
-}
+};
 
-resetDatabase();
-
-const create = () => {
+const create = async () => {
   // SETUP FOR EXPRESS //
   const app = express();
   app.use(bodyParser.json());
@@ -95,9 +95,12 @@ const create = () => {
   app.use('/', apiRouter);
   const router = RestypedRouter<ProvenanceAPI>(apiRouter);
 
+  await initialize();
+  await resetDatabase();
+
   // ROUTES //
   router.get('/health', async () => {
-    return 'OK'
+    return 'OK';
   });
 
   router.get('/information', async () => {
@@ -118,31 +121,35 @@ const create = () => {
 
   router.get('/studies', async () => {
     return await getItems(SimulationStudySchema);
-  })
+  });
+
+  router.get('/studies/study-id/max', async () => {
+    return await getMax(SimulationStudySchema, 'studyId');
+  });
 
   router.delete('/nodes', async (req) => {
     return await deleteNode(req.query.id);
-  })
+  });
 
   router.delete('/studies', async (req) => {
     return await deleteItem(SimulationStudySchema, req.query.id);
-  })
+  });
 
   router.post('/nodes', async (req) => {
     return await updateOrCreate(ProvenanceNodeSchema, req.body.item);
-  })
+  });
 
   router.get('/nodes/dependencies', async () => {
     return await getRelationships(DependencyRelationshipSchema);
-  })
+  });
 
   router.post('/nodes/dependencies', async (req) => {
     return await updateOrCreateConnection(DependencyRelationshipSchema, req.body);
-  })
+  });
 
   router.get('/nodes/information', async () => {
     return await getRelationships(InformationRelationshipSchema);
-  })
+  });
 
   router.post('/nodes/information', async (req) => {
     const result1 = await updateOrCreate(InformationFieldSchema, req.body.information);
@@ -151,22 +158,20 @@ const create = () => {
     }
 
     return await updateOrCreateConnection(InformationRelationshipSchema, req.body.relationship);
-  })
+  });
 
   router.post('/studies', async (req) => {
     return await updateOrCreate(SimulationStudySchema, req.body.item);
-  })
+  });
 
   router.delete('/nodes/dependencies', async (req) => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
-  })
+  });
 
-  return app;
+  const PORT = 3000;
+  app.listen(PORT, () => {
+    console.log(`Backend listening on port ${PORT}!`);
+  });
 };
 
-const server = create();
-
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Backend listening on port ${PORT}!`);
-})
+create();

@@ -1,5 +1,11 @@
-import { ProvenanceNode, SimulationStudy, DependencyRelationship, InformationRelationship, InformationField } from './schemas';
 import { RelationshipBasics } from './neon';
+import {
+  DependencyRelationship,
+  InformationField,
+  InformationRelationship,
+  ProvenanceNode,
+  SimulationStudy,
+} from './schemas';
 
 export interface BackendSuccess {
   result: 'success';
@@ -47,8 +53,8 @@ export interface ProvenanceAPI {
     DELETE: {
       query: { id: string }
       response: BackendSuccess | BackendNotFound | BackendError;
-    }
-  }
+    },
+  };
 
   '/nodes': {
     GET: {
@@ -65,6 +71,12 @@ export interface ProvenanceAPI {
     DELETE: {
       query: { id: string }
       response: BackendSuccess | BackendNotFound | BackendError;
+    },
+  };
+
+  '/studies/study-id/max': {
+    GET: {
+      response: BackendItem<number> | BackendError,
     },
   };
 
@@ -99,20 +111,20 @@ export interface ProvenanceAPI {
     DELETE: {
       query: { id: string }
       response: BackendSuccess | BackendNotFound | BackendError;
-    }
-  }
+    },
+  };
 
   '/nodes/information': {
     GET: {
       response: BackendRelationships<InformationRelationship> | BackendError;
     },
-    
+
     POST: {
       body: {
         relationship: RelationshipBasics<InformationRelationship>,
         information: InformationField,
       };
       response: BackendSuccess | BackendError;
-    }
-  }
+    },
+  };
 }

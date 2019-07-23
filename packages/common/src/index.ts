@@ -20,6 +20,7 @@ export {
   ProvenanceNodeSchema,
   SimulationStudySchema,
   InformationFieldSchema,
+  DependencyRelationship,
 } from './schemas';
 
 export {
@@ -28,6 +29,7 @@ export {
   BackendItems,
   BackendNotFound,
   ProvenanceAPI,
+  BackendItem,
   BackendRelationships,
 } from './backend';
 
@@ -45,4 +47,6 @@ export {
   relationship,
   TypeOf,
   RelationshipSchema,
+  schemas,
+  relationships,
 } from './neon';

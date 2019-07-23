@@ -9,14 +9,31 @@ import {
   BackendError,
   BackendNotFound,
   isValidRelationship,
+  RelationshipInformation,
+  keys,
 } from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 import { DependencyRelationship } from 'common/dist/schemas';
 
-// The following methods are useful for making lookups.
+export interface Connection {
+  properties: DependencyRelationship;
+  relationship: DependencyType;
+  original: RelationshipInformation<DependencyRelationship>;
+  source: HighLevelNode;
+  target: HighLevelNode;
+  color: string;
+}
 
+export interface HighLevelNode {
+  id: string;
+  node: ProvenanceNode;
+  outgoing: Connection[];
+  incoming: Connection[];
+}
+
+// The following methods are useful for making lookups.
 export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
   const lookup: Lookup<T> = {};
   for (const item of array) {
@@ -62,7 +79,9 @@ interface SimulationStudyLookup {
  * @param n The node.
  * @param lookup The simulation study lookup. We need this to determine the default label for the model node.
  */
-export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): string {
+export function getLabel(
+  n: ProvenanceNode, lookup: SimulationStudyLookup, modelVersionLookup: Lookup<number | undefined>,
+): string {
   if (n.label) {
     return n.label;
   }
@@ -73,9 +92,11 @@ export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): stri
     case 'ModelBuildingActivity':
       return 'MBA';
     case 'SimulationData':
-      return 'None';
+      return 'No Label';
     case 'ModelExplorationActivity':
       return 'MEA';
+    case 'TheoreticalKnowledge':
+      return 'TK';
     case 'Model':
       if (n.label) {
         return n.label;
@@ -85,7 +106,8 @@ export function getLabel(n: ProvenanceNode, lookup: SimulationStudyLookup): stri
         return 'None';
       }
 
-      const text = `M${n.studyId}`;
+      const version = modelVersionLookup[n.id];
+      const text = version !== undefined ? `M${version}` : 'M';
       const simulationStudy = lookup[n.studyId];
       if (!simulationStudy) {
         return text;
@@ -311,7 +333,16 @@ export function createComponent<Props>(
 export async function makeRequest<T extends { result: 'success' }>(
   f: () => Promise<T | BackendError | BackendNotFound>, cb?: (result: T) => void,
 ) {
-  const result = await f();
+  let result: T | BackendError | BackendNotFound;
+  try {
+    result = await f();
+  } catch (e) {
+    // catch network errors & other errors
+    result = {
+      result: 'error',
+      message: e.message,
+    };
+  }
 
   if (result.result === 'error') {
     NotificationProgrammatic.open({
@@ -394,4 +425,111 @@ export const isDefined = <T>(o: T | undefined): o is T => {
 // Also, we can easily modify this method to return other objects rather than console
 export const getLogger = () => {
   return console;
+};
+
+
+export function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+/**
+ * Creates a model version lookup. The ID of the model nodes are used as a key and the values are their version numbers.
+ *
+ * The algorithm constrains:
+ * 1. Every version must be unique.
+ * 2. A model of a higher version should not depend on a model of a lower version.
+ *
+ * To accomplish this, we count how many models each node depends on. Then, we sort the model nodes based on the
+ * amount of model nodes each depends on. Then, we use the index as version number (we add one so that the version
+ * numbers start at 1).
+ *
+ * @param highLevelNodes
+ */
+export const createModelVersionLookup = (highLevelNodes: HighLevelNode[]): Lookup<number> => {
+  const counts: Lookup<number> = {};
+  const seen = new Set<string>();
+
+  const traverse = (node: HighLevelNode): number => {
+    if (counts[node.id] !== undefined) {
+      return counts[node.id];
+    }
+
+    // This detects cyclic dependencies
+    if (seen.has(node.id)) {
+      throw Error('Cyclic dependency detected in graph');
+    }
+
+    seen.add(node.id);
+
+    let count = 0;
+    node.outgoing.forEach((outgoing) => {
+      count += traverse(outgoing.target);
+
+      if (outgoing.target.node.type === 'Model') {
+        count++;
+      }
+    });
+
+    counts[node.id] = count;
+    return count;
+  };
+
+  const modelNodes = highLevelNodes.filter((n) => n.node.type === 'Model');
+  modelNodes.forEach((node) => {
+    traverse(node);
+  });
+
+  // sort smallest to largest by count
+  const sorted = modelNodes.sort((a, b) => counts[a.id] - counts[b.id]);
+
+  const lookup: Lookup<number> = {};
+  sorted.forEach((node, i) => {
+    // start the number at 1, not 0
+    lookup[node.id] = i + 1;
+  });
+
+  return lookup;
+};
+
+/**
+ * Gets the classification of the node base on the type.
+ *
+ * This method will need to be removed when a more general solution is created.
+ * We can't have hard coded information like this, it will need to be stored in the database.
+ *
+ * @param type
+ */
+export const getClassification = (type: ProvenanceNodeType): 'entity' | 'activity' => {
+  switch (type) {
+    case 'WetLabData':
+      return 'entity';
+    case 'ModelBuildingActivity':
+        return 'activity';
+    case 'SimulationData':
+      return 'entity';
+    case 'ModelExplorationActivity':
+      return 'activity';
+    case 'TheoreticalKnowledge':
+      return 'entity';
+    case 'Model':
+      return 'entity';
+  }
+};
+
+/**
+ * Merge an array of objects into one object.
+ *
+ * @param objects
+ */
+export const merge = <T>(objects: Array<Lookup<T>>) => {
+  const lookup: Lookup<T> = {};
+  objects.forEach((o) => {
+    keys(o).forEach((key) => lookup[key] = o[key]);
+  });
+  return lookup;
 };

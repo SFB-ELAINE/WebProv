@@ -1,23 +1,22 @@
 <template>
   <card title="Simulation Study">
     <div>
-      <b-field class="field" label="Study ID">
-        <b-input 
-          type="number" 
-          :value="model.id"
-          @input="setModel"
-        ></b-input>
-      </b-field>
       <b-field class="field" label="Source">
         <b-input 
-          :value="model.source"
+          :value="study.source"
           @input="setSource"
+        ></b-input>
+      </b-field>
+      <b-field class="field" label="Signaling Pathway">
+        <b-input 
+          :value="study.signalingPathway"
+          @input="setSignalingPathway"
         ></b-input>
       </b-field>
     </div>
     <template v-slot:footer>
       <a class="card-footer-item" @click="cancel">Cancel</a>
-      <a class="card-footer-item" @click="deleteModel">Delete</a>
+      <a class="card-footer-item" @click="deleteStudy">Delete</a>
       <a class="card-footer-item" @click="save">Save</a>
     </template>
   </card>
@@ -31,9 +30,10 @@ import { setVue, createComponent, makeRequest } from '@/utils';
 import { value } from 'vue-function-api';
 
 export default createComponent({
+  name: 'SimulationStudyCard',
   components: { Card },
   props: {
-    model: {
+    study: {
       type: Object as () => SimulationStudy,
       required: true,
     },
@@ -45,22 +45,16 @@ export default createComponent({
       context.emit('cancel');
     };
 
-    const deleteModel = () => {
+    const deleteStudy = () => {
       context.emit('delete');
     };
 
-    const setModel = (model: string) => {
-      // convert the model to a number if possible
-      // if it is a number but the given string is empty, set to undefined
-      setVue(props.model, 'id', model === '' ? undefined : +model);
-    };
-
     const setSource = (source: string) => {
-      setVue(props.model, 'source', source);
+      setVue(props.study, 'source', source);
     };
 
     const setSignalingPathway = (signalingPathway: string) => {
-      setVue(props.model, 'signalingPathway', signalingPathway);
+      setVue(props.study, 'signalingPathway', signalingPathway);
     };
 
     const save = () => {
@@ -68,8 +62,8 @@ export default createComponent({
     };
 
     return {
-      deleteModel,
-      setModel,
+      deleteStudy,
+      setSignalingPathway,
       searchModel,
       setSource,
       cancel,

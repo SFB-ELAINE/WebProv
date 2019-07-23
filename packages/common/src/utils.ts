@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
-import { Schema } from "./neon";
-import { relationshipRules, ProvenanceNode, DependencyType } from './schemas';
+import { Schema } from './neon';
+import { DependencyType, ProvenanceNode, relationshipRules } from './schemas';
 
 export const uniqueId = () => {
   // HTML IDs must begin with a non numeric character or something like that.
@@ -32,7 +32,7 @@ export const isValidRelationship = (
       return rule.relationship === type;
     }
   });
-}
+};
 
 const toObject = <T>(arg: Array<[string, T]>) => {
   const obj: { [k: string]: T } = {};
@@ -46,10 +46,10 @@ const toObject = <T>(arg: Array<[string, T]>) => {
 export const getType = <S extends Schema>(schema: S) => {
   const required = schema.required;
   const optional = schema.optional || {};
-  const r = toObject(keys(required).map((key) => tuple(key, required[key].type)))
-  const o = toObject(keys(optional).map((key) => tuple(key, optional[key].type)))
+  const r = toObject(keys(required).map((key) => tuple(key, required[key].type)));
+  const o = toObject(keys(optional).map((key) => tuple(key, optional[key].type)));
   return t.exact(t.intersection([
     t.type(r),
     t.partial(o),
   ]));
-}
+};
