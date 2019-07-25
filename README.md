@@ -4,43 +4,34 @@ The goal of this project is the create a web platform to automatically visualize
 [Link to Demo](https://sfb-elaine.github.io/WebProv/)
 
 ## Environment Setup
+### Node
 The first step to setting up your environment involves installing `Node.js` and `npm` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
 1. Install `Node.js` and `npm` using nvm: `nvm install node`
+
+### Neo4j
+Next, if not already installed, `Neo4j` should be installed:
 1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
 1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
+> `Docker` can also be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
 
-This project uses [lerna](https://lerna.js.org/) as the repository is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. First, install `lerna`:
+### Lerna
+This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is:
 ```
 npm install # or `npm i`
 ```
 
-Then, bootstrap (ie. install external packages and symlink local packages) the repository:
-
-```
-npm run bootstrap
-```
-
-This installs the dependencies for ALL packages in the repository. You have to run one final command to build the libraries (currently there is only one library):
-
-```
-npm run build-libraries
-```
-
-That's it! This command just ran `npm run build` in all of the library folders.
-
 ## Development
-A `Makefile` file is present within both the frontend and backend repositories. To start the development server, just run the following command:
+A `Makefile` file is present within both the frontend and backend repositories. To start a development server with hot-reload within each package, just run the following command:
 ```
 make dev
 ```
-
-This starts a hot-reload development server for both the frontend and backend.
+> Ensure that you start the backend server before starting the frontend server.
 
 ## Installing Dependencies
 If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, using the `lerna add` command. For example:
 ```
-lerna add the-module-to-install --scope=frontend --dev
+npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
 ```
 
 ## Contributing
@@ -59,10 +50,10 @@ heroku apps:create $app
 heroku addons:create graphenedb:dev-free --app $app
 ```
 
-Then, using the online dashboard, this repository was connected to GitHub for automatic deployments by clicking the `Enable Automatic Deploys` button. Now that this connection has been made, all merged PRs will trigger a new deployment of the backend.
+Then, using the online dashboard, this repository was connected to GitHub for automatic deployments by clicking the `Enable Automatic Deploys` button. This connection triggers a new deployment of the backend on every merge into `master`.
 > This requires admin access to the repository.
 
-The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. Within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
+The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. This can be found within the `Heroku` project that you crated. Then, within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
 
 ### Frontend
 The frontend is currently being deployed using `Netlify`. The following instructions were used to create the `Netlify` application:
@@ -71,10 +62,11 @@ The frontend is currently being deployed using `Netlify`. The following instruct
 1. Click `Continuous Deployment` > `GitHub`.
 1. Find the repository.
 1. Set the build command to `npm run build-frontend`.
-1. Set the publish directory to `_site`.
+1. Set the publish directory to `_site` (must match folder in `vue.config.js`).
 1. Leave all other settings at their default values and click `Deploy site`.
 
 Whenever new commits are merged into `master`, the frontend will be built and deployed.
+> Ensure that you set the `VUE_APP_BACKEND_URL` environmental variable.
 
 ## Dependencies/Acknowledgements
 ### Frontend
