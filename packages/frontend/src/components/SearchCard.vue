@@ -1,5 +1,5 @@
 <template>
-  <card ref="el">
+  <card ref="card">
     <template v-slot:header>
       <b-field style="margin: 1.5rem 1.5rem 0">
         <b-input
@@ -88,6 +88,7 @@ export default createComponent({
     items: { type: Array as () => SearchItem[], required: true },
   },
   setup(props, context) {
+    const refs = context.refs as { card: Vue, input: Vue & { focus: () => void } };
     const results = value<SearchItem[]>([]);
     const searchText = value('');
 
@@ -104,10 +105,15 @@ export default createComponent({
     }
 
     function startSearch() {
-      const card = context.refs.el as Vue;
       const loadingComponent = context.root.$loading.open({
-        container: card.$el,
+        container: refs.card.$el,
       });
+
+
+      // Blur the input when the search is started. This is very useful for touch devices
+      // If we don't do this, anytime the user touches the screen the keyboard will open
+      const input = refs.input.$refs.input as HTMLInputElement;
+      input.blur();
 
       setTimeout(() => loadingComponent.close(), 0.5 * 1000);
       results.value = search(props.items, searchText.value);
@@ -116,8 +122,7 @@ export default createComponent({
     function clear() {
       results.value = [];
       searchText.value = '';
-      const input = context.refs.input as Vue & { focus: () => void };
-      input.focus();
+      refs.input.focus();
     }
 
     return {

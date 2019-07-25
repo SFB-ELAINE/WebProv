@@ -47,8 +47,10 @@ lerna add the-module-to-install --scope=frontend --dev
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Deployment
+The frontend and backend are automatically deployed when PRs or new commits are merged/pushed to the `master` branch. The following sections describe how this deployment process was set up.
+
 ### Backend
-The backend is currently using `Heroku` for automatic deployments. The following commands were used to set up the Heroku backend.
+The backend is currently using `Heroku` for automatic deployments. The following commands were used to set up the Heroku backend:
 ```
 export app=web-prov-backend
 heroku apps:create $app
@@ -57,13 +59,14 @@ heroku apps:create $app
 heroku addons:create graphenedb:dev-free --app $app
 ```
 
-Then, using the online dashboard, connect this repository to GitHub for automatic deployments on merge by clicking `Enable Automatic Deploys`. Once this connection is made, merged PRs will automatically be deployed.
+Then, using the online dashboard, this repository was connected to GitHub for automatic deployments by clicking the `Enable Automatic Deploys` button. Now that this connection has been made, all merged PRs will trigger a new deployment of the backend.
 > This requires admin access to the repository.
 
 The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. Within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
 
 ### Frontend
-The frontend is currently being deployed using `Netlify`. The following instructions can be used to create the `Netlify` application.
+The frontend is currently being deployed using `Netlify`. The following instructions were used to create the `Netlify` application:
+
 1. Create a `New site from Git`.
 1. Click `Continuous Deployment` > `GitHub`.
 1. Find the repository.
@@ -74,6 +77,7 @@ The frontend is currently being deployed using `Netlify`. The following instruct
 Whenever new commits are merged into `master`, the frontend will be built and deployed.
 
 ## Dependencies/Acknowledgements
+### Frontend
 - [@types/d3](https://www.npmjs.com/package/@types/d3) (MIT)
 - [@types/@types/lodash.debounce](https://www.npmjs.com/package/@types/@types/lodash.debounce) (MIT)
 - [buefy](https://www.npmjs.com/package/buefy) (MIT)
@@ -89,5 +93,23 @@ Whenever new commits are merged into `master`, the frontend will be built and de
 - [babel-core](https://www.npmjs.com/package/babel-core) (MIT)
 - [sass](https://www.npmjs.com/package/sass) (MIT)
 - [sass-loader](https://www.npmjs.com/package/sass-loader) (MIT)
+- [svg-pan-zoom](https://www.npmjs.com/package/svg-pan-zoom) (BSD-2-Clause)
 - [typescript](https://www.npmjs.com/package/typescript) (Apache-2.0)
 - [vue-template-compiler](https://www.npmjs.com/package/vue-template-compiler) (MIT)
+
+### Backend
+- [@types/cors](https://www.npmjs.com/package/@types/cors) (MIT)
+- [@types/dotenv](https://www.npmjs.com/package/@types/dotenv) (MIT)
+- [body-parser](https://www.npmjs.com/package/body-parser) (MIT)
+- [cors](https://www.npmjs.com/package/cors) (MIT)
+- [dotenv](https://www.npmjs.com/package/dotenv) (BSD-2-Clause)
+- [express](https://www.npmjs.com/package/express) (MIT)
+- [neo4j-driver](https://www.npmjs.com/package/neo4j-driver) (Apache-2.0)
+- [restyped-express-async](https://www.npmjs.com/package/restyped-express-async) (MIT)
+- [typescript](https://www.npmjs.com/package/typescript) (Apache-2.0)
+- [ts-node-dev](https://www.npmjs.com/package/ts-node-dev) (MIT)
+
+### Common
+- [typescript](https://www.npmjs.com/package/typescript) (Apache-2.0)
+- [fp-ts](https://www.npmjs.com/package/fp-ts) (MIT)
+- [io-ts](https://www.npmjs.com/package/io-ts) (MIT)

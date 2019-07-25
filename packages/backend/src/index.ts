@@ -168,7 +168,9 @@ const create = async () => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
 
+  // Heroku sets the port and we must use this port
   const PORT = Number.parseInt(process.env.PORT || '') || 3000;
+  // For some reason, we need to specify '0.0.0.0' for the host for Heroku or else binding fails
   const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
   app.listen(PORT, HOST, () => {
     console.log(`Backend listening at http://${HOST}:${PORT}`);
