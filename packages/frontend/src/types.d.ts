@@ -16,3 +16,5 @@ declare module '@/link' {
 declare module 'buefy/dist/components/notification' {
   export { NotificationProgrammatic } from 'buefy';
 }
+
+declare module 'vue-fab';

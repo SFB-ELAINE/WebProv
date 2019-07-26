@@ -348,14 +348,14 @@ export async function makeRequest<T extends { result: 'success' }>(
     NotificationProgrammatic.open({
       indefinite: true,
       message: result.message,
-      position: 'is-bottom-right',
+      position: 'is-top-right',
       type: 'is-danger',
     });
   } else if (result.result === 'not-found') {
     NotificationProgrammatic.open({
       indefinite: true,
       message: 'Item not found in database',
-      position: 'is-bottom-right',
+      position: 'is-top-right',
       type: 'is-danger',
     });
   } else {

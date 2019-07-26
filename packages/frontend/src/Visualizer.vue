@@ -60,13 +60,13 @@
         Add Node
       </b-button>
 
-      <b-button
+      <!-- <b-button
         class="clear-button overlay-child"
         type="is-text"
         @click="clearNodes"
       >
         Clear
-      </b-button>
+      </b-button> -->
 
       <div class="cards overlay-child">
 
@@ -123,6 +123,8 @@
     ></information-modal>
 
     <div class="version">v{{ version }}</div>
+
+    <fab :actions="fabActions"></fab>
 
   </div>
 </template>
@@ -186,6 +188,7 @@ import debounce from 'lodash.debounce';
 import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
 import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
+import Fab, { FabAction } from '@/components/Fab.vue';
 
 interface BaseNode extends D3Node {
   studyId?: number;
@@ -227,7 +230,16 @@ const logger = getLogger();
 
 export default createComponent({
   name: 'Visualizer',
-  components: { ProvLegendCard, D3, SearchCard, SelectCard, NodeFormCard, SimulationStudyCard, InformationModal },
+  components: {
+    ProvLegendCard,
+    D3,
+    SearchCard,
+    SelectCard,
+    NodeFormCard,
+    SimulationStudyCard,
+    InformationModal,
+    Fab,
+  },
   props: {
     windowHeight: { type: Number, required: true },
     windowWidth: { type: Number, required: true },
@@ -283,6 +295,56 @@ export default createComponent({
 
     // The pan of the visualization
     const pan = value({ x: 0, y: 0 });
+
+    const fabActions: FabAction[] = [
+      {
+        name: 'Clear',
+        icon: 'clear_all',
+        callback: () => {
+          nodesToShow.value = {};
+          renderGraph();
+        },
+      },
+      {
+        name: 'Export',
+        icon: 'export',
+        callback: () => {
+          interface ExportRow {
+            id: string;
+            label: string;
+            type: ProvenanceNodeType;
+            studyId?: number;
+            dependencies: Array<{ target: string, type: DependencyType }>;
+          }
+
+          const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportRow | undefined => {
+            const show = nodesToShow.value[nodeId];
+            if (!show) {
+              return;
+            }
+
+
+
+            const highLevelNode = highLevelNodeLookup.value[nodeId];
+            const node = highLevelNode.node;
+
+            const connections = getConnections(node.id) || [];
+            const dependencyInfo = connections.map((connection) => ({
+              target: connection.target,
+              type: connection.properties.type,
+            }));
+
+            return {
+              id: node.id,
+              label: getLabel(node, simulationStudyLookup.value, modelVersionLookup.value),
+              type: node.type,
+              studyId: node.studyId,
+              dependencies: dependencyInfo,
+            };
+          });
+        },
+      },
+    ];
 
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
     const selectedStudy = value<SimulationStudy | null>(null);
@@ -349,7 +411,7 @@ export default createComponent({
             context.root.$notification.open({
               duration: 10000,
               message: `Connection target not found: ${n.type}(${sourceId}) => ${targetId}`,
-              position: 'is-bottom-right',
+              position: 'is-top-right',
               type: 'is-warning',
             });
             return;
@@ -1095,6 +1157,7 @@ export default createComponent({
       lineStart,
       lineEnd,
       pan,
+      fabActions,
       searchItems,
       expandStudy,
       legendProps,
@@ -1103,7 +1166,7 @@ export default createComponent({
         if (result.studyId === undefined) {
           context.root.$notification.open({
             message: 'Please assign a study ID first.',
-            position: 'is-bottom-right',
+            position: 'is-top-right',
             type: 'is-warning',
           });
 
@@ -1132,10 +1195,6 @@ export default createComponent({
       colorChanges,
       createStudy,
       addNode,
-      clearNodes: () => {
-        nodesToShow.value = {};
-        renderGraph();
-      },
       selectedStudy,
       cancelSelectedStudy,
       deleteSelectedStudy,
