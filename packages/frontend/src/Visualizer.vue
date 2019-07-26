@@ -314,6 +314,7 @@ export default createComponent({
             label: string;
             type: ProvenanceNodeType;
             studyId?: number;
+            informationFields: Array<{ key: string, value: string }>;
             dependencies: Array<{ target: string, type: DependencyType }>;
           }
 
@@ -329,17 +330,20 @@ export default createComponent({
             const node = highLevelNode.node;
 
             const connections = getConnections(node.id) || [];
-            const dependencyInfo = connections.map((connection) => ({
+            const nodeDependencies = connections.map((connection) => ({
               target: connection.target,
               type: connection.properties.type,
             }));
+
+            const nodeInformationFields = getInformationNodesFromProvenance(node);
 
             return {
               id: node.id,
               label: getLabel(node, simulationStudyLookup.value, modelVersionLookup.value),
               type: node.type,
               studyId: node.studyId,
-              dependencies: dependencyInfo,
+              dependencies: nodeDependencies,
+              informationFields: nodeInformationFields,
             };
           });
         },

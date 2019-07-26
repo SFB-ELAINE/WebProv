@@ -540,3 +540,22 @@ export const update = <Props, K extends keyof Props, V extends Props[K]>(
 ) => {
   context.emit(`update:${key}`, value);
 };
+
+type ColumnPrimitive = string | number | boolean;
+type Column = ColumnPrimitive | { [k: string]: ColumnPrimitive };
+
+interface Row {
+  [k: string]: Column;
+}
+
+const transformColumn = (column: Column): string => {
+  return JSON.stringify(column);
+};
+
+const transformRow = (row: Row): string => {
+  return Object.values(row).map(transformColumn).join(' ');
+};
+
+export const toTsv = (rows: Row[]) => {
+  return Object.keys(rows).join(' ') + '\n' + rows.map(transformRow).join('\n');
+};
