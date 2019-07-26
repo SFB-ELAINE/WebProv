@@ -176,6 +176,9 @@ import {
   HighLevelNode,
   merge,
   getClassification,
+  toTsv,
+  TsvRow,
+  download,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -324,8 +327,6 @@ export default createComponent({
               return;
             }
 
-
-
             const highLevelNode = highLevelNodeLookup.value[nodeId];
             const node = highLevelNode.node;
 
@@ -346,6 +347,9 @@ export default createComponent({
               informationFields: nodeInformationFields,
             };
           });
+
+          const tsv = toTsv(exportRows.filter(isDefined) as any);
+          download(tsv, 'exported-provenance-nodes.tsv');
         },
       },
     ];
