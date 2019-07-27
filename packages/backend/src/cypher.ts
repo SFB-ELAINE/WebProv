@@ -12,11 +12,13 @@ import {
   RelationshipInformation,
   schemas,
   relationships,
-  BackendItem
+  BackendItem,
+  indexes
 } from 'common';
 
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
+import { Index } from 'common/dist/neon';
 dotenv.config();
 
 // All of these are prepended with GRAPHENEDB because we are currently deploying using the Graphene Neo4j add-on for Heroku
@@ -322,18 +324,52 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
  * Initializes the constraints!
  */
 export const initialize = async () => {
-  await Promise.all([...schemas, ...relationships].map(async (schema) => {
+  const session = driver.session();
+
+  for (const schema of [...schemas, ...relationships]) {
     const fields = {
       ...schema.required,
       ...(schema.optional || {}),
     }
     
-    const session = driver.session();
-    await Promise.all(keys(fields).map(async (fieldName) => {
+    for (const fieldName of keys(fields)) {
       const fieldInformation = fields[fieldName];
       if (fieldInformation.unique || fieldInformation.primary) {
-        return await session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
+        await session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
       }
-    }));
-  }));
+    };
+  };
+
+  for (const index of indexes) {
+    const keys = index.keys.map((key) => `'${key}'`).join(', ')
+    console.log(`Creating index: ${index.name}`)
+    try {
+      await session.run(`CALL db.index.fulltext.createNodeIndex('${index.name}', ['${index.schema.name}'], [${keys}])`)
+    } catch (e) {
+      // Ignore error, thrown if index already exists
+      // TODO lookup createOrUpdate??
+    }
+  }
+
+  session.close();
+}
+
+export const query = async <S extends Schema, I extends Index<S>>(index: I, searchText: string) => {
+  return await withHandling(async (): Promise<BackendItems<any>> => {
+    if (searchText === '') {
+      return {
+        result: 'success',
+        items: [],
+      }
+    }
+
+    const session = driver.session();
+    const result = await session.run(`CALL db.index.fulltext.queryNodes('${index.name}', '${searchText}')`);
+    const results = result.records.map(record => record.get(0));
+    session.close();
+    return {
+      result: 'success',
+      items: results,
+    };
+  })
 }

@@ -47,6 +47,7 @@ export {
   relationship,
   TypeOf,
   RelationshipSchema,
+  indexes,
   schemas,
   relationships,
 } from './neon';

@@ -14,6 +14,7 @@ import {
   deleteRelationshipByType,
   initialize,
   getMax,
+  query,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -26,6 +27,7 @@ import {
   BackendNotFound,
   BackendSuccess,
 } from 'common';
+import { ProvenanceNodeIndex } from 'common/dist/schemas';
 
 export function literal<T extends string>(o: T): T {
   return o;
@@ -167,6 +169,10 @@ const create = async () => {
   router.delete('/nodes/dependencies', async (req) => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
+
+  router.get('/search' as any, async (req) => {
+    return await query(ProvenanceNodeIndex, req.query.text || '');
+  })
 
   // Heroku sets the port and we must use this port
   const PORT = Number.parseInt(process.env.PORT || '') || 3000;

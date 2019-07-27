@@ -199,3 +199,15 @@ export type DependencyRelationship = n.TypeOf<typeof DependencyRelationshipSchem
 export type DependencyType = DependencyRelationship['type'];
 
 export type InformationRelationship = n.TypeOf<typeof InformationRelationshipSchema>;
+
+export const ProvenanceNodeIndex = n.index(ProvenanceNodeSchema, {
+  name: 'ProvenanceNodeIndex',
+  schema: ProvenanceNodeSchema,
+  keys: ['label', 'studyId', 'type'],
+})
+
+export const InformationFieldIndex = n.index(InformationFieldSchema, {
+  name: 'InformationFieldIndex',
+  schema: InformationFieldSchema,
+  keys: ['key', 'value'],
+})
