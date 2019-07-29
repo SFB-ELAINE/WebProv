@@ -98,22 +98,6 @@ export const SimulationStudySchema = n.schema({
   },
 });
 
-export const InformationFieldSchema = n.schema({
-  name: 'InformationField',
-  required: {
-    id: {
-      primary: true,
-      type: n.string,
-    },
-    key: {
-      type: n.string,
-    },
-    value: {
-      type: n.string,
-    },
-  },
-});
-
 export const ProvenanceNodeSchema = n.schema({
   name: 'ProvenanceNode',
   required: {
@@ -134,6 +118,12 @@ export const ProvenanceNodeSchema = n.schema({
         n.literal('TheoreticalKnowledge'),
       ]),
     },
+    keys: {
+      type: n.array(n.string),
+    },
+    values: {
+      type: n.array(n.string),
+    },
   },
   optional: {
     /**
@@ -153,25 +143,11 @@ export const ProvenanceNodeSchema = n.schema({
 
 export type ProvenanceNode = n.TypeOf<typeof ProvenanceNodeSchema>;
 
-export type InformationField = n.TypeOf<typeof InformationFieldSchema>;
-
 export type SimulationStudy = n.TypeOf<typeof SimulationStudySchema>;
 
 export type ProvenanceNodeType = ProvenanceNode['type'];
 
 export const provenanceNodeTypes = ProvenanceNodeSchema.required.type.type.types.map((t) => t.value);
-
-export const InformationRelationshipSchema = n.relationship({
-  name: 'HAS_INFORMATION',
-  source: ProvenanceNodeSchema,
-  target: InformationFieldSchema,
-  required: {
-    id: {
-      primary: true,
-      type: n.string,
-    },
-  },
-});
 
 export const DependencyRelationshipSchema = n.relationship({
   name: 'DEPENDS',
@@ -198,16 +174,8 @@ export type DependencyRelationship = n.TypeOf<typeof DependencyRelationshipSchem
 
 export type DependencyType = DependencyRelationship['type'];
 
-export type InformationRelationship = n.TypeOf<typeof InformationRelationshipSchema>;
-
 export const ProvenanceNodeIndex = n.index(ProvenanceNodeSchema, {
   name: 'ProvenanceNodeIndex',
   schema: ProvenanceNodeSchema,
   keys: ['label', 'studyId', 'type'],
-})
-
-export const InformationFieldIndex = n.index(InformationFieldSchema, {
-  name: 'InformationFieldIndex',
-  schema: InformationFieldSchema,
-  keys: ['key', 'value'],
 })

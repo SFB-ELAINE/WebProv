@@ -1,8 +1,6 @@
 import { RelationshipBasics } from './neon';
 import {
   DependencyRelationship,
-  InformationField,
-  InformationRelationship,
   ProvenanceNode,
   SimulationStudy,
 } from './schemas';
@@ -37,23 +35,15 @@ export interface BackendNotFound {
 
 export interface ProvenanceAPI {
   '/health': {
-    //
-  };
-
-  '/information': {
     GET: {
-      response: BackendError | BackendItems<InformationField>,
+      response: 'OK',
     }
-
-    POST: {
-      body: InformationField;
-      response: BackendSuccess | BackendError;
+  };
+  
+  '/': {
+    GET: {
+      response: 'Welcome to the Provenance Platform API',
     }
-
-    DELETE: {
-      query: { id: string }
-      response: BackendSuccess | BackendNotFound | BackendError;
-    },
   };
 
   '/nodes': {
@@ -111,20 +101,6 @@ export interface ProvenanceAPI {
     DELETE: {
       query: { id: string }
       response: BackendSuccess | BackendNotFound | BackendError;
-    },
-  };
-
-  '/nodes/information': {
-    GET: {
-      response: BackendRelationships<InformationRelationship> | BackendError;
-    },
-
-    POST: {
-      body: {
-        relationship: RelationshipBasics<InformationRelationship>,
-        information: InformationField,
-      };
-      response: BackendSuccess | BackendError;
     },
   };
 }

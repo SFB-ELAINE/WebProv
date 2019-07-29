@@ -4,8 +4,6 @@ import {
   ProvenanceNode,
   ProvenanceAPI,
   RelationshipInformation,
-  InformationField,
-  InformationRelationship,
   DependencyRelationship,
 } from 'common';
 import { getLogger } from '@/utils';
@@ -31,10 +29,6 @@ export const updateOrCreateNode = async (
   return (await api.post('/nodes', { item: node })).data;
 };
 
-export const updateOrCreateInformationNode = async (node: InformationField) => {
-  return (await api.post('/information', node)).data;
-};
-
 export const getMaxStudyId = async () => {
   return (await api.get('/studies/study-id/max')).data;
 };
@@ -49,13 +43,6 @@ export const updateOrCreateDependency = async (
   information: RelationshipInformation<DependencyRelationship>,
 ) => {
   return (await api.post('/nodes/dependencies', information)).data;
-};
-
-export const addInformationEntry = async (
-  relationship: RelationshipInformation<InformationRelationship>,
-  information: InformationField,
-) => {
-  return (await api.post('/nodes/information', { relationship, information  })).data;
 };
 
 export const deleteNode = async (id: string) => {

@@ -11,7 +11,6 @@ import {
   updateOrCreateConnection,
   getRelationships,
   deleteRelationship,
-  deleteRelationshipByType,
   initialize,
   getMax,
   query,
@@ -21,35 +20,11 @@ import {
   ProvenanceNodeSchema, 
   SimulationStudySchema, 
   DependencyRelationshipSchema, 
-  InformationRelationshipSchema, 
-  InformationFieldSchema,
-  BackendError,
-  BackendNotFound,
-  BackendSuccess,
 } from 'common';
 import { ProvenanceNodeIndex } from 'common/dist/schemas';
 
 export function literal<T extends string>(o: T): T {
   return o;
-}
-
-const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | BackendNotFound> => {
-  // Ok, first delete all of the information nodes attached to the given provenance node
-  const result1 = await deleteRelationshipByType(InformationRelationshipSchema, id);
-  if (result1.result !== 'success') {
-    return result1;
-  }
-
-  // Now, delete the provenance node.
-  const result2 =  await deleteItem(ProvenanceNodeSchema, id);
-  if (result2.result !== 'success') {
-    return result2;
-  }
-
-
-  return {
-    result: 'success',
-  };
 }
 
 export const resetDatabase = async () => {
@@ -67,13 +42,6 @@ export const resetDatabase = async () => {
     const result = await updateOrCreate(SimulationStudySchema, study);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating stufy: ${result.message}`);
-    }
-  }
-
-  for (const node of data.informationNodes) {
-    const result = await updateOrCreate(InformationFieldSchema, node);
-    if (result.result === 'error') {
-      console.error(`ERROR: Error creating information: ${result.message}`);
     }
   }
 
@@ -105,18 +73,6 @@ const create = async () => {
     return 'OK';
   });
 
-  router.get('/information', async () => {
-    return await getItems(InformationFieldSchema);
-  });
-
-  router.post('/information', async (req) => {
-    return await updateOrCreate(InformationFieldSchema, req.body);
-  });
-
-  router.delete('/information', async (req) => {
-    return await deleteItem(InformationFieldSchema, req.query.id);
-  });
-
   router.get('/nodes', async () => {
     return await getItems(ProvenanceNodeSchema);
   });
@@ -130,7 +86,7 @@ const create = async () => {
   });
 
   router.delete('/nodes', async (req) => {
-    return await deleteNode(req.query.id);
+    return await deleteItem(ProvenanceNodeSchema, req.query.id);
   });
 
   router.delete('/studies', async (req) => {
@@ -147,19 +103,6 @@ const create = async () => {
 
   router.post('/nodes/dependencies', async (req) => {
     return await updateOrCreateConnection(DependencyRelationshipSchema, req.body);
-  });
-
-  router.get('/nodes/information', async () => {
-    return await getRelationships(InformationRelationshipSchema);
-  });
-
-  router.post('/nodes/information', async (req) => {
-    const result1 = await updateOrCreate(InformationFieldSchema, req.body.information);
-    if (result1.result !== 'success') {
-      return result1;
-    }
-
-    return await updateOrCreateConnection(InformationRelationshipSchema, req.body.relationship);
   });
 
   router.post('/studies', async (req) => {

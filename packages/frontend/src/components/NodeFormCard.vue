@@ -26,7 +26,7 @@
     </b-field>
 
 
-    <b-field label="InformationField" style="flex-direction: column; align-items: flex-start;">
+    <b-field label="Information Fields" style="flex-direction: column; align-items: flex-start;">
       <div v-for="(field, j) in fields" :key="j" style="display: flex">
         <b-field>
           <b-input placeholder="Key" :value="field.key" @input="updateKey(j, $event)"></b-input>
@@ -55,45 +55,50 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { createComponent } from '../utils';
+import { createComponent, map, zip } from '../utils';
 import {
   provenanceNodeTypes,
   ProvenanceNode,
-  InformationField,
   uniqueId,
   ProvenanceNodeType,
   SimulationStudy,
 } from 'common';
+import { computed } from 'vue-function-api';
 
 export default createComponent({
   name: 'NodeFormCard',
   components: { Card },
   props: {
     node: { type: Object as () => ProvenanceNode, required: true },
-    fields: { type: Array as () => InformationField[], required: true },
     studies: { type: Array as () => SimulationStudy[], required: true },
   },
   setup(props, context) {
+    const emitUpdate = (key: keyof ProvenanceNode) => {
+      context.emit('update', props.node, key);
+    };
+
     function updateKey(index: number, newValue: string) {
-      updateInformationNode(props.fields[index], 'key', newValue);
+      props.node.keys[index] = newValue;
+      emitUpdate('keys');
     }
 
     function updateValue(index: number, newValue: string) {
-      updateInformationNode(props.fields[index], 'value', newValue);
+      props.node.values[index] = newValue;
+      emitUpdate('values');
     }
 
     function addField() {
-      const information = {
-        id: uniqueId(),
-        key: '',
-        value: '',
-      };
-
-      context.emit('update:information:add', information);
+      props.node.keys.push('');
+      props.node.values.push('');
+      emitUpdate('keys');
+      emitUpdate('values');
     }
 
     function deleteField(j: number) {
-      context.emit('update:information:delete', props.fields[j]);
+      props.node.keys.splice(j, 1);
+      props.node.values.splice(j, 1);
+      emitUpdate('keys');
+      emitUpdate('values');
     }
 
     function labelChange(value: string) {
@@ -109,13 +114,8 @@ export default createComponent({
     }
 
     function updateNode<K extends keyof ProvenanceNode>(key: K, value: ProvenanceNode[K]) {
-      context.emit('update:node', props.node, key, value);
-    }
-
-    function updateInformationNode<K extends keyof InformationField>(
-      information: InformationField, key: K, value: InformationField[K],
-    ) {
-      context.emit('update:information', information, key, value);
+      props.node[key] = value;
+      emitUpdate(key);
     }
 
     return {
@@ -128,6 +128,14 @@ export default createComponent({
       addField,
       updateValue,
       updateKey,
+      fields: computed(() => {
+        return map(zip(props.node.keys, props.node.values), ([key, value]) => {
+          return {
+            key,
+            value,
+          };
+        });
+      }),
     };
   },
 });

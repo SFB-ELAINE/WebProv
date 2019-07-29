@@ -2,8 +2,6 @@ import {
   SimulationStudy,
   ProvenanceNode,
   uniqueId,
-  InformationField,
-  InformationRelationshipSchema,
   RelationshipSchema,
   Schema,
   DependencyRelationshipSchema,
@@ -31,71 +29,34 @@ const WX_7: ProvenanceNode = {
   studyId: 1,
   label: 'Wx_7',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['Xenopus egg extract'],
 };
-
-const WX_7_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'Xenopus egg extract',
-};
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: WX_7,
-  target: WX_7_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const W1_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   label: 'W1_1',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['Xenopus egg extract'],
 };
-
-const W1_1_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'Xenopus egg extract',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: W1_1,
-  target: W1_1_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const W1_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   label: 'W1_2',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['Xenopus egg extract'],
 };
-
-const W1_2_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'Xenopus egg extract',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: W1_2,
-  target: W1_2_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const MBA_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'ModelBuildingActivity',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -134,6 +95,8 @@ const S1_1: ProvenanceNode = {
   studyId: 1,
   type: 'SimulationData',
   label: 'S1_1',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -156,6 +119,8 @@ const model3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'Model',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -172,6 +137,8 @@ const MEA: ProvenanceNode = {
   id: uniqueId(),
   studyId: 1,
   type: 'ModelExplorationActivity',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -189,6 +156,8 @@ const S1_2: ProvenanceNode = {
   studyId: 1,
   type: 'SimulationData',
   label: 'S1_2',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -213,72 +182,35 @@ const W12_1: ProvenanceNode = {
   studyId: 12,
   label: 'W12_1',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['hNPCs'],
 };
-
-const W12_1_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'hNPCs',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: W12_1,
-  target: W12_1_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const WX_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'Wx_1',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['HEK293T'],
 };
-
-const WX_1_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'HEK293T',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: WX_1,
-  target: WX_1_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const WX_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'Wx_2',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)'],
 };
-
-const WX_2_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: WX_2,
-  target: WX_2_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'ModelBuildingActivity',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -327,6 +259,8 @@ const S12_1: ProvenanceNode = {
   studyId: 12,
   type: 'SimulationData',
   label: 'S12_1',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -343,6 +277,8 @@ const model1: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'Model',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -360,71 +296,34 @@ const W12_2: ProvenanceNode = {
   studyId: 12,
   label: 'W12_2',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['hNPCs'],
 };
-
-const W12_2_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'hNPCs',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: W12_2,
-  target: W12_2_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const W12_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'W12_3',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)'],
 };
-
-const W12_3_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: W12_3,
-  target: W12_3_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const WX_3: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   label: 'Wx_3',
   type: 'WetLabData',
+  keys: ['Cell line'],
+  values: ['hNPCs'],
 };
-
-const WX_3_INFORMATION: InformationField = {
-  id: uniqueId(),
-  key: 'Cell line',
-  value: 'hNPCs',
-}
-
-addRelationship({
-  schema: InformationRelationshipSchema,
-  source: WX_3,
-  target: WX_3_INFORMATION,
-  properties: {
-    id: uniqueId(),
-  }
-})
 
 const MBA_2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'ModelBuildingActivity',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -473,6 +372,8 @@ const S12_2: ProvenanceNode = {
   studyId: 12,
   type: 'SimulationData',
   label: 'S12_2',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -489,6 +390,8 @@ const model2: ProvenanceNode = {
   id: uniqueId(),
   studyId: 12,
   type: 'Model',
+  keys: [],
+  values: [],
 };
 
 addRelationship({
@@ -527,28 +430,7 @@ export const nodes: ProvenanceNode[] = [
   S1_2,
 ];
 
-export const informationNodes: InformationField[] = [
-  WX_7_INFORMATION,
-  W1_1_INFORMATION,
-  W1_2_INFORMATION,
-  W12_1_INFORMATION,
-  WX_1_INFORMATION,
-  WX_2_INFORMATION,
-  W12_2_INFORMATION,
-  W12_3_INFORMATION,
-  WX_3_INFORMATION,
-]
-
 export const studies: SimulationStudy[] = [
   study1,
   study12,
 ];
-
-
-
-
-
-
-
-
-

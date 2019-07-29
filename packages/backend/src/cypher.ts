@@ -190,36 +190,6 @@ export const clearDatabase = async () => {
   session.close();
 };
 
-/**
- * Deletes all relationships from a source node (identified by the given id) of the given type. This also deletes the 
- * connected nodes as well.
- * 
- * @param schema The relationship schema.
- * @param id The ID of the source node.
- */
-export const deleteRelationshipByType = async <A extends Schema, B extends Schema, S extends RelationshipSchema<A, B>>(
-  schema: S, id: string
-) => {
-  return await withHandling(async (): Promise<BackendItems<TypeOf<S>> | BackendNotFound> => {
-    const session = driver.session();
-    
-    // tslint:disable-next-line: no-console
-    console.info(`Deleting ${id}`);
-    const result: StatementResult<[Neo4jNode<A>, Neo4jNode<B>, Neo4jNode<S>]> = await session.run(`
-    MATCH (a:${schema.source.name} { id: $id })-[r:${schema.name}]-(b:${schema.target.name})
-    DETACH DELETE b
-    RETURN a, b, r
-    `, { id })
-
-    session.close();
-
-    return {
-      result: 'success',
-      items: result.records.map(record => record.get(2).properties),
-    };
-  });
-};
-
 export const deleteItem = async <S extends Schema>(schema: S, id: string) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
     const session = driver.session();

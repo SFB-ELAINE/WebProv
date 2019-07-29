@@ -99,14 +99,10 @@
         <node-form-card
           v-if="selectedNode"
           :node="selectedNode"
-          :fields="selectedNodeInformation"
           :studies="simulationStudies"
           @close="deselectNode"
           @delete="deleteNode"
-          @update:information:delete="deleteInformationNode"
-          @update:information:add="addInformationNode"
-          @update:information="editInformationNode"
-          @update:node="editNode"
+          @update="editNode"
         ></node-form-card>
       
       </div>
@@ -146,6 +142,7 @@ import {
   uniqueId,
   tuple,
   TypeOf,
+  DependencyRelationship,
   isValidRelationship,
 } from 'common';
 import ProvLegendCard from '@/components/ProvLegendCard.vue';
@@ -173,6 +170,8 @@ import {
   toTsv,
   TsvRow,
   download,
+  zip,
+  map,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -182,7 +181,6 @@ import SelectCard from '@/components/SelectCard.vue';
 import { SearchItem, search } from '@/search';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
-import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
 import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
@@ -244,9 +242,7 @@ export default createComponent({
   setup(props, context) {
     // The package version number
     const provenanceNodes = value<ProvenanceNode[]>([]);
-    const informationNodes = value<InformationField[]>([]);
     const dependencies = value<Array<RelationshipInformation<DependencyRelationship>>>([]);
-    const informationRelations = value<Array<RelationshipInformation<InformationRelationship>>>([]);
 
     // which studies are currently expanded
     const expanded = value<Lookup<boolean>>({});
@@ -321,10 +317,10 @@ export default createComponent({
           type: connection.properties.type,
         }));
 
-        const nodeInformationFields = getInformationNodesFromProvenance(node).map((field) => {
+        const nodeInformationFields = map(zip(node.keys, node.values), ([k, v]) => {
           return {
-            key: field.key,
-            value: field.value,
+            key: k,
+            value: v,
           };
         });
 
@@ -384,10 +380,6 @@ export default createComponent({
       return makeRequest(() => backend.updateOrCreateNode(node));
     }, 500);
 
-    const debouncedUpdateOrCreateInformationNode = debounce((field: InformationField) => {
-      return makeRequest(() => backend.updateOrCreateInformationNode(field));
-    }, 500);
-
     // Used to change the color of individual nodes without having to re-render the whole graph
     const colorChanges = value<D3NodeColorCombo[]>([]);
 
@@ -402,16 +394,6 @@ export default createComponent({
 
     const nodeLookup = computed(() => {
       return makeLookup(nodes.value);
-    });
-
-    const selectedNodeInformation = computed(() => {
-      if (!selectedNode.value) {
-        return;
-      }
-
-      const relationships = getInformationRelationship(selectedNode.value.id);
-      logger.debug(`There are ${relationships.length} information fields for the selected node`);
-      return relationships.map((relationship) => getInformationNode(relationship.target)).filter(isDefined);
     });
 
     const highLevelNodes = computed((): HighLevelNode[] => {
@@ -476,14 +458,6 @@ export default createComponent({
       return makeArrayLookupBy(dependencies.value, (d) => d.source);
     });
 
-    const informationLookup = computed(() => {
-      return makeArrayLookupBy(informationRelations.value, (i) => i.source);
-    });
-
-    const informationNodeLookup = computed(() => {
-      return makeLookup(informationNodes.value);
-    });
-
     // lookup by studyId
     const sortedHighLevelNodes = computed(() => {
       const allNodes: { [studyId: number]: HighLevelNode[] } = {};
@@ -514,29 +488,6 @@ export default createComponent({
         return undefined;
       }
       return dependenciesLookup.value[id];
-    }
-
-    function getInformationNode(id: string) {
-      if (!informationNodeLookup.value[id]) {
-        return undefined;
-      }
-
-      return informationNodeLookup.value[id];
-    }
-
-    function getInformationRelationship(id: string) {
-      if (!informationLookup.value[id]) {
-        return [];
-      }
-
-      return informationLookup.value[id];
-    }
-
-    function getInformationNodesFromProvenance(node: ProvenanceNode) {
-      const relationships = getInformationRelationship(node.id);
-      return relationships
-        .map((relationship) => getInformationNode(relationship.target))
-        .filter(isDefined);
     }
 
     function showProvenanceGraph(r: SearchItem) {
@@ -617,16 +568,13 @@ export default createComponent({
 
     const searchItems = computed(() => {
       return highLevelNodes.value.map((n): SearchItem => {
-        const fields = getInformationNodesFromProvenance(n.node);
-        const values = fields.filter(isDefined).map((field) => field.value);
-
         return {
           id: n.id,
           title: getLabel(n.node, simulationStudyLookup.value, modelVersionLookup.value),
           type: n.node.type,
           studyId: n.node.studyId,
           studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
-          extra: values,
+          extra: n.node.values,
         };
       });
     });
@@ -968,6 +916,8 @@ export default createComponent({
       const node: ProvenanceNode = {
         type: 'ModelBuildingActivity',
         id: uniqueId(),
+        keys: [],
+        values: [],
       };
 
       const result = await makeRequest(() => backend.updateOrCreateNode(node));
@@ -1072,15 +1022,6 @@ export default createComponent({
         return nodeIds.has(dependency.target) && nodeIds.has(dependency.source);
       });
 
-      informationRelations.value = informationRelations.value.filter((node) => {
-        return nodeIds.has(node.source);
-      });
-
-      const informationNodeIds = new Set(informationRelations.value.map(({ target }) => target));
-      informationNodes.value = informationNodes.value.filter((node) => {
-        return informationNodeIds.has(node.id);
-      });
-
       selectedNode.value = null;
       renderGraph();
     }
@@ -1115,51 +1056,7 @@ export default createComponent({
       debouncedRenderGraph();
     }
 
-    async function deleteInformationNode(node: InformationField) {
-      const result = await makeRequest(() => backend.deleteInformationNode(node.id));
-      if (result.result !== 'success') {
-        return;
-      }
-
-      informationNodes.value = informationNodes.value.filter((n) => n.id !== node.id);
-      informationRelations.value = informationRelations.value.filter((n) => n.target !== node.id);
-      debouncedRenderGraph();
-    }
-
-    async function addInformationNode(node: InformationField) {
-      if (!selectedNode.value) {
-        return;
-      }
-
-      const relationship = {
-        source: selectedNode.value.id,
-        target: node.id,
-        properties: {
-          id: uniqueId(),
-        },
-      };
-
-      logger.info('Creating new information node and relationship: ' + node.id);
-      const result = await makeRequest(() => backend.addInformationEntry(relationship, node));
-      if (result.result !== 'success') {
-        return;
-      }
-
-      informationRelations.value.push(relationship);
-      informationNodes.value.push(node);
-      debouncedRenderGraph();
-    }
-
-    async function editInformationNode<K extends keyof InformationField>(
-      node: InformationField, key: K, newValue: InformationField[K],
-    ) {
-      node[key] = newValue;
-      debouncedUpdateOrCreateInformationNode(node);
-      debouncedRenderGraph();
-    }
-
-    function editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, newValue: ProvenanceNode[K]) {
-      node[key] = newValue;
+    function editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K) {
       debouncedUpdateOrCreateNode(node);
       debouncedRenderGraph();
 
@@ -1180,14 +1077,6 @@ export default createComponent({
 
       makeRequest(backend.getNodeDependencies, (result) => {
         dependencies.value = result.items;
-      });
-
-      makeRequest(backend.getNodeInformation, (result) => {
-        informationRelations.value = result.items;
-      });
-
-      makeRequest(backend.getInformationNodes, (result) => {
-        informationNodes.value = result.items;
       });
     });
 
@@ -1260,12 +1149,8 @@ export default createComponent({
       deleteSelectedStudy,
       saveSelectedStudy,
       selectedNode,
-      selectedNodeInformation,
       deselectNode,
       deleteNode,
-      deleteInformationNode,
-      addInformationNode,
-      editInformationNode,
       editNode,
       changeRelationship,
       possibleRelationships,

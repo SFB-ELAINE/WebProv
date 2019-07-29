@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-export { boolean, string, number, union, literal } from 'io-ts';
+export { boolean, string, number, union, literal, array } from 'io-ts';
 
 // neon is just a random name
 // It's based on neo4j

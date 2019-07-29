@@ -13,13 +13,9 @@ export {
   ProvenanceNodeType,
   relationshipRules,
   provenanceNodeTypes,
-  InformationField,
-  InformationRelationship,
-  InformationRelationshipSchema,
   DependencyRelationshipSchema,
   ProvenanceNodeSchema,
   SimulationStudySchema,
-  InformationFieldSchema,
   DependencyRelationship,
 } from './schemas';
 
