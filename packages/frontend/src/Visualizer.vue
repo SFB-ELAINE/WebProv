@@ -484,6 +484,7 @@ export default createComponent({
       return makeLookup(informationNodes.value);
     });
 
+    // lookup by studyId
     const sortedHighLevelNodes = computed(() => {
       const allNodes: { [studyId: number]: HighLevelNode[] } = {};
       highLevelNodes.value.forEach((highLevelNode) => {
@@ -540,6 +541,10 @@ export default createComponent({
 
     function showProvenanceGraph(r: SearchItem) {
       const showNode = (id: string) => {
+        if (highLevelNodeLookup.value[id] === undefined) {
+          return;
+        }
+
         nodesToShow.value[id] = true;
         const info = highLevelNodeLookup.value[id];
         if (info.node.studyId !== undefined) {
@@ -550,6 +555,16 @@ export default createComponent({
           showNode(c.target.id);
         });
       };
+
+      if (highLevelNodeLookup.value[r.id] === undefined) {
+        context.root.$notification.open({
+          message: 'This node does not exist.',
+          position: 'is-top-right',
+          type: 'is-warning',
+        });
+
+        return;
+      }
 
       showNode(r.id);
       renderGraph();
@@ -568,6 +583,7 @@ export default createComponent({
       const result = await makeRequest(() => backend.updateOrCreateStudy(study));
       if (result.result === 'success') {
         selectedStudy.value = null;
+        simulationStudies.value.push(study);
       }
     }
 
@@ -580,11 +596,12 @@ export default createComponent({
       const result = await makeRequest(() => backend.deleteStudy(study.id));
       if (result.result === 'success') {
         selectedStudy.value = null;
+        const i = simulationStudies.value.indexOf(study);
+        simulationStudies.value.splice(i, 1);
       }
     }
 
     function expandStudy(result: SearchItem) {
-      // Reset every time this function is called.
       if (result.studyId !== undefined) {
         expanded.value[result.studyId] = true;
       }
@@ -824,13 +841,15 @@ export default createComponent({
       // We don't care about any nodes that don't need to be shown.
       const filtered = provenanceNodes.value.filter((n) => nodesToShow.value[n.id]);
 
-      let groupNodeIds = filtered.map((n) => n.studyId).filter(isDefined);
-      groupNodeIds = Array.from(new Set(groupNodeIds)); // get all unique study IDs
-      groupNodeIds = groupNodeIds.filter((studyId) => !expanded.value[studyId]); // Remove study IDs that are expanded
+      let studyIds = filtered.map((n) => n.studyId).filter(isDefined);
+      studyIds = Array.from(new Set(studyIds)); // get all unique study IDs
+
+      // Remove studies that are expanded
+      studyIds = studyIds.filter((studyId) => !expanded.value[studyId]);
 
       // First, create all of the simulation study nodes.
       // These are the collapsed nodes. We only need to create one per simulation study.
-      groupNodeIds.forEach((studyId) => {
+      studyIds.forEach((studyId) => {
         // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed
         // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
         // us to easily lookup the location of the collapsed node when re-rendering.
@@ -1197,6 +1216,16 @@ export default createComponent({
         if (result.studyId === undefined) {
           context.root.$notification.open({
             message: 'Please assign a study ID first.',
+            position: 'is-top-right',
+            type: 'is-warning',
+          });
+
+          return;
+        }
+
+        if (simulationStudyLookup.value[result.studyId] === undefined) {
+          context.root.$notification.open({
+            message: 'No study exists for this node.',
             position: 'is-top-right',
             type: 'is-warning',
           });

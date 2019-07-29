@@ -46,7 +46,7 @@ export default createComponent({
 
 <style lang="scss" scoped>
 .fab {
-  right: 4vh;
+  right: 4vh!important;
 
   &:hover {
     cursor: pointer;
