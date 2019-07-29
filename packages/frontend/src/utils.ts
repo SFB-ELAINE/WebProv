@@ -557,13 +557,17 @@ const transformRow = (row: TsvRow): string => {
 };
 
 export const toTsv = (rows: TsvRow[]) => {
-  return Object.keys(rows).join(' ') + '\n' + rows.map(transformRow).join('\n');
+  if (rows.length === 0) {
+    return '';
+  }
+
+  return Object.keys(rows[0]).join(' ') + '\n' + rows.map(transformRow).join('\n');
 };
 
-export const download = (filename: string, text: string) => {
+export const download = (args: { filename: string, text: string }) => {
   const element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(args.text));
+  element.setAttribute('download', args.filename);
 
   element.style.display = 'none';
   document.body.appendChild(element);

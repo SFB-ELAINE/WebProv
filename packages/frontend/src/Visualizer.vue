@@ -45,6 +45,7 @@
       <div style="flex: 1"></div>
 
       <b-button
+        v-if="showEditTools"
         class="clear-button overlay-child"
         type="is-text"
         @click="createStudy"
@@ -53,6 +54,7 @@
       </b-button>
       
       <b-button
+        v-if="showEditTools"
         class="clear-button overlay-child"
         type="is-text"
         @click="addNode"
@@ -60,13 +62,14 @@
         Add Node
       </b-button>
 
-      <!-- <b-button
+      <b-button
+        v-if="showEditTools"
         class="clear-button overlay-child"
         type="is-text"
-        @click="clearNodes"
+        @click="stopEdit"
       >
-        Clear
-      </b-button> -->
+        Exit
+      </b-button>
 
       <div class="cards overlay-child">
 
@@ -108,15 +111,6 @@
       
       </div>
     </div>
-
-    <b-button
-      rounded
-      type="is-text"
-      style="position: absolute; left: 20px; bottom: 20px"
-      @click="openHelp"
-    >
-      <b-icon icon="information-outline"></b-icon>
-    </b-button>
 
     <information-modal
       v-model="showHelp"
@@ -296,12 +290,65 @@ export default createComponent({
     // Whether to show the help information
     const showHelp = value(false);
 
+    // Whether to show the help information
+    const showEditTools = value(false);
+
     // The pan of the visualization
     const pan = value({ x: 0, y: 0 });
 
+    const exportNodes = () => {
+      interface ExportRow {
+        id: string;
+        label: string;
+        type: ProvenanceNodeType;
+        studyId?: number;
+        informationFields: Array<{ key: string, value: string }>;
+        dependencies: Array<{ target: string, type: DependencyType }>;
+      }
+
+      const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportRow | undefined => {
+        const show = nodesToShow.value[nodeId];
+        if (!show) {
+          return;
+        }
+
+        const highLevelNode = highLevelNodeLookup.value[nodeId];
+        const node = highLevelNode.node;
+
+        const connections = getConnections(node.id) || [];
+        const nodeDependencies = connections.map((connection) => ({
+          target: connection.target,
+          type: connection.properties.type,
+        }));
+
+        const nodeInformationFields = getInformationNodesFromProvenance(node).map((field) => {
+          return {
+            key: field.key,
+            value: field.value,
+          };
+        });
+
+
+        return {
+          id: node.id,
+          label: getLabel(node, simulationStudyLookup.value, modelVersionLookup.value),
+          type: node.type,
+          studyId: node.studyId,
+          dependencies: nodeDependencies,
+          informationFields: nodeInformationFields,
+        };
+      });
+
+      const tsv = toTsv(exportRows.filter(isDefined) as any);
+      download({
+        filename: 'exported-provenance-nodes.tsv',
+        text: tsv,
+      });
+    };
+
     const fabActions: FabAction[] = [
       {
-        name: 'Clear',
+        name: 'Clear Nodes',
         icon: 'clear_all',
         callback: () => {
           nodesToShow.value = {};
@@ -309,47 +356,22 @@ export default createComponent({
         },
       },
       {
-        name: 'Export',
-        icon: 'export',
+        name: 'Export Graph as TSV',
+        icon: 'cloud_download',
+        callback: exportNodes,
+      },
+      {
+        name: 'Show Help',
+        icon: 'info',
         callback: () => {
-          interface ExportRow {
-            id: string;
-            label: string;
-            type: ProvenanceNodeType;
-            studyId?: number;
-            informationFields: Array<{ key: string, value: string }>;
-            dependencies: Array<{ target: string, type: DependencyType }>;
-          }
-
-          const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportRow | undefined => {
-            const show = nodesToShow.value[nodeId];
-            if (!show) {
-              return;
-            }
-
-            const highLevelNode = highLevelNodeLookup.value[nodeId];
-            const node = highLevelNode.node;
-
-            const connections = getConnections(node.id) || [];
-            const nodeDependencies = connections.map((connection) => ({
-              target: connection.target,
-              type: connection.properties.type,
-            }));
-
-            const nodeInformationFields = getInformationNodesFromProvenance(node);
-
-            return {
-              id: node.id,
-              label: getLabel(node, simulationStudyLookup.value, modelVersionLookup.value),
-              type: node.type,
-              studyId: node.studyId,
-              dependencies: nodeDependencies,
-              informationFields: nodeInformationFields,
-            };
-          });
-
-          const tsv = toTsv(exportRows.filter(isDefined) as any);
-          download(tsv, 'exported-provenance-nodes.tsv');
+          showHelp.value = true;
+        },
+      },
+      {
+        name: 'Show Editor Tools',
+        icon: 'edit',
+        callback: () => {
+          showEditTools.value = true;
         },
       },
     ];
@@ -1154,9 +1176,7 @@ export default createComponent({
       dependencies,
       version,
       showHelp,
-      openHelp() {
-        showHelp.value = true;
-      },
+      showEditTools,
       height,
       width,
       links,
@@ -1170,6 +1190,9 @@ export default createComponent({
       expandStudy,
       legendProps,
       showProvenanceGraph,
+      stopEdit: () => {
+        showEditTools.value = false;
+      },
       openStudy: (result: SearchItem) => {
         if (result.studyId === undefined) {
           context.root.$notification.open({
@@ -1271,7 +1294,7 @@ export default createComponent({
 
 .version {
   position: absolute;
-  right: 25px;
+  left: 25px;
   bottom: 15px;
   color: rgba(0, 0, 0, 0.5);
 }

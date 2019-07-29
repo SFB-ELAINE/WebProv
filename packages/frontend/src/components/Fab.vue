@@ -1,10 +1,15 @@
 <template>
-  <vue-fab :actions="actions" v-on="on"></vue-fab>
+  <vue-fab 
+    :actions="actionsWithTooltip" 
+    v-on="on"
+    class="fab"
+  ></vue-fab>
 </template>
 
 <script lang="ts">
 import { createComponent } from '@/utils';
 import VueFab from 'vue-fab';
+import { computed } from 'vue-function-api';
 
 export interface FabAction {
   name: string;
@@ -31,11 +36,20 @@ export default createComponent({
 
     return {
       on,
+      actionsWithTooltip: computed(() => {
+        return props.actions.map((action) => ({ ...action, tooltip: action.name }));
+      }),
     };
   },
 });
 </script>
 
-<style lang="sass" scoped>
+<style lang="scss" scoped>
+.fab {
+  right: 4vh;
 
+  &:hover {
+    cursor: pointer;
+  }
+}
 </style>
