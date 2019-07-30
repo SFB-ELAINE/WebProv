@@ -211,3 +211,9 @@ export const InformationFieldIndex = n.index(InformationFieldSchema, {
   schema: InformationFieldSchema,
   keys: ['key', 'value'],
 })
+
+export const SimulationStudyIndex = n.index(SimulationStudySchema, {
+  name: 'SimulationStudySchema',
+  schema: SimulationStudySchema,
+  keys: ['source', 'signalingPathway'],
+});

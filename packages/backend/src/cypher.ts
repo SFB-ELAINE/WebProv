@@ -52,6 +52,25 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
   }
 };
 
+interface GeneralParameters {
+  [k: string]: any
+}
+
+type QueryData<T extends GeneralParameters> = { [K in keyof T]?: Array<T[K]> | T[K] }
+
+/**
+ * 
+ * @param name The name of the node.
+ * @param params The parameters.
+ */
+const toWhereClause = (name: string, params?: GeneralParameters, prepend: string = '') => {
+  if (!params) {
+    return [];
+  }
+
+  return keys(params).map(key => `${name}.${key} ${Array.isArray(params[key]) ? 'IN' : '='} $${prepend}${key}`)
+}
+
 export const updateOrCreate = async <S extends Schema>(
   schema: S, obj: TypeOf<S>
 ) => {
@@ -95,14 +114,23 @@ export const updateOrCreate = async <S extends Schema>(
   })
 }
 
-
-export async function getItems<S extends Schema>(schema: S) {
+export async function getItems<S extends Schema>(schema: S, params?: QueryData<TypeOf<S>>) {
   return withHandling(async (): Promise<BackendItems<TypeOf<S>>> => {
+    let where = toWhereClause('n', params).join(' AND ');
+    if (where) {
+      where = 'WHERE ' + where;
+    }
+
+    console.log(where, params);
+
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<S>]> = await session.run(`
     MATCH (n:${schema.name})
+    ${where}
     RETURN n
-    `)
+    `, params)
+
+    
 
     const items = result.records.map(record => record.get(0).properties);
     session.close();
@@ -150,34 +178,110 @@ interface StatementResult<T extends any[]> extends neo4j.StatementResult {
   records: Record<T>[];
 }
 
-export async function getRelationships<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+export function* zip<A, B, C>(as: A[], bs: B[], cs: C[]): IterableIterator<[A, B, C]> {
+  const min = Math.min(as.length, bs.length, cs.length);
+  for (let i = 0; i < min; i++) {
+    yield [as[i], bs[i], cs[i]];
+  }
+}
+
+interface NodesRelationshipsQueryOptions<A extends Schema, B extends Schema> {
+  source?: QueryData<TypeOf<A>>;
+  target?: QueryData<TypeOf<B>>;
+}
+
+/**
+ * 
+ * @param a The source schema (used to help TypeScript infer types).
+ * @param b The target schema (used to help TypeScript infer types).
+ * @param schema The relationship schema.
+ * @param options The query options.
+ */
+export async function getNodesRelationships<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+  a: A,
+  b: B,
   schema: R,
+  options?: NodesRelationshipsQueryOptions<A, B>,
 ) {
-  return withHandling(async (): Promise<BackendRelationships<TypeOf<R>>> => {
+  return withHandling(async (): Promise<BackendItems<[TypeOf<A>, TypeOf<B>, TypeOf<R>]>> => {
+    const transformKeys = (key: 'source' | 'target') => {
+      if (!options) {
+        return {};
+      }
+      
+      const params = options[key];
+      if (!params) {
+        return {};
+      }
+
+      const transformed: GeneralParameters = {};
+      keys(params).forEach(k => {
+        transformed[key === 'source' ? `a${k}` : `b${k}`] = params[k];
+      })
+
+      return transformed;
+    }
+
+    const transform = (key: 'source' | 'target') => {
+      if (!options) {
+        return [];
+      }
+    
+      const params = options[key];
+      const name = key === 'source' ? 'a' : 'b';
+      return toWhereClause(name, params, name);
+    }
+
+    const where = [...transform('source'), ...transform('target')].join(' AND ');
+    const parameters = {
+      ...transformKeys('source'),
+      ...transformKeys('target')
+    }
+
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<A>, Neo4jNode<B>, Neo4jRelationship<R>]> = await session.run(
       `
       MATCH (a:${schema.source.name})-[r:${schema.name}]->(b:${schema.target.name})
+      ${where ? 'WHERE' : ''} ${where}
       RETURN a, b, r
-      `, 
+      `,
+      parameters
     )
 
-    const sourceIds = result.records.map(record => record.get(0).properties.id);
-    const targetIds = result.records.map(record => record.get(1).properties.id);
+    const sources = result.records.map(record => record.get(0).properties);
+    const targets = result.records.map(record => record.get(1).properties);
     const relationships = result.records.map(record => record.get(2).properties);
     session.close();
 
 
     return {
       result: 'success',
-      items: relationships.map((relationship, i) => {
+      items: [...zip(sources, targets, relationships)]
+    };
+  });
+}
+
+export async function getRelationships<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+  a: A,
+  b: B,
+  schema: R,
+) {
+  return withHandling(async (): Promise<BackendRelationships<TypeOf<R>> | BackendError> => {
+    const result = await getNodesRelationships(a, b, schema);
+    if (result.result !== 'success') {
+      return result;
+    }
+
+    return {
+      result: 'success',
+      items: result.items.map(([source, target, relationship]) => {
         return {
           properties: relationship,
-          source: sourceIds[i],
-          target: targetIds[i],
+          source: source.id,
+          target: target.id
         }
       }),
-    };
+    }
   });
 }
 
@@ -354,8 +458,8 @@ export const initialize = async () => {
   session.close();
 }
 
-export const query = async <S extends Schema, I extends Index<S>>(index: I, searchText: string) => {
-  return await withHandling(async (): Promise<BackendItems<any>> => {
+export const query = async <S extends Schema, I extends Index<S>>(schema: S, index: I, searchText: string) => {
+  return await withHandling(async (): Promise<BackendItems<TypeOf<S>>> => {
     if (searchText === '') {
       return {
         result: 'success',
@@ -364,8 +468,8 @@ export const query = async <S extends Schema, I extends Index<S>>(index: I, sear
     }
 
     const session = driver.session();
-    const result = await session.run(`CALL db.index.fulltext.queryNodes('${index.name}', '${searchText}')`);
-    const results = result.records.map(record => record.get(0));
+    const result: StatementResult<[Neo4jNode<S>]> = await session.run(`CALL db.index.fulltext.queryNodes('${index.name}', '${searchText}')`);
+    const results = result.records.map(record => record.get(0).properties);
     session.close();
     return {
       result: 'success',

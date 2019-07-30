@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": true,
+    "downlevelIteration": true
   },
   "exclude": [
     "node_modules"

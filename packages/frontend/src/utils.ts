@@ -575,3 +575,18 @@ export const download = (args: { filename: string, text: string }) => {
   element.click();
   document.body.removeChild(element);
 };
+
+export function* zip<A, B>(as: A[], bs: B[]): IterableIterator<[A, B]> {
+  const min = Math.min(as.length, bs.length);
+  for (let i = 0; i < min; i++) {
+    yield [as[i], bs[i]];
+  }
+}
+
+export const map = <A, B>(iterator: IterableIterator<A>, f: (a: A) => B): B[] => {
+  const results: B[] = [];
+  for (const item of iterator) {
+    results.push(f(item));
+  }
+  return results;
+};

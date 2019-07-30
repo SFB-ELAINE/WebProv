@@ -75,6 +75,7 @@ import Card from '@/components/Card.vue';
 import { SearchItem, search } from '@/search';
 import { createComponent } from '@/utils';
 import { value } from 'vue-function-api';
+import { IS_MOBILE } from '../constants';
 
 export default createComponent({
   name: 'SearchCard',
@@ -109,11 +110,12 @@ export default createComponent({
         container: refs.card.$el,
       });
 
-
-      // Blur the input when the search is started. This is very useful for touch devices
-      // If we don't do this, anytime the user touches the screen the keyboard will open
-      const input = refs.input.$refs.input as HTMLInputElement;
-      input.blur();
+      if (IS_MOBILE) {
+        // Blur the input when the search is started. This is very useful for touch devices
+        // If we don't do this, anytime the user touches the screen the keyboard will open
+        const input = refs.input.$refs.input as HTMLInputElement;
+        input.blur();
+      }
 
       setTimeout(() => loadingComponent.close(), 0.5 * 1000);
       results.value = search(props.items, searchText.value);

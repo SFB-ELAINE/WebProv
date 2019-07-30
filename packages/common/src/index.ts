@@ -21,6 +21,9 @@ export {
   SimulationStudySchema,
   InformationFieldSchema,
   DependencyRelationship,
+  InformationFieldIndex,
+  ProvenanceNodeIndex,
+  SimulationStudyIndex,
 } from './schemas';
 
 export {

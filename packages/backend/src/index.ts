@@ -15,6 +15,7 @@ import {
   initialize,
   getMax,
   query,
+  getNodesRelationships,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -26,8 +27,10 @@ import {
   BackendError,
   BackendNotFound,
   BackendSuccess,
+  ProvenanceNodeIndex,
+  InformationFieldIndex,
+  SimulationStudyIndex,
 } from 'common';
-import { ProvenanceNodeIndex } from 'common/dist/schemas';
 
 export function literal<T extends string>(o: T): T {
   return o;
@@ -142,7 +145,7 @@ const create = async () => {
   });
 
   router.get('/nodes/dependencies', async () => {
-    return await getRelationships(DependencyRelationshipSchema);
+    return await getRelationships(ProvenanceNodeSchema, ProvenanceNodeSchema, DependencyRelationshipSchema);
   });
 
   router.post('/nodes/dependencies', async (req) => {
@@ -150,7 +153,7 @@ const create = async () => {
   });
 
   router.get('/nodes/information', async () => {
-    return await getRelationships(InformationRelationshipSchema);
+    return await getRelationships(ProvenanceNodeSchema, InformationFieldSchema, InformationRelationshipSchema);
   });
 
   router.post('/nodes/information', async (req) => {
@@ -170,9 +173,51 @@ const create = async () => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
 
-  router.get('/search' as any, async (req) => {
-    return await query(ProvenanceNodeIndex, req.query.text || '');
+  router.get('/search', async (req) => {
+    const text = req.query.text || '';
+    const number = +text; // could be nan
+
+    const r1 = await query(ProvenanceNodeSchema, ProvenanceNodeIndex, req.query.text || '');
+    const nodes = r1.result === 'success' ? r1.items : [];
+    
+    const r2 = await query(InformationFieldSchema, InformationFieldIndex, req.query.text || '');
+    if (r2.result === 'success') {
+      const r21 = await getNodesRelationships(ProvenanceNodeSchema, InformationFieldSchema, InformationRelationshipSchema, {
+        target: {
+          id: r2.items.map(item => item.id)
+        }
+      })
+
+      if (r21.result === 'success') {
+        nodes.push(...r21.items.map(([node]) => node))
+      }
+    }
+
+    const r3 = await query(SimulationStudySchema, SimulationStudyIndex, req.query.text || '');
+    if (r3.result === 'success') {
+      const r31 = await getItems(ProvenanceNodeSchema, { studyId: r3.items.map(item => item.studyId) });
+      if (r31.result === 'success') {
+        nodes.push(...r31.items);
+      }
+    }
+
+    console.log(number);
+    if (!isNaN(number)) {
+      const r4 = await getItems(ProvenanceNodeSchema, { studyId: number });
+      if (r4.result === 'success') {
+        nodes.push(...r4.items);
+      }
+    }
+    
+    return {
+      result: literal('success'),
+      items: nodes,
+    };
   })
+
+  // router.get('/test' as any, async (req) => {
+  //   return await getNodesRelationships(ProvenanceNodeSchema, InformationFieldSchema, InformationRelationshipSchema, req.body) as any;
+  // })
 
   // Heroku sets the port and we must use this port
   const PORT = Number.parseInt(process.env.PORT || '') || 3000;

@@ -127,4 +127,11 @@ export interface ProvenanceAPI {
       response: BackendSuccess | BackendError;
     },
   };
+
+  '/search': {
+    GET: {
+      query: { text: string },
+      response: BackendItems<ProvenanceNode> | BackendError;
+    }
+  }
 }
