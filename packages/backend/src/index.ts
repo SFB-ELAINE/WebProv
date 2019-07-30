@@ -201,7 +201,6 @@ const create = async () => {
       }
     }
 
-    console.log(number);
     if (!isNaN(number)) {
       const r4 = await getItems(ProvenanceNodeSchema, { studyId: number });
       if (r4.result === 'success') {
@@ -214,10 +213,6 @@ const create = async () => {
       items: nodes,
     };
   })
-
-  // router.get('/test' as any, async (req) => {
-  //   return await getNodesRelationships(ProvenanceNodeSchema, InformationFieldSchema, InformationRelationshipSchema, req.body) as any;
-  // })
 
   // Heroku sets the port and we must use this port
   const PORT = Number.parseInt(process.env.PORT || '') || 3000;

@@ -59,16 +59,32 @@ interface GeneralParameters {
 type QueryData<T extends GeneralParameters> = { [K in keyof T]?: Array<T[K]> | T[K] }
 
 /**
+ * Transform a key/value dictionary to a Cypher WHERE clause. An array is returned.
  * 
  * @param name The name of the node.
  * @param params The parameters.
+ * @param prepend The value to prepend to the placeholder. Why would you want to do this? To avoid name clashing...
+ * @example
+ * toCondition('n', { a: 'b', c: ['d'] })
+ * ['n.a = $a', 'n.c IN $c']
+ * 
+ * * toCondition('n', { a: 'b', c: ['d'] }, 'p')
+ * ['n.a = $pa', 'n.c IN $pc']
  */
-const toWhereClause = (name: string, params?: GeneralParameters, prepend: string = '') => {
+const toCondition = (name: string, params?: GeneralParameters, prepend: string = '') => {
   if (!params) {
     return [];
   }
 
   return keys(params).map(key => `${name}.${key} ${Array.isArray(params[key]) ? 'IN' : '='} $${prepend}${key}`)
+}
+
+const toWhere = (clauses: string[], operator: 'AND' | 'OR' = 'AND') => {
+  if (clauses.length === 0) {
+    return '';
+  }
+
+  return `WHERE ${clauses.join(` ${operator} `)}`;
 }
 
 export const updateOrCreate = async <S extends Schema>(
@@ -116,12 +132,7 @@ export const updateOrCreate = async <S extends Schema>(
 
 export async function getItems<S extends Schema>(schema: S, params?: QueryData<TypeOf<S>>) {
   return withHandling(async (): Promise<BackendItems<TypeOf<S>>> => {
-    let where = toWhereClause('n', params).join(' AND ');
-    if (where) {
-      where = 'WHERE ' + where;
-    }
-
-    console.log(where, params);
+    const where = toWhere(toCondition('n', params));
 
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<S>]> = await session.run(`
@@ -204,7 +215,7 @@ export async function getNodesRelationships<A extends Schema, B extends Schema, 
   options?: NodesRelationshipsQueryOptions<A, B>,
 ) {
   return withHandling(async (): Promise<BackendItems<[TypeOf<A>, TypeOf<B>, TypeOf<R>]>> => {
-    const transformKeys = (key: 'source' | 'target') => {
+    const prependNodeName = (key: 'source' | 'target') => {
       if (!options) {
         return {};
       }
@@ -229,20 +240,20 @@ export async function getNodesRelationships<A extends Schema, B extends Schema, 
     
       const params = options[key];
       const name = key === 'source' ? 'a' : 'b';
-      return toWhereClause(name, params, name);
+      return toCondition(name, params, name);
     }
 
-    const where = [...transform('source'), ...transform('target')].join(' AND ');
+    const where = toWhere([...transform('source'), ...transform('target')]);
     const parameters = {
-      ...transformKeys('source'),
-      ...transformKeys('target')
+      ...prependNodeName('source'),
+      ...prependNodeName('target')
     }
 
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<A>, Neo4jNode<B>, Neo4jRelationship<R>]> = await session.run(
       `
       MATCH (a:${schema.source.name})-[r:${schema.name}]->(b:${schema.target.name})
-      ${where ? 'WHERE' : ''} ${where}
+      ${where}
       RETURN a, b, r
       `,
       parameters
