@@ -153,6 +153,39 @@ export async function getItems<S extends Schema>(schema: S, params?: QueryData<T
   });
 }
 
+/**
+ * Recursively get nodes starting from a particular nodes. Relationship must be between the same node types.
+ * 
+ * @param a The schema of the node.
+ * @param schema The schema of the relationship.
+ * @param id The id of the starting node.
+ * @param opts The options. `self` indicates whether or not to include the starting node. `levels` indicates how many levels to go down (all levels are traversed by default).
+ */
+export async function getRecursive<A extends Schema, S extends RelationshipSchema<A, A>>(
+  a: A, schema: S, id: string, opts: { levels?: number, self?: boolean } = {}
+) {
+  return withHandling(async (): Promise<BackendItems<TypeOf<A>>> => {
+    const levels = opts.levels === undefined ? '' : opts.levels.toString();
+    const self = opts.self ? 0 : 1;
+
+    const session = driver.session();
+    const result: StatementResult<[Neo4jNode<A>]> = await session.run(`
+    MATCH (start:${a.name} { id: $id })-[:${schema.name} *${self}..${levels}]->(n:${a.name})
+    RETURN n
+    `, { id })
+
+    
+
+    const items = result.records.map(record => record.get(0).properties);
+    session.close();
+
+    return {
+      result: 'success',
+      items,
+    };
+  });
+}
+
 export async function getItemsByConnection<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
   schema: R, source: string,
 ) {

@@ -82,6 +82,18 @@ export const getNodes = async () => {
   return (await api.get('/nodes')).data;
 };
 
+export const getNodesInStudy = async (studyId: number) => {
+  return (await api.get('/nodes/study', { params: { studyId: studyId.toString() } })).data;
+};
+
+export const getProvenanceGraph = async (id: string) => {
+  return (await api.get('/nodes/provenance-graph', { params: { id } })).data;
+};
+
+export const search = async (text: string) => {
+  return (await api.get('/search', { params: { text } })).data;
+};
+
 export const getInformationNodes = async () => {
   return (await api.get('/information')).data;
 };

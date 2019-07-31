@@ -16,6 +16,7 @@ import {
   getMax,
   query,
   getNodesRelationships,
+  getRecursive,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -122,6 +123,22 @@ const create = async () => {
 
   router.get('/nodes', async () => {
     return await getItems(ProvenanceNodeSchema);
+  });
+
+  router.get('/nodes/study', async (req) => {
+    const studyId = +req.query.studyId;
+    if (isNaN(studyId)) {
+      return {
+        result: literal('error'),
+        message: 'Given `studyId` must be a number, not ' + req.query.studyId,
+      }
+    }
+
+    return await getItems(ProvenanceNodeSchema, { studyId });
+  });
+
+  router.get('/nodes/provenance-graph', async (req) => {
+    return await getRecursive(ProvenanceNodeSchema, DependencyRelationshipSchema, req.query.id, { self: true });
   });
 
   router.get('/studies', async () => {

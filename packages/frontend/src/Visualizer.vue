@@ -37,7 +37,7 @@
       
       <search-card
         class="search overlay-child" 
-        :items="searchItems"
+        @search="search"
         @open="expandStudy"
         @dependency="showProvenanceGraph"
         @open-study="openStudy"
@@ -539,35 +539,27 @@ export default createComponent({
         .filter(isDefined);
     }
 
-    function showProvenanceGraph(r: SearchItem) {
-      const showNode = (id: string) => {
-        if (highLevelNodeLookup.value[id] === undefined) {
-          return;
+    const addNewNodes = (ns: ProvenanceNode[]) => {
+      const currentNodeIds = new Set(provenanceNodes.value.map(({ id }) => id));
+
+      const newNodes = ns.filter((node) => !currentNodeIds.has(node.id));
+      provenanceNodes.value.push(...newNodes);
+
+      ns.forEach((node) => {
+        nodesToShow.value[node.id] = true;
+        if (node.studyId !== undefined) {
+          expanded.value[node.studyId] = true;
         }
+      });
 
-        nodesToShow.value[id] = true;
-        const info = highLevelNodeLookup.value[id];
-        if (info.node.studyId !== undefined) {
-          expanded.value[info.node.studyId] = true;
-        }
-
-        info.outgoing.forEach((c) => {
-          showNode(c.target.id);
-        });
-      };
-
-      if (highLevelNodeLookup.value[r.id] === undefined) {
-        context.root.$notification.open({
-          message: 'This node does not exist.',
-          position: 'is-top-right',
-          type: 'is-warning',
-        });
-
-        return;
-      }
-
-      showNode(r.id);
       renderGraph();
+    };
+
+    function showProvenanceGraph(r: SearchItem) {
+      makeRequest(() => backend.getProvenanceGraph(r.id), (result) => {
+        addNewNodes(result.items);
+      });
+
     }
 
     function cancelSelectedStudy() {
@@ -601,35 +593,37 @@ export default createComponent({
       }
     }
 
-    function expandStudy(result: SearchItem) {
-      if (result.studyId !== undefined) {
-        expanded.value[result.studyId] = true;
+    function expandStudy(item: SearchItem) {
+      if (item.studyId === undefined) {
+        context.root.$notification.open({
+          message: 'Selected node is not apart of a study.',
+          position: 'is-top-right',
+          type: 'is-warning',
+        });
+        return;
       }
 
-      highLevelNodes.value.forEach(({ node, id }) => {
-        if (node.studyId === result.studyId) {
-          nodesToShow.value[id] = true;
-        }
+      const studyId = item.studyId;
+      makeRequest(() => backend.getNodesInStudy(studyId), (result) => {
+        addNewNodes(result.items);
       });
-
-      renderGraph();
     }
 
-    const searchItems = computed(() => {
-      return highLevelNodes.value.map((n): SearchItem => {
-        const fields = getInformationNodesFromProvenance(n.node);
+    const createSearchItems = (ns: ProvenanceNode[]) => {
+      return ns.map((n): SearchItem => {
+        const fields = getInformationNodesFromProvenance(n);
         const values = fields.filter(isDefined).map((field) => field.value);
 
         return {
           id: n.id,
-          title: getLabel(n.node, simulationStudyLookup.value, modelVersionLookup.value),
-          type: n.node.type,
-          studyId: n.node.studyId,
-          studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
+          title: getLabel(n, simulationStudyLookup.value, modelVersionLookup.value),
+          type: n.type,
+          studyId: n.studyId,
+          studyText: n.studyId !== undefined ? `Study ${n.studyId}` : undefined,
           extra: values,
         };
       });
-    });
+    };
 
     async function createStudy() {
       const result = await makeRequest(() => backend.getMaxStudyId());
@@ -1174,9 +1168,9 @@ export default createComponent({
         simulationStudies.value = result.items;
       });
 
-      makeRequest(backend.getNodes, (result) => {
-        provenanceNodes.value = result.items;
-      });
+      // makeRequest(backend.getNodes, (result) => {
+      //   provenanceNodes.value = result.items;
+      // });
 
       makeRequest(backend.getNodeDependencies, (result) => {
         dependencies.value = result.items;
@@ -1205,10 +1199,19 @@ export default createComponent({
       lineEnd,
       pan,
       fabActions,
-      searchItems,
       expandStudy,
       legendProps,
       showProvenanceGraph,
+      search: async (text: string, cb: (items: SearchItem[]) => void) => {
+        const result = await makeRequest(() => backend.search(text));
+
+        let results: SearchItem[] = [];
+        if (result.result === 'success') {
+          results = createSearchItems(result.items);
+        }
+
+        cb(results);
+      },
       stopEdit: () => {
         showEditTools.value = false;
       },

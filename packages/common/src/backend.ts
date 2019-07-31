@@ -74,6 +74,20 @@ export interface ProvenanceAPI {
     },
   };
 
+  '/nodes/study': {
+    GET: {
+      query: { studyId: string };
+      response: BackendError | BackendItems<ProvenanceNode>;
+    }
+  }
+
+  '/nodes/provenance-graph': {
+    GET: {
+      query: { id: string };
+      response: BackendError | BackendItems<ProvenanceNode>;
+    }
+  }
+
   '/studies/study-id/max': {
     GET: {
       response: BackendItem<number> | BackendError,

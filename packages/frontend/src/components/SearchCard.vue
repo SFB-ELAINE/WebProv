@@ -73,9 +73,10 @@
 import Vue from 'vue';
 import Card from '@/components/Card.vue';
 import { SearchItem, search } from '@/search';
-import { createComponent } from '@/utils';
+import { createComponent, makeRequest, getLabel } from '@/utils';
 import { value } from 'vue-function-api';
 import { IS_MOBILE } from '../constants';
+import * as backend from '@/backend';
 
 export default createComponent({
   name: 'SearchCard',
@@ -84,9 +85,6 @@ export default createComponent({
     format(strings: string[]) {
       return strings.join(' • ');
     },
-  },
-  props: {
-    items: { type: Array as () => SearchItem[], required: true },
   },
   setup(props, context) {
     const refs = context.refs as { card: Vue, input: Vue & { focus: () => void } };
@@ -105,7 +103,7 @@ export default createComponent({
       }
     }
 
-    function startSearch() {
+    async function startSearch() {
       const loadingComponent = context.root.$loading.open({
         container: refs.card.$el,
       });
@@ -117,8 +115,10 @@ export default createComponent({
         input.blur();
       }
 
-      setTimeout(() => loadingComponent.close(), 0.5 * 1000);
-      results.value = search(props.items, searchText.value);
+      context.emit('search', searchText.value, (items: SearchItem[]) => {
+        loadingComponent.close();
+        results.value = items;
+      });
     }
 
     function clear() {
