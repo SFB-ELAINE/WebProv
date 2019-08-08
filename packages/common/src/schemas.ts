@@ -137,7 +137,7 @@ export const ProvenanceNodeSchema = n.schema({
   },
   optional: {
     /**
-     * The model id. This information is what links nodes together.
+     * The study id. This information is what links nodes together.
      */
     studyId: {
       type: n.number,

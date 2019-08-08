@@ -512,7 +512,10 @@ export const query = async <S extends Schema, I extends Index<S>>(schema: S, ind
     }
 
     const session = driver.session();
-    const result: StatementResult<[Neo4jNode<S>]> = await session.run(`CALL db.index.fulltext.queryNodes('${index.name}', '${searchText}')`);
+    const result: StatementResult<[Neo4jNode<S>]> = await session.run(
+      `CALL db.index.fulltext.queryNodes('${index.name}', '${searchText}')`
+    );
+    
     const results = result.records.map(record => record.get(0).properties);
     session.close();
     return {

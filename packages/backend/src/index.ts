@@ -90,6 +90,15 @@ export const resetDatabase = async () => {
   }
 };
 
+const unique = <T extends { id: string }>(items: T[]) => {
+  const ids = new Set<string>();
+  return items.filter(item => {
+    const keep = !ids.has(item.id);
+    ids.add(item.id);
+    return keep;
+  })
+}
+
 const create = async () => {
   // SETUP FOR EXPRESS //
   const app = express();
@@ -191,14 +200,29 @@ const create = async () => {
   });
 
   router.get('/search', async (req) => {
-    const text = req.query.text || '';
-    const number = +text; // could be nan
+    // This search must search on three indexes because there are three different types of nodes in the Neo4j database
+    // The fuzzy search capabilities is not supported in typical cypher queries
+    // See https://graphaware.com/neo4j/2019/01/11/neo4j-full-text-search-deep-dive.html for more information about fuzzy search in Neo4j
 
-    const r1 = await query(ProvenanceNodeSchema, ProvenanceNodeIndex, req.query.text || '');
+    // FIXME One potential improvement is ranking the nodes
+    // When you perform a fuzzy search, by default, the come out in order of best -> worst match
+    // However, we perform multiple fuzzy searches and just concatenate to join the searches
+
+    const text = req.query.text || '';
+
+    // Adding the `~` turns each word into a FuzzyQuery (see the link above)
+    const searchText = text.split(/ +/).map(part => `${part}~`).join(' ');
+    console.info(`\nSearching using "${searchText}"`);
+
+    // Search against the nodes using the provenance node index
+    const r1 = await query(ProvenanceNodeSchema, ProvenanceNodeIndex, searchText);
     const nodes = r1.result === 'success' ? r1.items : [];
+    console.info(`Provenance node search returned ${nodes.length} nodes`);
     
-    const r2 = await query(InformationFieldSchema, InformationFieldIndex, req.query.text || '');
+    // Search against all of the information fields using the information field index
+    const r2 = await query(InformationFieldSchema, InformationFieldIndex, searchText);
     if (r2.result === 'success') {
+      // Using the returned information fields, find the corresponding provenance nodes
       const r21 = await getNodesRelationships(ProvenanceNodeSchema, InformationFieldSchema, InformationRelationshipSchema, {
         target: {
           id: r2.items.map(item => item.id)
@@ -206,20 +230,27 @@ const create = async () => {
       })
 
       if (r21.result === 'success') {
+        console.info(`Information field search returned ${r21.items.length} nodes`);
         nodes.push(...r21.items.map(([node]) => node))
       }
     }
 
-    const r3 = await query(SimulationStudySchema, SimulationStudyIndex, req.query.text || '');
+    // Now, query on the studies using the study index
+    const r3 = await query(SimulationStudySchema, SimulationStudyIndex, searchText);
     if (r3.result === 'success') {
+      // Then, find all of the provenance nodes that have the studyIds
       const r31 = await getItems(ProvenanceNodeSchema, { studyId: r3.items.map(item => item.studyId) });
       if (r31.result === 'success') {
+        console.info(`Study search returned ${r31.items.length} nodes`);
         nodes.push(...r31.items);
       }
     }
 
-    if (!isNaN(number)) {
-      const r4 = await getItems(ProvenanceNodeSchema, { studyId: number });
+    // Because the fuzzy search only indexes text, if the user searches for `12` for example, nothing will come up even if there is a study that has a studyId === 12
+    // So, if the user did enter a number, we search the nodes that have a studyId that match the entered number
+    const studyId = +text; // could be nan
+    if (!isNaN(studyId)) {
+      const r4 = await getItems(ProvenanceNodeSchema, { studyId });
       if (r4.result === 'success') {
         nodes.push(...r4.items);
       }
@@ -227,7 +258,7 @@ const create = async () => {
     
     return {
       result: literal('success'),
-      items: nodes,
+      items: unique(nodes),
     };
   })
 
