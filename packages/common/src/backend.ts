@@ -1,4 +1,4 @@
-import { RelationshipBasics } from './neon';
+import { RelationshipBasics, RelationshipInformation } from './neon';
 import {
   DependencyRelationship,
   InformationField,
@@ -26,14 +26,19 @@ export interface BackendItem<T> {
   item: T;
 }
 
-export interface BackendRelationships<T> {
-  result: 'success';
-  items: Array<{ properties: T, source: string, target: string }>;
-}
-
 export interface BackendNotFound {
   result: 'not-found';
 }
+
+type NodesAndRelationships = { 
+  nodes: ProvenanceNode[],
+  relationships: Array<RelationshipInformation<DependencyRelationship>>
+};
+
+type FieldsAndRelationships = { 
+  nodes: InformationField[],
+  relationships: Array<RelationshipInformation<InformationRelationship>>
+};
 
 export interface ProvenanceAPI {
   '/health': {
@@ -74,17 +79,26 @@ export interface ProvenanceAPI {
     },
   };
 
+  '/nodes/fields': {
+    GET: {
+      body: {
+        id: string;
+      }
+      response: BackendError | BackendItem<FieldsAndRelationships>;
+    }
+  }
+
   '/nodes/study': {
     GET: {
       query: { studyId: string };
-      response: BackendError | BackendItems<ProvenanceNode>;
+      response: BackendError | BackendItem<NodesAndRelationships>;
     }
   }
 
   '/nodes/provenance-graph': {
     GET: {
       query: { id: string };
-      response: BackendError | BackendItems<ProvenanceNode>;
+      response: BackendError | BackendItem<NodesAndRelationships>;
     }
   }
 
@@ -114,7 +128,7 @@ export interface ProvenanceAPI {
 
   '/nodes/dependencies': {
     GET: {
-      response: BackendRelationships<DependencyRelationship> | BackendError;
+      response: BackendItems<RelationshipInformation<DependencyRelationship>> | BackendError;
     },
 
     POST: {
@@ -130,7 +144,7 @@ export interface ProvenanceAPI {
 
   '/nodes/information': {
     GET: {
-      response: BackendRelationships<InformationRelationship> | BackendError;
+      response: BackendItems<RelationshipInformation<InformationRelationship>> | BackendError;
     },
 
     POST: {

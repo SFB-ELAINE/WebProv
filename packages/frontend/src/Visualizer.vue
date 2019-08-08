@@ -173,6 +173,8 @@ import {
   toTsv,
   TsvRow,
   download,
+  addNewNodes,
+  addNewRelationships,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -184,7 +186,7 @@ import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
 import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
 import { version } from '../package.json';
-import { computed, value, onMounted } from 'vue-function-api';
+import { computed, value, onMounted, watch, Wrapper } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
 
 interface BaseNode extends D3Node {
@@ -201,6 +203,8 @@ interface SingleNode extends BaseNode {
   isGroup: false;
   type: ProvenanceNodeType;
 }
+
+type DependencyRelationshipInfo = RelationshipInformation<DependencyRelationship>;
 
 type Node = SingleNode | GroupNode;
 
@@ -245,7 +249,7 @@ export default createComponent({
     // The package version number
     const provenanceNodes = value<ProvenanceNode[]>([]);
     const informationNodes = value<InformationField[]>([]);
-    const dependencies = value<Array<RelationshipInformation<DependencyRelationship>>>([]);
+    const dependencies = value<DependencyRelationshipInfo[]>([]);
     const informationRelations = value<Array<RelationshipInformation<InformationRelationship>>>([]);
 
     // which studies are currently expanded
@@ -539,25 +543,21 @@ export default createComponent({
         .filter(isDefined);
     }
 
-    const addNewNodes = (ns: ProvenanceNode[]) => {
-      const currentNodeIds = new Set(provenanceNodes.value.map(({ id }) => id));
-
-      const newNodes = ns.filter((node) => !currentNodeIds.has(node.id));
-      provenanceNodes.value.push(...newNodes);
-
+    const addNewProvenanceNodes = (ns: ProvenanceNode[]) => {
+      addNewNodes(provenanceNodes, ns);
       ns.forEach((node) => {
         nodesToShow.value[node.id] = true;
         if (node.studyId !== undefined) {
           expanded.value[node.studyId] = true;
         }
       });
-
-      renderGraph();
     };
 
     function showProvenanceGraph(r: SearchItem) {
       makeRequest(() => backend.getProvenanceGraph(r.id), (result) => {
-        addNewNodes(result.items);
+        addNewProvenanceNodes(result.item.nodes);
+        addNewRelationships(dependencies, result.item.relationships);
+        renderGraph();
       });
 
     }
@@ -605,7 +605,9 @@ export default createComponent({
 
       const studyId = item.studyId;
       makeRequest(() => backend.getNodesInStudy(studyId), (result) => {
-        addNewNodes(result.items);
+        addNewProvenanceNodes(result.item.nodes);
+        addNewRelationships(dependencies, result.item.relationships);
+        renderGraph();
       });
     }
 
@@ -1163,25 +1165,21 @@ export default createComponent({
       }
     }
 
+    watch(selectedNode, async () => {
+      if (!selectedNode.value) {
+        return;
+      }
+
+      const id = selectedNode.value.id;
+      makeRequest(() => backend.getInformationFields(id), (result) => {
+        addNewNodes(informationNodes, result.item.nodes);
+        addNewRelationships(informationRelations, result.item.relationships);
+      });
+    });
+
     onMounted(() => {
       makeRequest(backend.getStudies, (result) => {
         simulationStudies.value = result.items;
-      });
-
-      // makeRequest(backend.getNodes, (result) => {
-      //   provenanceNodes.value = result.items;
-      // });
-
-      makeRequest(backend.getNodeDependencies, (result) => {
-        dependencies.value = result.items;
-      });
-
-      makeRequest(backend.getNodeInformation, (result) => {
-        informationRelations.value = result.items;
-      });
-
-      makeRequest(backend.getInformationNodes, (result) => {
-        informationNodes.value = result.items;
       });
     });
 

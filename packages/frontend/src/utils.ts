@@ -16,6 +16,7 @@ import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 import { DependencyRelationship } from 'common/dist/schemas';
+import { Wrapper } from 'vue-function-api';
 
 export interface Connection {
   properties: DependencyRelationship;
@@ -589,4 +590,19 @@ export const map = <A, B>(iterator: IterableIterator<A>, f: (a: A) => B): B[] =>
     results.push(f(item));
   }
   return results;
+};
+
+export const addNewNodes = <T extends { id: string }>(target: Wrapper<T[]>, toAdd: T[]) => {
+  const currentNodeIds = new Set(target.value.map(({ id }) => id));
+  const newNodes = toAdd.filter((node) => !currentNodeIds.has(node.id));
+  target.value.push(...newNodes);
+};
+
+export const addNewRelationships = <T extends { id: string }>(
+  target: Wrapper<Array<RelationshipInformation<T>>>,
+  relationships: Array<RelationshipInformation<T>>,
+) => {
+  const ids = new Set(target.value.map(({ properties }) => properties.id));
+  const newRelationships = relationships.filter(({ properties }) => !ids.has(properties.id));
+  target.value.push(...newRelationships);
 };

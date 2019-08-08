@@ -31,10 +31,24 @@ import {
   ProvenanceNodeIndex,
   InformationFieldIndex,
   SimulationStudyIndex,
+  Schema,
+  RelationshipSchema,
+  RelationshipInformation,
+  TypeOf,
 } from 'common';
 
 export function literal<T extends string>(o: T): T {
   return o;
+}
+
+const getItemsByConnection = <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
+  tuples: Array<[TypeOf<A>, TypeOf<B>, TypeOf<R>]>,
+): Array<RelationshipInformation<TypeOf<R>>> => {
+  return tuples.map(([source, target, relationship]) => ({ 
+    source: source.id, 
+    target: target.id,
+    properties: relationship,
+  }));
 }
 
 const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | BackendNotFound> => {
@@ -143,11 +157,48 @@ const create = async () => {
       }
     }
 
-    return await getItems(ProvenanceNodeSchema, { studyId });
+    const result = await getNodesRelationships(
+      ProvenanceNodeSchema,
+      ProvenanceNodeSchema,
+      DependencyRelationshipSchema, 
+      { source: { studyId } },
+    );
+
+    if (result.result === 'error') {
+      return result;
+    }
+
+    const nodes = unique(result.items.map(([node]) => node));
+    const relationships = result.items.map(([source, target, relationship]) => relationship);
+
+    return {
+      result: literal('success'),
+      item: {
+        nodes,
+        relationships,
+      }
+    }
   });
 
   router.get('/nodes/provenance-graph', async (req) => {
-    return await getRecursive(ProvenanceNodeSchema, DependencyRelationshipSchema, req.query.id, { self: true });
+    const result = await getRecursive(
+      ProvenanceNodeSchema, DependencyRelationshipSchema, req.query.id, { self: true }
+    );
+
+    if (result.result === 'error') {
+      return result;
+    }
+    
+    const nodes = result.items.map(([node]) => node);
+    const relationships = result.items.map(([_, relationship]) => relationship);
+
+    return {
+      result: literal('success'),
+      item: {
+        nodes,
+        relationships,
+      }
+    }
   });
 
   router.get('/studies', async () => {

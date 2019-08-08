@@ -78,10 +78,6 @@ export const getStudies = async () => {
   return (await api.get('/studies')).data;
 };
 
-export const getNodes = async () => {
-  return (await api.get('/nodes')).data;
-};
-
 export const getNodesInStudy = async (studyId: number) => {
   return (await api.get('/nodes/study', { params: { studyId: studyId.toString() } })).data;
 };
@@ -94,14 +90,6 @@ export const search = async (text: string) => {
   return (await api.get('/search', { params: { text } })).data;
 };
 
-export const getInformationNodes = async () => {
-  return (await api.get('/information')).data;
-};
-
-export const getNodeDependencies = async () => {
-  return (await api.get('/nodes/dependencies')).data;
-};
-
-export const getNodeInformation = async () => {
-  return (await api.get('/nodes/information')).data;
+export const getInformationFields = async (id: string) => {
+  return (await api.get('/nodes/fields', { params: { id } })).data;
 };

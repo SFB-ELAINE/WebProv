@@ -13,7 +13,8 @@ import {
   schemas,
   relationships,
   BackendItem,
-  indexes
+  indexes,
+  tuple
 } from 'common';
 
 import * as dotenv from 'dotenv';
@@ -164,19 +165,22 @@ export async function getItems<S extends Schema>(schema: S, params?: QueryData<T
 export async function getRecursive<A extends Schema, S extends RelationshipSchema<A, A>>(
   a: A, schema: S, id: string, opts: { levels?: number, self?: boolean } = {}
 ) {
-  return withHandling(async (): Promise<BackendItems<TypeOf<A>>> => {
+  return withHandling(async (): Promise<BackendItems<[TypeOf<A>, TypeOf<A>, TypeOf<S>]>> => {
     const levels = opts.levels === undefined ? '' : opts.levels.toString();
     const self = opts.self ? 0 : 1;
 
     const session = driver.session();
-    const result: StatementResult<[Neo4jNode<A>]> = await session.run(`
-    MATCH (start:${a.name} { id: $id })-[:${schema.name} *${self}..${levels}]->(n:${a.name})
-    RETURN n
+    const result: StatementResult<[Neo4jNode<A>, Neo4jNode<A>, Neo4jRelationship<S>]> = await session.run(`
+    MATCH (a:${a.name} { id: $id })-[r:${schema.name} *${self}..${levels}]->(b:${a.name})
+    RETURN a, b, r
     `, { id })
 
     
 
-    const items = result.records.map(record => record.get(0).properties);
+    const items = result.records.map(record => {
+      return tuple(record.get(0).properties, record.get(1).properties, record.get(2).properties);
+    });
+    
     session.close();
 
     return {

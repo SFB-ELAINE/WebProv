@@ -33,7 +33,6 @@ export {
   BackendNotFound,
   ProvenanceAPI,
   BackendItem,
-  BackendRelationships,
 } from './backend';
 
 export {
