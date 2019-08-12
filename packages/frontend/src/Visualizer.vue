@@ -166,7 +166,7 @@ import {
   getLogger,
   createComponent,
   createModelVersionLookup,
-  Connection,
+  HighLevelRelationship,
   HighLevelNode,
   merge,
   getClassification,
@@ -273,7 +273,7 @@ export default createComponent({
     const lineStart = value<Point | null>(null);
     const lineEnd = value<Point | null>(null);
 
-    const selectedConnection = value<Connection | null>(null);
+    const selectedConnection = value<HighLevelRelationship | null>(null);
     const currentRelationship = value<DependencyType | null>(null);
     const possibleRelationships = value<DependencyType[] | null>(null);
 
@@ -293,7 +293,7 @@ export default createComponent({
     // Whether to show the help information
     const showEditTools = value(false);
 
-    // The pan of the visualization
+    // The current pan of the visualization
     const pan = value({ x: 0, y: 0 });
 
     const exportNodes = () => {
@@ -447,10 +447,8 @@ export default createComponent({
             return;
           }
 
-          const d3Connection: Connection = {
-            relationship: connection.properties.type,
-            properties: connection.properties,
-            original: connection,
+          const d3Connection: HighLevelRelationship = {
+            relationship: connection.properties,
             color: relationshipColors[connection.properties.type].color,
             source,
             target,
@@ -931,7 +929,7 @@ export default createComponent({
                 return;
               }
 
-              currentRelationship.value = c.relationship;
+              currentRelationship.value = c.relationship.type;
               possibleRelationships.value = rules.map((rule) => {
                 if (typeof rule === 'string') {
                   return rule;
@@ -993,7 +991,8 @@ export default createComponent({
         return;
       }
 
-      const originalConnection = selectedConnection.value.original;
+      const connection = selectedConnection.value;
+      const originalConnection = connection.relationship;
 
       const a = selectedConnection.value.source.node;
       const b = selectedConnection.value.target.node;
@@ -1002,13 +1001,13 @@ export default createComponent({
       cached[b.type] = relationship;
 
       const newProperties = {
-        ...originalConnection.properties,
+        ...originalConnection,
         type: relationship,
       };
 
       const result = await makeRequest(() => backend.updateOrCreateDependency({
-        source: originalConnection.source,
-        target: originalConnection.target,
+        source: connection.source.id,
+        target: connection.target.id,
         properties: newProperties,
       }));
       if (result.result !== 'success') {
@@ -1020,7 +1019,7 @@ export default createComponent({
       // Set the relationship of the actual data
       // Then render the graph again
       currentRelationship.value = relationship;
-      originalConnection.properties = newProperties;
+      Object.assign(originalConnection, newProperties);
       renderGraph();
       cancelRelationshipSelection();
     }
@@ -1031,13 +1030,13 @@ export default createComponent({
       }
 
       const connection = selectedConnection.value;
-      const result = await makeRequest(() => backend.deleteDependency(connection.properties.id));
+      const result = await makeRequest(() => backend.deleteDependency(connection.relationship.id));
       if (result.result !== 'success') {
         return;
       }
 
       dependencies.value = dependencies.value.filter((dependency) => {
-        return dependency.properties.id !== connection.properties.id;
+        return dependency.properties.id !== connection.relationship.id;
       });
 
       renderGraph();
@@ -1092,11 +1091,11 @@ export default createComponent({
       const toRemove = new Set<string>();
 
       [...incoming, ...outgoing].forEach((c) => {
-        if (isValidRelationship(c.source.node, c.target.node, c.relationship)) {
+        if (isValidRelationship(c.source.node, c.target.node, c.relationship.type)) {
           return;
         }
 
-        toRemove.add(c.properties.id);
+        toRemove.add(c.relationship.id);
       });
 
       if (toRemove.size === 0) {

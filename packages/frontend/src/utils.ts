@@ -17,10 +17,8 @@ import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 import { DependencyRelationship } from 'common/dist/schemas';
 
-export interface Connection {
-  properties: DependencyRelationship;
-  relationship: DependencyType;
-  original: RelationshipInformation<DependencyRelationship>;
+export interface HighLevelRelationship {
+  relationship: DependencyRelationship;
   source: HighLevelNode;
   target: HighLevelNode;
   color: string;
@@ -29,8 +27,8 @@ export interface Connection {
 export interface HighLevelNode {
   id: string;
   node: ProvenanceNode;
-  outgoing: Connection[];
-  incoming: Connection[];
+  outgoing: HighLevelRelationship[];
+  incoming: HighLevelRelationship[];
 }
 
 // The following methods are useful for making lookups.
