@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { Schema } from './neon';
-import { DependencyType, ProvenanceNode, relationshipRules } from './schemas';
+import { DependencyType, ProvenanceNode } from './schemas';
 
 export const uniqueId = () => {
   // HTML IDs must begin with a non numeric character or something like that.
@@ -15,23 +15,25 @@ export const tuple = <T extends any[]>(...args: T): T => args;
 export const isValidRelationship = (
   a: ProvenanceNode, b: ProvenanceNode, type?: DependencyType,
 ) => {
-  if (!type) {
-    return false;
-  }
+  // TODO
+  // if (!type) {
+  //   return false;
+  // }
 
-  const rulesForA = relationshipRules[a.type];
-  const rules = rulesForA[b.type];
-  if (!rules) {
-    return false;
-  }
+  // const rulesForA = relationshipRules[a.type];
+  // const rules = rulesForA[b.type];
+  // if (!rules) {
+  //   return false;
+  // }
 
-  return rules.some((rule) => {
-    if (typeof rule === 'string') {
-      return rule === type;
-    } else {
-      return rule.relationship === type;
-    }
-  });
+  // return rules.some((rule) => {
+  //   if (typeof rule === 'string') {
+  //     return rule === type;
+  //   } else {
+  //     return rule.relationship === type;
+  //   }
+  // });
+  return true;
 };
 
 const toObject = <T>(arg: Array<[string, T]>) => {

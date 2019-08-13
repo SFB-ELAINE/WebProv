@@ -46,7 +46,7 @@ export const RelationshipRuleSchema = n.relationship({
       type: n.string,
     },
     type: {
-      type: RelationshipTypeUnion,
+      type: n.array(RelationshipTypeUnion),
     },
     cardinality: {
       type: n.union([

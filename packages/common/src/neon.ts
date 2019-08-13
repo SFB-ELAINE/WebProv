@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-export { boolean, string, number, union, literal } from 'io-ts';
+export { boolean, string, number, union, literal, array } from 'io-ts';
 
 // neon is just a random name
 // It's based on neo4j
@@ -8,10 +8,10 @@ export type Primitive =
   t.BooleanC |
   t.StringC |
   t.NumberC |
-  t.LiteralC<any> |
   t.UnionC<[t.LiteralC<any>, t.LiteralC<any>, ...Array<t.LiteralC<any>>]>;
 
 export type PrimitiveArray =
+  t.ArrayC<t.UnionC<any>> |
   t.ArrayC<t.BooleanC> |
   t.ArrayC<t.NumberC> |
   t.ArrayC<t.StringC>;
@@ -19,7 +19,7 @@ export type PrimitiveArray =
 export interface SchemaField {
   primary?: boolean;
   unique?: boolean;
-  type: Primitive | PrimitiveArray;
+  type: PrimitiveArray | Primitive;
 }
 
 interface Fields {
