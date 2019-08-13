@@ -68,7 +68,7 @@ export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
 export interface Lookup<T> { [k: string]: T; }
 
 interface StudyLookup {
-  [studyId: number]: Study | undefined;
+  [id: string]: Study | undefined;
 }
 
 /**

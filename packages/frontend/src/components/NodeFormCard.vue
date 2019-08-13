@@ -17,10 +17,10 @@
         <option :value="undefined"></option>
         <option 
           v-for="study in studies" 
-          :key="study.studyId" 
-          :value="study.studyId"
+          :key="study.id" 
+          :value="study.id"
         >
-          {{ study.studyId }}
+          {{ study.source }}
         </option>
       </b-select>
     </b-field>
@@ -104,8 +104,8 @@ export default createComponent({
       updateNode('type', value);
     }
 
-    function studyIdChange(value: string) {
-      updateNode('studyId', value ? +value : undefined);
+    function studyIdChange(value: string | undefined) {
+      updateNode('studyId', value);
     }
 
     function updateNode<K extends keyof ProvenanceNode>(key: K, value: ProvenanceNode[K]) {

@@ -30,7 +30,7 @@
         <div style="display: flex; align-items: flex-start">
           <div>
             <h4 class="result--title">{{ result.title }}</h4>
-            <h6 class="result--type">{{ result.studyText === undefined ? 'No Study' : result.studyText }}</h6>
+            <h6 class="result--type">{{ result.study === undefined ? 'No Study' : result.study.source }}</h6>
             <p class="result--extra">{{ result.extra | format }}</p>
           </div>
           <div style="flex: 1"></div>

@@ -94,17 +94,17 @@ export default createComponent({
       return makeLookup(allNodes.value);
     });
 
-    function fill(d: { group: number }) {
-      if (!colorLookup[d.group]) {
+    function fill(d: { id: string }) {
+      if (!colorLookup[d.id]) {
         if (colorIndex < colors.length) {
-          colorLookup[d.group] = colors[colorIndex];
+          colorLookup[d.id] = colors[colorIndex];
           colorIndex++;
         } else {
-          colorLookup[d.group] = getRandomColor();
+          colorLookup[d.id] = getRandomColor();
         }
       }
 
-      return colorLookup[d.group];
+      return colorLookup[d.id];
     }
 
     function addLink(link: D3Link) {
@@ -123,12 +123,12 @@ export default createComponent({
       const offset = props.hullOffset;
       // create point sets
       allNodes.value.forEach((n) => {
-        if (n.hullGroup === undefined) {
+        if (n.hullId === undefined) {
           // Skip allNodes that aren't in a group
           return;
         }
 
-        const i = n.hullGroup;
+        const i = n.hullId;
         const l = hulls[i] || (hulls[i] = { points: [], nodes: [] });
 
         interface Point {
@@ -155,7 +155,7 @@ export default createComponent({
         }
 
         hullset.push({
-          group: Number.parseInt(i, 10),
+          id: i,
           nodes: hulls[i].nodes,
           path,
         });

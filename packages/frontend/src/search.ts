@@ -1,15 +1,15 @@
 import Fuse from 'fuse.js';
+import { Study } from 'common';
 
 export interface SearchItem {
   id: string;
   title: string;
   type: string;
-  studyId: number | undefined;
-  studyText: string | undefined;
+  study: Study | undefined;
   extra: string[];
 }
 
-const keys: Array<keyof SearchItem> = ['extra', 'title', 'id', 'studyText'];
+const keys: Array<keyof SearchItem> = ['extra', 'title', 'id'];
 
 export const search = (items: SearchItem[], pattern: string) => {
   if (pattern.trim() === '') {

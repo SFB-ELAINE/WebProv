@@ -7,7 +7,7 @@ interface RelationshipConstraints {
   relationship: DependencyType;
 
   /**
-   * Whether this relationship is a one-to-ony relationship. By default, it is a one-to-many relationship.
+   * Whether this relationship is a one-to-ony relationship. By default, it is a one-to-many relationship (ie. `single: false`).
    */
   single?: boolean;
 }
@@ -60,7 +60,7 @@ export const relationshipRules: RelationshipRules = {
     // no possible relationships
   },
   TheoreticalKnowledge: {
-
+    // no possible relationships
   },
 };
 
@@ -73,13 +73,6 @@ export const StudySchema = n.schema({
     id: {
       primary: true,
       type: n.string,
-    },
-    /**
-     * The study id. Must be unique.
-     */
-    studyId: {
-      unique: true,
-      type: n.number,
     },
   },
   optional: {
@@ -137,10 +130,10 @@ export const ProvenanceNodeSchema = n.schema({
   },
   optional: {
     /**
-     * The model id. This information is what links nodes together.
+     * The study id.
      */
     studyId: {
-      type: n.number,
+      type: n.string,
     },
     label: {
       /**

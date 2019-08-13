@@ -188,7 +188,7 @@ import { computed, value, onMounted } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
 
 interface BaseNode extends D3Node {
-  studyId?: number;
+  studyId?: string;
   text: string;
 }
 
@@ -301,7 +301,7 @@ export default createComponent({
         id: string;
         label: string;
         type: ProvenanceNodeType;
-        studyId?: number;
+        studyId?: string;
         informationFields: Array<{ key: string, value: string }>;
         dependencies: Array<{ target: string, type: DependencyType }>;
       }
@@ -467,7 +467,7 @@ export default createComponent({
     });
 
     const studyLookup = computed(() => {
-      return makeLookupBy(studies.value, (study) => study.studyId);
+      return makeLookupBy(studies.value, (study) => study.id);
     });
 
     const dependenciesLookup = computed(() => {
@@ -484,7 +484,7 @@ export default createComponent({
 
     // lookup by studyId
     const sortedHighLevelNodes = computed(() => {
-      const allNodes: { [studyId: number]: HighLevelNode[] } = {};
+      const allNodes: { [studyId: string]: HighLevelNode[] } = {};
       highLevelNodes.value.forEach((highLevelNode) => {
         const studyId = highLevelNode.node.studyId;
         if (studyId === undefined) {
@@ -600,12 +600,13 @@ export default createComponent({
     }
 
     function expandStudy(result: SearchItem) {
-      if (result.studyId !== undefined) {
-        expanded.value[result.studyId] = true;
+      const studyId = result.study ? result.study.id : undefined;
+      if (studyId !== undefined) {
+        expanded.value[studyId] = true;
       }
 
       highLevelNodes.value.forEach(({ node, id }) => {
-        if (node.studyId === result.studyId) {
+        if (node.studyId === studyId) {
           nodesToShow.value[id] = true;
         }
       });
@@ -618,29 +619,20 @@ export default createComponent({
         const fields = getInformationNodesFromProvenance(n.node);
         const values = fields.filter(isDefined).map((field) => field.value);
 
+        const study = n.node.studyId ? studyLookup.value[n.node.studyId] : undefined;
         return {
           id: n.id,
           title: getLabel(n.node, studyLookup.value, modelVersionLookup.value),
           type: n.node.type,
-          studyId: n.node.studyId,
-          studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
+          study,
           extra: values,
         };
       });
     });
 
     async function createStudy() {
-      const result = await makeRequest(() => backend.getMaxStudyId());
-      if (result.result !== 'success') {
-        return;
-      }
-
       selectedStudy.value = {
         id: uniqueId(),
-        // Once we have the max, we just add 1 to creat the new study ID
-        // If we have concurrent users creating studies, this might cause issues
-        // But this solution works for now
-        studyId: result.item + 1,
       };
     }
 
@@ -769,7 +761,7 @@ export default createComponent({
         actionText: moreLeftToShow ? 'See more' : undefined,
         type: n.type,
         studyId: n.studyId,
-        hullGroup: n.studyId,
+        hullId: n.studyId,
         stroke: NODE_OUTLINE,
         x,
         y,
@@ -832,9 +824,12 @@ export default createComponent({
     }
 
     function renderGraph() {
+      const labelLookup: Lookup<string> = {};
+      let groupCount = 0;
+
       const newLinks: Link[] = [];
       const newNodes: Node[] = [];
-      const collapsedNodes: { [studyId: number]: GroupNode } = {};
+      const collapsedNodes: { [studyId: string]: GroupNode } = {};
 
       // We don't care about any nodes that don't need to be shown.
       const filtered = provenanceNodes.value.filter((n) => nodesToShow.value[n.id]);
@@ -848,6 +843,10 @@ export default createComponent({
       // First, create all of the study nodes.
       // These are the collapsed nodes. We only need to create one per study.
       studyIds.forEach((studyId) => {
+        if (!labelLookup.hasOwnProperty(studyId)) {
+          labelLookup[studyId] = `S${++groupCount}`;
+        }
+
         // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed
         // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
         // us to easily lookup the location of the collapsed node when re-rendering.
@@ -863,7 +862,7 @@ export default createComponent({
           vy: 0,
           stroke: STUDY_STROKE,
           rx: 0,
-          text: `M${studyId}`,
+          text: labelLookup[studyId],
           width: STUDY_WIDTH,
           height: NODE_HEIGHT,
           onDidDblclick: () => {
@@ -888,7 +887,7 @@ export default createComponent({
             return;
           }
 
-          const determineLinkId = (id: string, studyId: number | undefined) => {
+          const determineLinkId = (id: string, studyId: string | undefined) => {
             if (studyId === undefined || expanded.value[studyId]) {
               return id;
             }
@@ -1212,7 +1211,8 @@ export default createComponent({
         showEditTools.value = false;
       },
       openStudy: (result: SearchItem) => {
-        if (result.studyId === undefined) {
+        const studyId = result.study ? result.study.id : undefined;
+        if (studyId === undefined) {
           context.root.$notification.open({
             message: 'Please assign a study ID first.',
             position: 'is-top-right',
@@ -1222,7 +1222,7 @@ export default createComponent({
           return;
         }
 
-        if (studyLookup.value[result.studyId] === undefined) {
+        if (studyLookup.value[studyId] === undefined) {
           context.root.$notification.open({
             message: 'No study exists for this node.',
             position: 'is-top-right',
@@ -1232,10 +1232,10 @@ export default createComponent({
           return;
         }
 
-        selectedStudy.value = studyLookup.value[result.studyId];
+        selectedStudy.value = studyLookup.value[studyId];
       },
       hullDblclick: (d: D3Hull) => {
-        expanded.value[d.group] = false;
+        expanded.value[d.id] = false;
 
         const point = { x: 0, y: 0 };
         d.nodes.forEach((n) => {

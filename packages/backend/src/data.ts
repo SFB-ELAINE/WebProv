@@ -26,9 +26,14 @@ const addRelationship = <A extends Schema, B extends Schema, R extends Relations
 }
 
 // M1
+const study1: Study = {
+  id: uniqueId(),
+  source: 'Lee et al., PLoS bio. 2003',
+};
+
 const WX_7: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   label: 'Wx_7',
   type: 'WetLabData',
 };
@@ -50,7 +55,7 @@ addRelationship({
 
 const W1_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   label: 'W1_1',
   type: 'WetLabData',
 };
@@ -72,7 +77,7 @@ addRelationship({
 
 const W1_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   label: 'W1_2',
   type: 'WetLabData',
 };
@@ -94,7 +99,7 @@ addRelationship({
 
 const MBA_3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   type: 'ModelBuildingActivity',
 };
 
@@ -131,7 +136,7 @@ addRelationship({
 
 const S1_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   type: 'SimulationData',
   label: 'S1_1',
 };
@@ -146,15 +151,9 @@ addRelationship({
   },
 })
 
-const study1: Study = {
-  id: uniqueId(),
-  studyId: 1,
-  source: 'Lee et al., PLoS bio. 2003',
-};
-
 const model3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   type: 'Model',
 };
 
@@ -170,7 +169,7 @@ addRelationship({
 
 const MEA: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   type: 'ModelExplorationActivity',
 };
 
@@ -186,7 +185,7 @@ addRelationship({
 
 const S1_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   type: 'SimulationData',
   label: 'S1_2',
 };
@@ -204,13 +203,12 @@ addRelationship({
 // M12
 const study12: Study = {
   id: uniqueId(),
-  studyId: 12,
   source: 'Haack et al., PLoS comp. bio. 2015',
 };
 
 const W12_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'W12_1',
   type: 'WetLabData',
 };
@@ -232,7 +230,7 @@ addRelationship({
 
 const WX_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'Wx_1',
   type: 'WetLabData',
 };
@@ -254,7 +252,7 @@ addRelationship({
 
 const WX_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'Wx_2',
   type: 'WetLabData',
 };
@@ -277,7 +275,7 @@ addRelationship({
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   type: 'ModelBuildingActivity',
 };
 
@@ -324,7 +322,7 @@ addRelationship({
 
 const S12_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   type: 'SimulationData',
   label: 'S12_1',
 };
@@ -341,7 +339,7 @@ addRelationship({
 
 const model1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   type: 'Model',
 };
 
@@ -357,7 +355,7 @@ addRelationship({
 
 const W12_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'W12_2',
   type: 'WetLabData',
 };
@@ -379,7 +377,7 @@ addRelationship({
 
 const W12_3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'W12_3',
   type: 'WetLabData',
 };
@@ -401,7 +399,7 @@ addRelationship({
 
 const WX_3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'Wx_3',
   type: 'WetLabData',
 };
@@ -423,7 +421,7 @@ addRelationship({
 
 const MBA_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   type: 'ModelBuildingActivity',
 };
 
@@ -470,7 +468,7 @@ addRelationship({
 
 const S12_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   type: 'SimulationData',
   label: 'S12_2',
 };
@@ -487,7 +485,7 @@ addRelationship({
 
 const model2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   type: 'Model',
 };
 

@@ -18,7 +18,7 @@ export interface D3Node {
   actionText?: string;
   x: number;
   y: number;
-  hullGroup?: number;
+  hullId?: string;
   onDidClick?: (e: MouseEvent) => void;
   onDidActionClick?: (e: MouseEvent) => void;
   onDidDblclick?: (e: MouseEvent) => void;
@@ -47,7 +47,7 @@ export const isD3 = <N extends D3Node>(component: any): component is ID3<N> => {
 };
 
 export interface D3Hull {
-  group: number;
+  id: string;
   nodes: D3Node[];
   path: Array<[number, number]>;
 }

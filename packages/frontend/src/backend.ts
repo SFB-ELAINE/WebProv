@@ -35,10 +35,6 @@ export const updateOrCreateInformationNode = async (node: InformationField) => {
   return (await api.post('/information', node)).data;
 };
 
-export const getMaxStudyId = async () => {
-  return (await api.get('/studies/study-id/max')).data;
-};
-
 export const updateOrCreateStudy = async (
   study: Study,
 ) => {

@@ -25,7 +25,7 @@ type QuadNodes = QuadNode[] & ExtraData;
 export default function() {
   let nodes: D3Node[];
   let node: D3Node;
-  let groups: number[] = [];
+  let groups: string[] = [];
   let alpha: number;
   let strength: () => number = constant(-30);
   let strengths: number[];
@@ -51,7 +51,7 @@ export default function() {
       strengths[n.index] = strength();
       strengthGroups[n.index] = {};
       groups.forEach((group) => {
-        strengthGroups[n.index][group] = strengths[n.index] + (group === n.hullGroup ? FACTOR : -FACTOR);
+        strengthGroups[n.index][group] = strengths[n.index] + (group === n.hullId ? FACTOR : -FACTOR);
       });
     });
   }
@@ -97,12 +97,12 @@ export default function() {
       do {
         nodeStrength += strengths[q.data.index];
 
-        if (q.data.hullGroup !== undefined) {
-          if (groupCounts[q.data.hullGroup] === undefined) {
-            groupCounts[q.data.hullGroup] = 0;
+        if (q.data.hullId !== undefined) {
+          if (groupCounts[q.data.hullId] === undefined) {
+            groupCounts[q.data.hullId] = 0;
           }
 
-          groupCounts[q.data.hullGroup]++;
+          groupCounts[q.data.hullId]++;
         }
 
         q = q.next;
@@ -143,11 +143,11 @@ export default function() {
         }
 
         let value: number = quad.value;
-        if (node.hullGroup !== undefined) {
+        if (node.hullId !== undefined) {
           const groupCounts = quad.groups;
           Object.keys(groupCounts).forEach((group) => {
             const count = groupCounts[group];
-            if (node.hullGroup === +group) {
+            if (node.hullId === group) {
               value = Math.min(0, value + FACTOR * count);
             } else {
               value -= FACTOR * count;
@@ -192,8 +192,8 @@ export default function() {
 
     do {
       if (data !== node) {
-        if (node.hullGroup !== undefined) {
-          w = strengthGroups[data.index][node.hullGroup] * alpha / l;
+        if (node.hullId !== undefined) {
+          w = strengthGroups[data.index][node.hullId] * alpha / l;
         } else {
           w = strengths[data.index] * alpha / l;
         }
@@ -206,7 +206,7 @@ export default function() {
 
   force.initialize = (_: D3Node[]) => {
     nodes = _;
-    groups = Array.from(new Set(nodes.map((n) => n.hullGroup))).filter(byUndefined);
+    groups = Array.from(new Set(nodes.map((n) => n.hullId))).filter(byUndefined);
     initialize();
   };
 
