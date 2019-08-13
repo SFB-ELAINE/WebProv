@@ -824,8 +824,10 @@ export default createComponent({
     }
 
     function renderGraph() {
+      // We need to label the collapsed studies somehow
+      // So, we keep a counter and label studies `S1`, `S2` and so on
       const labelLookup: Lookup<string> = {};
-      let groupCount = 0;
+      let groupCount = 1;
 
       const newLinks: Link[] = [];
       const newNodes: Node[] = [];
@@ -844,7 +846,7 @@ export default createComponent({
       // These are the collapsed nodes. We only need to create one per study.
       studyIds.forEach((studyId) => {
         if (!labelLookup.hasOwnProperty(studyId)) {
-          labelLookup[studyId] = `S${++groupCount}`;
+          labelLookup[studyId] = `S${groupCount++}`;
         }
 
         // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed

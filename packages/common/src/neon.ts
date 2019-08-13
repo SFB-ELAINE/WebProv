@@ -50,24 +50,12 @@ export interface RelationshipInformation<T> {
 }
 
 export const schemas: Schema[] = [];
-export const indexes: Index<Schema>[] = [];
 
 export const relationships: Array<RelationshipSchema<Schema, Schema>> = [];
 
 export const schema = <S extends Schema>(s: S): S => {
   schemas.push(s);
   return s;
-};
-
-export interface Index<S extends Schema> {
-  name: string;
-  schema: S;
-  keys: Array<Keys<S>>;
-}
-
-export const index = <S extends Schema, I extends Index<S>>(schema: S, i: I): I => {
-  indexes.push(i as any);
-  return i;
 };
 
 export const relationship = <
