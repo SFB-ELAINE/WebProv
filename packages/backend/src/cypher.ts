@@ -6,7 +6,6 @@ import {
   TypeOf, 
   Schema,
   RelationshipSchema,
-  BackendRelationships,
   getType,
   keys,
   RelationshipInformation,
@@ -180,6 +179,7 @@ export async function getRecursive<A extends Schema, S extends RelationshipSchem
     const items = result.records.map(record => {
       return tuple(record.get(0).properties, record.get(1).properties, record.get(2).properties);
     });
+    console.log(items);
     
     session.close();
 
@@ -314,7 +314,7 @@ export async function getRelationships<A extends Schema, B extends Schema, R ext
   b: B,
   schema: R,
 ) {
-  return withHandling(async (): Promise<BackendRelationships<TypeOf<R>> | BackendError> => {
+  return withHandling(async (): Promise<BackendItems<RelationshipInformation<TypeOf<R>>> | BackendError> => {
     const result = await getNodesRelationships(a, b, schema);
     if (result.result !== 'success') {
       return result;

@@ -169,7 +169,11 @@ const create = async () => {
     }
 
     const nodes = unique(result.items.map(([node]) => node));
-    const relationships = result.items.map(([source, target, relationship]) => relationship);
+    const relationships = result.items.map(([source, target, relationship]) => ({
+      source: source.id,
+      target: target.id,
+      properties: relationship,
+    }));
 
     return {
       result: literal('success'),
@@ -190,7 +194,11 @@ const create = async () => {
     }
     
     const nodes = result.items.map(([node]) => node);
-    const relationships = result.items.map(([_, relationship]) => relationship);
+    const relationships = result.items.map(([source, target, relationship]) => ({
+      source: source.id,
+      target: target.id,
+      properties: relationship,
+    }));
 
     return {
       result: literal('success'),
