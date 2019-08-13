@@ -1,6 +1,6 @@
 import axios from 'restyped-axios';
 import {
-  SimulationStudy,
+  Study,
   ProvenanceNode,
   ProvenanceAPI,
   RelationshipInformation,
@@ -40,7 +40,7 @@ export const getMaxStudyId = async () => {
 };
 
 export const updateOrCreateStudy = async (
-  study: SimulationStudy,
+  study: Study,
 ) => {
   return (await api.post('/studies', { item: study })).data;
 };

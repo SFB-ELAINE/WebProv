@@ -7,7 +7,7 @@ export {
 } from './utils';
 
 export {
-  SimulationStudy,
+  Study,
   DependencyType,
   ProvenanceNode,
   ProvenanceNodeType,
@@ -18,7 +18,7 @@ export {
   InformationRelationshipSchema,
   DependencyRelationshipSchema,
   ProvenanceNodeSchema,
-  SimulationStudySchema,
+  StudySchema,
   InformationFieldSchema,
   DependencyRelationship,
 } from './schemas';

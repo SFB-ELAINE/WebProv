@@ -19,7 +19,7 @@ import {
 import { 
   ProvenanceAPI, 
   ProvenanceNodeSchema, 
-  SimulationStudySchema, 
+  StudySchema, 
   DependencyRelationshipSchema, 
   InformationRelationshipSchema, 
   InformationFieldSchema,
@@ -64,7 +64,7 @@ export const resetDatabase = async () => {
   }
 
   for (const study of data.studies) {
-    const result = await updateOrCreate(SimulationStudySchema, study);
+    const result = await updateOrCreate(StudySchema, study);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating stufy: ${result.message}`);
     }
@@ -122,11 +122,11 @@ const create = async () => {
   });
 
   router.get('/studies', async () => {
-    return await getItems(SimulationStudySchema);
+    return await getItems(StudySchema);
   });
 
   router.get('/studies/study-id/max', async () => {
-    return await getMax(SimulationStudySchema, 'studyId');
+    return await getMax(StudySchema, 'studyId');
   });
 
   router.delete('/nodes', async (req) => {
@@ -134,7 +134,7 @@ const create = async () => {
   });
 
   router.delete('/studies', async (req) => {
-    return await deleteItem(SimulationStudySchema, req.query.id);
+    return await deleteItem(StudySchema, req.query.id);
   });
 
   router.post('/nodes', async (req) => {
@@ -163,7 +163,7 @@ const create = async () => {
   });
 
   router.post('/studies', async (req) => {
-    return await updateOrCreate(SimulationStudySchema, req.body.item);
+    return await updateOrCreate(StudySchema, req.body.item);
   });
 
   router.delete('/nodes/dependencies', async (req) => {

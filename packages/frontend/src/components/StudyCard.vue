@@ -1,5 +1,5 @@
 <template>
-  <card title="Simulation Study">
+  <card title="Study">
     <div>
       <b-field class="field" label="Source">
         <b-input 
@@ -25,16 +25,16 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { SimulationStudy, uniqueId } from 'common';
+import { Study, uniqueId } from 'common';
 import { setVue, createComponent, makeRequest } from '@/utils';
 import { value } from 'vue-function-api';
 
 export default createComponent({
-  name: 'SimulationStudyCard',
+  name: 'StudyCard',
   components: { Card },
   props: {
     study: {
-      type: Object as () => SimulationStudy,
+      type: Object as () => Study,
       required: true,
     },
   },

@@ -62,7 +62,7 @@ import {
   InformationField,
   uniqueId,
   ProvenanceNodeType,
-  SimulationStudy,
+  Study,
 } from 'common';
 
 export default createComponent({
@@ -71,7 +71,7 @@ export default createComponent({
   props: {
     node: { type: Object as () => ProvenanceNode, required: true },
     fields: { type: Array as () => InformationField[], required: true },
-    studies: { type: Array as () => SimulationStudy[], required: true },
+    studies: { type: Array as () => Study[], required: true },
   },
   setup(props, context) {
     function updateKey(index: number, newValue: string) {

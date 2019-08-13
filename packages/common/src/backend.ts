@@ -4,7 +4,7 @@ import {
   InformationField,
   InformationRelationship,
   ProvenanceNode,
-  SimulationStudy,
+  Study,
 } from './schemas';
 
 export interface BackendSuccess {
@@ -82,12 +82,12 @@ export interface ProvenanceAPI {
 
   '/studies': {
     GET: {
-      response: BackendError | BackendItems<SimulationStudy>,
+      response: BackendError | BackendItems<Study>,
     }
 
     POST: {
       body: {
-        item: SimulationStudy;
+        item: Study;
       }
       response: BackendSuccess | BackendError;
     }

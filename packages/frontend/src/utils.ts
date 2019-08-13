@@ -4,7 +4,7 @@ import {
   ProvenanceNodeType,
   relationshipRules,
   DependencyType,
-  SimulationStudy,
+  Study,
   uniqueId,
   BackendError,
   BackendNotFound,
@@ -67,18 +67,18 @@ export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
 
 export interface Lookup<T> { [k: string]: T; }
 
-interface SimulationStudyLookup {
-  [studyId: number]: SimulationStudy | undefined;
+interface StudyLookup {
+  [studyId: number]: Study | undefined;
 }
 
 /**
  * Determine the label for the provenance node. If a label is defined, that is used.
  *
  * @param n The node.
- * @param lookup The simulation study lookup. We need this to determine the default label for the model node.
+ * @param lookup The study lookup. We need this to determine the default label for the model node.
  */
 export function getLabel(
-  n: ProvenanceNode, lookup: SimulationStudyLookup, modelVersionLookup: Lookup<number | undefined>,
+  n: ProvenanceNode, lookup: StudyLookup, modelVersionLookup: Lookup<number | undefined>,
 ): string {
   if (n.label) {
     return n.label;
@@ -106,12 +106,12 @@ export function getLabel(
 
       const version = modelVersionLookup[n.id];
       const text = version !== undefined ? `M${version}` : 'M';
-      const simulationStudy = lookup[n.studyId];
-      if (!simulationStudy) {
+      const study = lookup[n.studyId];
+      if (!study) {
         return text;
       }
 
-      return text + ` (${simulationStudy.source})`;
+      return text + ` (${study.source})`;
   }
 }
 

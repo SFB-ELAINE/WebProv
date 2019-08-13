@@ -76,13 +76,13 @@
         <prov-legend-card v-bind="legendProps"></prov-legend-card>
         <div class="spacer"></div>
 
-        <simulation-study-card
+        <study-card
           v-if="selectedStudy"
           :study="selectedStudy"
           @cancel="cancelSelectedStudy"
           @delete="deleteSelectedStudy"
           @save="saveSelectedStudy"
-        ></simulation-study-card>
+        ></study-card>
         <div v-if="selectedStudy" class="spacer"></div>
         
         <select-card
@@ -100,7 +100,7 @@
           v-if="selectedNode"
           :node="selectedNode"
           :fields="selectedNodeInformation"
-          :studies="simulationStudies"
+          :studies="studies"
           @close="deselectNode"
           @delete="deleteNode"
           @update:information:delete="deleteInformationNode"
@@ -131,8 +131,8 @@ import {
   INVALID_ENDPOINT_OUTLINE,
   NODE_HEIGHT,
   NODE_RADIUS,
-  SIMULATION_STUDY_STROKE,
-  SIMULATION_STUDY_WIDTH,
+  STUDY_STROKE,
+  STUDY_WIDTH,
   SELECTED_NODE_OUTLINE,
 } from '@/constants';
 import {
@@ -141,7 +141,7 @@ import {
   relationshipRules,
   DependencyType,
   provenanceNodeTypes,
-  SimulationStudy,
+  Study,
   RelationshipInformation,
   uniqueId,
   tuple,
@@ -177,7 +177,7 @@ import {
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
 import NodeFormCard from '@/components/NodeFormCard.vue';
-import SimulationStudyCard from '@/components/SimulationStudyCard.vue';
+import StudyCard from '@/components/StudyCard.vue';
 import SelectCard from '@/components/SelectCard.vue';
 import { SearchItem, search } from '@/search';
 import * as backend from '@/backend';
@@ -233,7 +233,7 @@ export default createComponent({
     SearchCard,
     SelectCard,
     NodeFormCard,
-    SimulationStudyCard,
+    StudyCard,
     InformationModal,
     Fab,
   },
@@ -258,7 +258,7 @@ export default createComponent({
     const legendProps = {
       nodeOutline: NODE_OUTLINE,
       nodeRadius: NODE_RADIUS,
-      simulationStudyOutline: SIMULATION_STUDY_STROKE,
+      studyOutline: STUDY_STROKE,
     };
 
     // All of the nodes to show
@@ -285,7 +285,7 @@ export default createComponent({
     // will be of the cached type.
     const cachedConnections = value<RelationshipCache>({});
 
-    const simulationStudies = value<SimulationStudy[]>([]);
+    const studies = value<Study[]>([]);
 
     // Whether to show the help information
     const showHelp = value(false);
@@ -331,7 +331,7 @@ export default createComponent({
 
         return {
           id: node.id,
-          label: getLabel(node, simulationStudyLookup.value, modelVersionLookup.value),
+          label: getLabel(node, studyLookup.value, modelVersionLookup.value),
           type: node.type,
           studyId: node.studyId,
           dependencies: nodeDependencies,
@@ -377,7 +377,7 @@ export default createComponent({
     ];
 
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
-    const selectedStudy = value<SimulationStudy | null>(null);
+    const selectedStudy = value<Study | null>(null);
 
     const debouncedRenderGraph = debounce(renderGraph, 500);
     const debouncedUpdateOrCreateNode = debounce((node: ProvenanceNode) => {
@@ -466,8 +466,8 @@ export default createComponent({
       return makeLookup(highLevelNodes.value);
     });
 
-    const simulationStudyLookup = computed(() => {
-      return makeLookupBy(simulationStudies.value, (study) => study.studyId);
+    const studyLookup = computed(() => {
+      return makeLookupBy(studies.value, (study) => study.studyId);
     });
 
     const dependenciesLookup = computed(() => {
@@ -581,7 +581,7 @@ export default createComponent({
       const result = await makeRequest(() => backend.updateOrCreateStudy(study));
       if (result.result === 'success') {
         selectedStudy.value = null;
-        simulationStudies.value.push(study);
+        studies.value.push(study);
       }
     }
 
@@ -594,8 +594,8 @@ export default createComponent({
       const result = await makeRequest(() => backend.deleteStudy(study.id));
       if (result.result === 'success') {
         selectedStudy.value = null;
-        const i = simulationStudies.value.indexOf(study);
-        simulationStudies.value.splice(i, 1);
+        const i = studies.value.indexOf(study);
+        studies.value.splice(i, 1);
       }
     }
 
@@ -620,7 +620,7 @@ export default createComponent({
 
         return {
           id: n.id,
-          title: getLabel(n.node, simulationStudyLookup.value, modelVersionLookup.value),
+          title: getLabel(n.node, studyLookup.value, modelVersionLookup.value),
           type: n.node.type,
           studyId: n.node.studyId,
           studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
@@ -760,7 +760,7 @@ export default createComponent({
         return !nodesToShow.value[connection.target.id];
       });
 
-      const text = getLabel(n, simulationStudyLookup.value, modelVersionLookup.value);
+      const text = getLabel(n, studyLookup.value, modelVersionLookup.value);
       const { x, y } = nodeLookup.value[sourceId] ? nodeLookup.value[sourceId] : pointToPlaceNode.value;
       const node: SingleNode = {
         isGroup: false,
@@ -845,8 +845,8 @@ export default createComponent({
       // Remove studies that are expanded
       studyIds = studyIds.filter((studyId) => !expanded.value[studyId]);
 
-      // First, create all of the simulation study nodes.
-      // These are the collapsed nodes. We only need to create one per simulation study.
+      // First, create all of the study nodes.
+      // These are the collapsed nodes. We only need to create one per study.
       studyIds.forEach((studyId) => {
         // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed
         // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
@@ -861,10 +861,10 @@ export default createComponent({
           index: 0,
           vx: 0,
           vy: 0,
-          stroke: SIMULATION_STUDY_STROKE,
+          stroke: STUDY_STROKE,
           rx: 0,
           text: `M${studyId}`,
-          width: SIMULATION_STUDY_WIDTH,
+          width: STUDY_WIDTH,
           height: NODE_HEIGHT,
           onDidDblclick: () => {
             expanded.value[studyId] = true;
@@ -1170,7 +1170,7 @@ export default createComponent({
 
     onMounted(() => {
       makeRequest(backend.getStudies, (result) => {
-        simulationStudies.value = result.items;
+        studies.value = result.items;
       });
 
       makeRequest(backend.getNodes, (result) => {
@@ -1222,7 +1222,7 @@ export default createComponent({
           return;
         }
 
-        if (simulationStudyLookup.value[result.studyId] === undefined) {
+        if (studyLookup.value[result.studyId] === undefined) {
           context.root.$notification.open({
             message: 'No study exists for this node.',
             position: 'is-top-right',
@@ -1232,7 +1232,7 @@ export default createComponent({
           return;
         }
 
-        selectedStudy.value = simulationStudyLookup.value[result.studyId];
+        selectedStudy.value = studyLookup.value[result.studyId];
       },
       hullDblclick: (d: D3Hull) => {
         expanded.value[d.group] = false;
@@ -1270,7 +1270,7 @@ export default createComponent({
       possibleRelationships,
       cancelRelationshipSelection,
       deleteRelationship,
-      simulationStudies,
+      studies,
     };
   },
 });

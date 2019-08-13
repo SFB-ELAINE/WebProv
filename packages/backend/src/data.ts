@@ -1,5 +1,5 @@
 import {
-  SimulationStudy,
+  Study,
   ProvenanceNode,
   uniqueId,
   InformationField,
@@ -146,7 +146,7 @@ addRelationship({
   },
 })
 
-const study1: SimulationStudy = {
+const study1: Study = {
   id: uniqueId(),
   studyId: 1,
   source: 'Lee et al., PLoS bio. 2003',
@@ -202,7 +202,7 @@ addRelationship({
 })
 
 // M12
-const study12: SimulationStudy = {
+const study12: Study = {
   id: uniqueId(),
   studyId: 12,
   source: 'Haack et al., PLoS comp. bio. 2015',
@@ -539,7 +539,7 @@ export const informationNodes: InformationField[] = [
   WX_3_INFORMATION,
 ]
 
-export const studies: SimulationStudy[] = [
+export const studies: Study[] = [
   study1,
   study12,
 ];

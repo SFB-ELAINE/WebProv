@@ -64,8 +64,8 @@ export const relationshipRules: RelationshipRules = {
   },
 };
 
-export const SimulationStudySchema = n.schema({
-  name: 'SimulationStudy',
+export const StudySchema = n.schema({
+  name: 'Study',
   required: {
     /**
      * The id.
@@ -155,7 +155,7 @@ export type ProvenanceNode = n.TypeOf<typeof ProvenanceNodeSchema>;
 
 export type InformationField = n.TypeOf<typeof InformationFieldSchema>;
 
-export type SimulationStudy = n.TypeOf<typeof SimulationStudySchema>;
+export type Study = n.TypeOf<typeof StudySchema>;
 
 export type ProvenanceNodeType = ProvenanceNode['type'];
 

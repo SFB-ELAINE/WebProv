@@ -61,7 +61,7 @@ export default createComponent({
   props: {
     nodeRadius: { type: Number, required: true },
     nodeOutline: { type: String, required: true },
-    simulationStudyOutline: { type: String, required: true },
+    studyOutline: { type: String, required: true },
   },
   setup(props) {
     return {
@@ -86,8 +86,8 @@ export default createComponent({
           color: props.nodeOutline,
         },
         {
-          type: 'Simulation Study',
-          color: props.simulationStudyOutline,
+          type: 'Study',
+          color: props.studyOutline,
         },
       ],
     };
