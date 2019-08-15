@@ -32,7 +32,6 @@ const model: NodeDefinition = {
   id: uniqueId(),
   name: 'Model',
   classification: 'agent',
-  // TODO version is not right
   labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
 }
 

@@ -13,6 +13,7 @@
       drag
       :pan.sync="pan"
       hulls
+      :hull-click="hullClick"
       :hull-dblclick="hullDblclick"
       :color-changes="colorChanges"
     ></d3>
@@ -40,7 +41,6 @@
         :items="searchItems"
         @open="expandStudy"
         @dependency="showProvenanceGraph"
-        @open-study="openStudy"
       ></search-card>
       <div style="flex: 1"></div>
 
@@ -1176,11 +1176,10 @@ export default createComponent({
       stopEdit: () => {
         showEditTools.value = false;
       },
-      openStudy: (result: SearchItem) => {
-        const studyId = result.study ? result.study.id : undefined;
-        if (studyId === undefined) {
+      hullClick: (d: D3Hull) => {
+        if (studyLookup.value[d.id] === undefined) {
           context.root.$notification.open({
-            message: 'Please assign a study ID first.',
+            message: 'No study exists in the database for this group.',
             position: 'is-top-right',
             type: 'is-warning',
           });
@@ -1188,17 +1187,7 @@ export default createComponent({
           return;
         }
 
-        if (studyLookup.value[studyId] === undefined) {
-          context.root.$notification.open({
-            message: 'No study exists for this node.',
-            position: 'is-top-right',
-            type: 'is-warning',
-          });
-
-          return;
-        }
-
-        selectedStudy.value = studyLookup.value[studyId];
+        selectedStudy.value = studyLookup.value[d.id];
       },
       hullDblclick: (d: D3Hull) => {
         expanded.value[d.id] = false;

@@ -35,13 +35,6 @@
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
-            <b-tooltip label="Open Study Information" position="is-left">
-              <b-button
-                type="is-text"
-                icon-right="information-outline"
-                @click="$emit('open-study', result)"
-              ></b-button>
-            </b-tooltip>
             <b-tooltip label="Show Provenance Graph" position="is-left">
               <b-button
                 style="transform: rotate(-90deg)"

@@ -53,9 +53,37 @@ export const NodeDefinitionSchema = n.schema({
     /**
      * A format string. This template string has access two three variables in it's scope, 
      * including `version` (`number`), `study` (`Study | undefined`) and `node` (`ProvenanceNode`). 
-     * For example, `M${version}${study ? ' (' + study.source  + ')' : ''}`. If an error occurs 
-     * during the evaluation of the template string, then it is ignored and the next means to label 
-     * the node is used.
+     * The `version` is a integer (starting at `1`) that is unique to the node type within the 
+     * study. It is computed using an algorithm that gives a higher number to a node that has more
+     * dependencies. If a node does not have a type, it's version number will be set to `0`. An 
+     * example template string: `M${version}${study ? ' (' + study.source  + ')' : ''}`. If an 
+     * error occurs during the evaluation of the template string, then it is ignored and the next 
+     * means to label the node is used.
+     * 
+     * The following text visualizes an example provenance graph. Each node if either of type `A` 
+     * or type `B`. The number that follows each type is a unique identifier.
+     * 
+     *      ┌── B1
+     *      v
+     *  ┌── A1
+     *  │   ʌ
+     *  v   └── A2
+     *  A3
+     *  ʌ   ┌── B2
+     *  │   v
+     *  └── B3
+     *      ʌ
+     *      └── A4
+     *          ʌ
+     *          └── B4
+     * 
+     * The `version` numbers for each node are as follows:
+     * B1/B3 (0 `B` dependencies each): 1 or 2
+     * B2/B4 (1 `B` dependency each): 3 or 4
+     * A3 (0 `A` dependencies): 1
+     * A1/A4 (1 `A` dependency each): 2 or 3
+     * A2 (2 `A` dependencies): 4
+     * 
      * 
      * See [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) 
      * for more information about template strings.
