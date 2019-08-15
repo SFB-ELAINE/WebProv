@@ -79,9 +79,9 @@
         <study-card
           v-if="selectedStudy"
           :study="selectedStudy"
-          @cancel="cancelSelectedStudy"
+          @close="closeStudyCard"
           @delete="deleteSelectedStudy"
-          @save="saveSelectedStudy"
+          @update="saveSelectedStudy"
         ></study-card>
         <div v-if="selectedStudy" class="spacer"></div>
         
@@ -376,6 +376,10 @@ export default createComponent({
       return makeRequest(() => backend.updateOrCreateNode(node));
     }, 500);
 
+    const debouncedUpdateOrCreateStudy = debounce((study: Study) => {
+      return makeRequest(() => backend.updateOrCreateStudy(study));
+    }, 500);
+
     const debouncedUpdateOrCreateInformationNode = debounce((field: InformationField) => {
       return makeRequest(() => backend.updateOrCreateInformationNode(field));
     }, 500);
@@ -560,7 +564,7 @@ export default createComponent({
       renderGraph();
     }
 
-    function cancelSelectedStudy() {
+    function closeStudyCard() {
       selectedStudy.value = null;
     }
 
@@ -570,11 +574,7 @@ export default createComponent({
       }
 
       const study = selectedStudy.value;
-      const result = await makeRequest(() => backend.updateOrCreateStudy(study));
-      if (result.result === 'success') {
-        selectedStudy.value = null;
-        studies.value.push(study);
-      }
+      debouncedUpdateOrCreateStudy(study);
     }
 
     async function deleteSelectedStudy() {
@@ -625,6 +625,8 @@ export default createComponent({
       selectedStudy.value = {
         id: uniqueId(),
       };
+
+      studies.value.push(selectedStudy.value);
     }
 
     function nodeRightClick(e: MouseEvent, node: SingleNode) {
@@ -1193,7 +1195,11 @@ export default createComponent({
           return;
         }
 
-        selectedStudy.value = studyLookup.value[d.id];
+        if (selectedStudy.value && selectedStudy.value.id === d.id) {
+          selectedStudy.value = null;
+        } else {
+          selectedStudy.value = studyLookup.value[d.id];
+        }
       },
       hullDblclick: (d: D3Hull) => {
         expanded.value[d.id] = false;
@@ -1216,7 +1222,7 @@ export default createComponent({
       createStudy,
       addNode,
       selectedStudy,
-      cancelSelectedStudy,
+      closeStudyCard,
       deleteSelectedStudy,
       saveSelectedStudy,
       selectedNode,

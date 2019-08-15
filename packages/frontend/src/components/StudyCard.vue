@@ -15,9 +15,8 @@
       </b-field>
     </div>
     <template v-slot:footer>
-      <a class="card-footer-item" @click="cancel">Cancel</a>
+      <a class="card-footer-item" @click="close">Close</a>
       <a class="card-footer-item" @click="deleteStudy">Delete</a>
-      <a class="card-footer-item" @click="save">Save</a>
     </template>
   </card>
 </template>
@@ -41,8 +40,8 @@ export default createComponent({
   setup(props, context) {
     const searchModel = value('');
 
-    const cancel = () => {
-      context.emit('cancel');
+    const close = () => {
+      context.emit('close');
     };
 
     const deleteStudy = () => {
@@ -51,14 +50,12 @@ export default createComponent({
 
     const setSource = (source: string) => {
       setVue(props.study, 'source', source);
+      context.emit('update');
     };
 
     const setSignalingPathway = (signalingPathway: string) => {
       setVue(props.study, 'signalingPathway', signalingPathway);
-    };
-
-    const save = () => {
-      context.emit('save');
+      context.emit('update');
     };
 
     return {
@@ -66,8 +63,7 @@ export default createComponent({
       setSignalingPathway,
       searchModel,
       setSource,
-      cancel,
-      save,
+      close,
     };
   },
 });
