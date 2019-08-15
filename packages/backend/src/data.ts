@@ -31,7 +31,7 @@ const addRelationship = <A extends Schema, B extends Schema, R extends Relations
 const model: NodeDefinition = {
   id: uniqueId(),
   name: 'Model',
-  classification: 'agent',
+  classification: 'entity',
   labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
 }
 

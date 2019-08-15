@@ -13,13 +13,14 @@ The first step to setting up your environment involves installing `Node.js` and 
 Next, if not already installed, `Neo4j` should be installed:
 1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
 1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
+1. Start the server using the `neo4j start` command.
 > `Docker` can also be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
 
 Also, create a `.env` file if you don't already have one:
 ```
 GRAPHENEDB_BOLT_URL=bolt://localhost:7687
 GRAPHENEDB_BOLT_USER=neo4j
-GRAPHENEDB_BOLT_PASSWORD=test
+GRAPHENEDB_BOLT_PASSWORD=PASSWORD_THAT_YOU_CREATED
 ```
 > Make sure to place this `.env` file in `packages/backend`.
 
