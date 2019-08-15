@@ -15,6 +15,14 @@ Next, if not already installed, `Neo4j` should be installed:
 1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
 > `Docker` can also be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
 
+Also, create a `.env` file if you don't already have one:
+```
+GRAPHENEDB_BOLT_URL=bolt://localhost:7687
+GRAPHENEDB_BOLT_USER=neo4j
+GRAPHENEDB_BOLT_PASSWORD=test
+```
+> Make sure to place this `.env` file in `packages/backend`.
+
 ### Lerna
 This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is:
 ```
