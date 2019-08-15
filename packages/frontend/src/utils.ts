@@ -1,21 +1,17 @@
 import Vue, { ComponentOptions } from 'vue';
 import {
   ProvenanceNode,
-  ProvenanceNodeType,
-  relationshipRules,
   DependencyType,
   Study,
   uniqueId,
   BackendError,
   BackendNotFound,
-  isValidRelationship,
-  RelationshipInformation,
   keys,
 } from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
-import { DependencyRelationship } from 'common/dist/schemas';
+import { DependencyRelationship, NodeDefinition } from 'common/dist/schemas';
 
 export interface HighLevelRelationship {
   relationship: DependencyRelationship;
@@ -81,84 +77,40 @@ interface StudyLookup {
  * @param lookup The study lookup. We need this to determine the default label for the model node.
  */
 export function getLabel(
-  n: ProvenanceNode, lookup: StudyLookup, modelVersionLookup: Lookup<number | undefined>,
+  node: ProvenanceNode,
+  definition: NodeDefinition | undefined,
+  lookup: StudyLookup,
+  modelVersionLookup: Lookup<number | undefined>,
 ): string {
-  if (n.label) {
-    return n.label;
+  if (node.label) {
+    return node.label;
   }
 
-  switch (n.type) {
-    case 'WetLabData':
-      return 'No Label';
-    case 'ModelBuildingActivity':
-      return 'MBA';
-    case 'SimulationData':
-      return 'No Label';
-    case 'ModelExplorationActivity':
-      return 'MEA';
-    case 'TheoreticalKnowledge':
-      return 'TK';
-    case 'Model':
-      if (n.label) {
-        return n.label;
+  if (definition) {
+    if (definition.labelFormatString) {
+      try {
+        // Don't remove these unused variable
+        // We are injecting it into the scope of the eval
+        const version = modelVersionLookup[node.id];
+        const study = node.studyId ? lookup[node.studyId] : undefined;
+
+        // This isn't super safe, but that doesn't really matter
+        // We don't have any security anyway
+        // tslint:disable-next-line:no-eval
+        return eval('`' + definition.labelFormatString.replace(/`/g, '\\`') + '`') as string;
+      } catch (e) {
+        // tslint:disable-next-line:no-console
+        console.warn(e);
       }
+    }
 
-      if (n.studyId === undefined) {
-        return 'None';
-      }
-
-      const version = modelVersionLookup[n.id];
-      const text = version !== undefined ? `M${version}` : 'M';
-      const study = lookup[n.studyId];
-      if (!study) {
-        return text;
-      }
-
-      return text + ` (${study.source})`;
-  }
-}
-
-interface Can {
-  can: true;
-  connection: {
-    source: string;
-    target: string;
-    properties: DependencyRelationship;
-  };
-}
-
-interface Cant {
-  can: false;
-}
-
-export const createRelationship = (
-  a: ProvenanceNode, b: ProvenanceNode, type?: DependencyType,
-): Can | Cant => {
-  if (!type) {
-    return {
-      can: false,
-    };
+    if (definition.label) {
+      return definition.label;
+    }
   }
 
-  const isValid = isValidRelationship(a, b, type);
-  if (!isValid) {
-    return {
-      can: false,
-    };
-  }
-
-  return {
-    can: true,
-    connection: {
-      source: a.id,
-      target: b.id,
-      properties: {
-        id: uniqueId(),
-        type,
-      },
-    },
-  };
-};
+  return 'No Label';
+}
 
 type Events = keyof WindowEventMap;
 
@@ -249,30 +201,6 @@ export const addEventListeners = (
 };
 
 /**
- * Determines the default relationship between two nodes based on the valid relationship types. If none exist, nothing
- * is returned.
- *
- * @param a The source node.
- * @param b The target node.
- * @returns The default relationship (the first in the list) or nothing if the list of valid relationships is empty.
- */
-export const getDefaultRelationshipType = (a: ProvenanceNodeType, b: ProvenanceNodeType) => {
-  const aRules = relationshipRules[a];
-
-  const rules = aRules[b];
-  if (!rules) {
-    return;
-  }
-
-  const first = rules[0];
-  if (typeof first === 'string') {
-    return first;
-  } else {
-    return first.relationship;
-  }
-};
-
-/**
  * Uppercase the first character of the string.
  *
  * @param s The string to uppercase.
@@ -332,7 +260,7 @@ export function createComponent<Props>(
 // Remove until here
 
 export async function makeRequest<T extends { result: 'success' }>(
-  f: () => Promise<T | BackendError | BackendNotFound>, cb?: (result: T) => void,
+  f: () => Promise<T | BackendError | BackendNotFound>, onSuccess?: (result: T) => void,
 ) {
   let result: T | BackendError | BackendNotFound;
   try {
@@ -360,8 +288,8 @@ export async function makeRequest<T extends { result: 'success' }>(
       type: 'is-danger',
     });
   } else {
-    if (cb) {
-      cb(result);
+    if (onSuccess) {
+      onSuccess(result);
     }
   }
 
@@ -438,88 +366,16 @@ export function getRandomColor() {
   return color;
 }
 
-/**
- * Creates a model version lookup. The ID of the model nodes are used as a key and the values are their version numbers.
- *
- * The algorithm constrains:
- * 1. Every version must be unique.
- * 2. A model of a higher version should not depend on a model of a lower version.
- *
- * To accomplish this, we count how many models each node depends on. Then, we sort the model nodes based on the
- * amount of model nodes each depends on. Then, we use the index as version number (we add one so that the version
- * numbers start at 1).
- *
- * @param highLevelNodes
- */
-export const createModelVersionLookup = (highLevelNodes: HighLevelNode[]): Lookup<number> => {
-  const counts: Lookup<number> = {};
-  const seen = new Set<string>();
-
-  const traverse = (node: HighLevelNode): number => {
-    if (counts[node.id] !== undefined) {
-      return counts[node.id];
+export const addBToA = <O extends { [k: string]: number }>(a: O, b: O) => {
+  keys(b).forEach((k) => {
+    if (!a.hasOwnProperty(k)) {
+      (a as any)[k] = 0;
     }
 
-    // This detects cyclic dependencies
-    if (seen.has(node.id)) {
-      throw Error('Cyclic dependency detected in graph');
-    }
-
-    seen.add(node.id);
-
-    let count = 0;
-    node.outgoing.forEach((outgoing) => {
-      count += traverse(outgoing.target);
-
-      if (outgoing.target.node.type === 'Model') {
-        count++;
-      }
-    });
-
-    counts[node.id] = count;
-    return count;
-  };
-
-  const modelNodes = highLevelNodes.filter((n) => n.node.type === 'Model');
-  modelNodes.forEach((node) => {
-    traverse(node);
+    (a as any)[k] += b[k];
   });
 
-  // sort smallest to largest by count
-  const sorted = modelNodes.sort((a, b) => counts[a.id] - counts[b.id]);
-
-  const lookup: Lookup<number> = {};
-  sorted.forEach((node, i) => {
-    // start the number at 1, not 0
-    lookup[node.id] = i + 1;
-  });
-
-  return lookup;
-};
-
-/**
- * Gets the classification of the node base on the type.
- *
- * This method will need to be removed when a more general solution is created.
- * We can't have hard coded information like this, it will need to be stored in the database.
- *
- * @param type
- */
-export const getClassification = (type: ProvenanceNodeType): 'entity' | 'activity' => {
-  switch (type) {
-    case 'WetLabData':
-      return 'entity';
-    case 'ModelBuildingActivity':
-        return 'activity';
-    case 'SimulationData':
-      return 'entity';
-    case 'ModelExplorationActivity':
-      return 'activity';
-    case 'TheoreticalKnowledge':
-      return 'entity';
-    case 'Model':
-      return 'entity';
-  }
+  return a;
 };
 
 /**

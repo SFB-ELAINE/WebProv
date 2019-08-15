@@ -2,7 +2,6 @@ export {
   uniqueId,
   keys,
   tuple,
-  isValidRelationship,
   getType,
 } from './utils';
 
@@ -10,12 +9,11 @@ export {
   Study,
   DependencyType,
   ProvenanceNode,
-  ProvenanceNodeType,
+  ProvenanceNodeClassification,
   NodeDefinitionSchema,
   NodeDefinition,
   RelationshipRule,
   RelationshipRuleSchema,
-  provenanceNodeTypes,
   InformationField,
   InformationRelationship,
   InformationRelationshipSchema,

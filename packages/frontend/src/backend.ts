@@ -74,6 +74,14 @@ export const getStudies = async () => {
   return (await api.get('/studies')).data;
 };
 
+export const getRules = async () => {
+  return (await api.get('/rules')).data;
+};
+
+export const getDefinitions = async () => {
+  return (await api.get('/definitions')).data;
+};
+
 export const getNodes = async () => {
   return (await api.get('/nodes')).data;
 };

@@ -101,6 +101,7 @@
           :node="selectedNode"
           :fields="selectedNodeInformation"
           :studies="studies"
+          :definitions="definitions"
           @close="deselectNode"
           @delete="deleteNode"
           @update:information:delete="deleteInformationNode"
@@ -136,17 +137,13 @@ import {
   SELECTED_NODE_OUTLINE,
 } from '@/constants';
 import {
-  ProvenanceNodeType,
   ProvenanceNode,
-  relationshipRules,
   DependencyType,
-  provenanceNodeTypes,
   Study,
   RelationshipInformation,
   uniqueId,
   tuple,
   TypeOf,
-  isValidRelationship,
 } from 'common';
 import ProvLegendCard from '@/components/ProvLegendCard.vue';
 import InformationModal from '@/components/InformationModal.vue';
@@ -156,8 +153,6 @@ import {
   getLabel,
   makeLookup,
   addEventListeners,
-  createRelationship,
-  getDefaultRelationshipType,
   get,
   makeRequest,
   makeLookupBy,
@@ -165,11 +160,9 @@ import {
   isDefined,
   getLogger,
   createComponent,
-  createModelVersionLookup,
   HighLevelRelationship,
   HighLevelNode,
   merge,
-  getClassification,
   toTsv,
   TsvRow,
   download,
@@ -182,10 +175,17 @@ import SelectCard from '@/components/SelectCard.vue';
 import { SearchItem, search } from '@/search';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
-import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
+import {
+  DependencyRelationship,
+  InformationField,
+  InformationRelationship,
+  RelationshipRule,
+  NodeDefinition,
+} from 'common/dist/schemas';
 import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
+import { useRules, useDefinitions } from '@/hooks';
 
 interface BaseNode extends D3Node {
   studyId?: string;
@@ -199,7 +199,6 @@ interface GroupNode extends BaseNode {
 interface SingleNode extends BaseNode {
   provenanceNode: ProvenanceNode;
   isGroup: false;
-  type: ProvenanceNodeType;
 }
 
 type Node = SingleNode | GroupNode;
@@ -212,12 +211,6 @@ interface Point {
   x: number;
   y: number;
 }
-
-export type RelationshipCache = {
-  [A in ProvenanceNodeType]?: {
-    [B in ProvenanceNodeType]?: DependencyType;
-  };
-};
 
 const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
@@ -242,6 +235,9 @@ export default createComponent({
     windowWidth: { type: Number, required: true },
   },
   setup(props, context) {
+    const { getDefaultRelationshipType, isValidRelationship, getApplicableRules, createRelationship } = useRules();
+    const { getDefinition, createModelVersionLookup, getClassification, definitions } = useDefinitions();
+
     // The package version number
     const provenanceNodes = value<ProvenanceNode[]>([]);
     const informationNodes = value<InformationField[]>([]);
@@ -280,11 +276,6 @@ export default createComponent({
     // used to display information on a card
     const selectedNode = value<ProvenanceNode | null>(null);
 
-    // This lookup is used to cache selected connections
-    // When a user change the type of relationship, new relatinoships that are created
-    // will be of the cached type.
-    const cachedConnections = value<RelationshipCache>({});
-
     const studies = value<Study[]>([]);
 
     // Whether to show the help information
@@ -297,10 +288,10 @@ export default createComponent({
     const pan = value({ x: 0, y: 0 });
 
     const exportNodes = () => {
+      // TODO export definition
       interface ExportRow {
         id: string;
         label: string;
-        type: ProvenanceNodeType;
         studyId?: string;
         informationFields: Array<{ key: string, value: string }>;
         dependencies: Array<{ target: string, type: DependencyType }>;
@@ -329,10 +320,10 @@ export default createComponent({
         });
 
 
+        const definition = getDefinition(node);
         return {
           id: node.id,
-          label: getLabel(node, studyLookup.value, modelVersionLookup.value),
-          type: node.type,
+          label: getLabel(node, definition, studyLookup.value, modelVersionLookup.value),
           studyId: node.studyId,
           dependencies: nodeDependencies,
           informationFields: nodeInformationFields,
@@ -440,7 +431,7 @@ export default createComponent({
           if (!target) {
             context.root.$notification.open({
               duration: 10000,
-              message: `Connection target not found: ${n.type}(${sourceId}) => ${targetId}`,
+              message: `Connection target not found: ${sourceId} -> ${targetId}`,
               position: 'is-top-right',
               type: 'is-warning',
             });
@@ -622,8 +613,7 @@ export default createComponent({
         const study = n.node.studyId ? studyLookup.value[n.node.studyId] : undefined;
         return {
           id: n.id,
-          title: getLabel(n.node, studyLookup.value, modelVersionLookup.value),
-          type: n.node.type,
+          title: getLabel(n.node, getDefinition(n.node), studyLookup.value, modelVersionLookup.value),
           study,
           extra: values,
         };
@@ -661,17 +651,7 @@ export default createComponent({
       };
 
       const getRelationship = (a: ProvenanceNode, b: ProvenanceNode) => {
-        let defaultRelationshipMap = cachedConnections.value[a.type];
-        if (!defaultRelationshipMap) {
-          defaultRelationshipMap = cachedConnections.value[a.type] = {};
-        }
-
-        let relationship =  defaultRelationshipMap[b.type];
-        if (!relationship) {
-          relationship = defaultRelationshipMap[b.type] = getDefaultRelationshipType(a.type, b.type);
-        }
-
-        return relationship;
+        return getDefaultRelationshipType(a, b);
       };
 
 
@@ -752,14 +732,13 @@ export default createComponent({
         return !nodesToShow.value[connection.target.id];
       });
 
-      const text = getLabel(n, studyLookup.value, modelVersionLookup.value);
+      const text = getLabel(n, getDefinition(n), studyLookup.value, modelVersionLookup.value);
       const { x, y } = nodeLookup.value[sourceId] ? nodeLookup.value[sourceId] : pointToPlaceNode.value;
       const node: SingleNode = {
         isGroup: false,
         id: sourceId,
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
-        type: n.type,
         studyId: n.studyId,
         hullId: n.studyId,
         stroke: NODE_OUTLINE,
@@ -769,7 +748,7 @@ export default createComponent({
         vy: 0,
         index: 0,
         provenanceNode: n,
-        rx: getClassification(n.type) === 'entity' ? 10 : 0,
+        rx: getClassification(n) === 'entity' ? 10 : 0,
         // width and height are essential
         // TODO add requirement to type file
         // they are used in the other js files
@@ -919,25 +898,7 @@ export default createComponent({
 
               const a = c.source.node;
               const b = c.target.node;
-
-              const aRules = relationshipRules[a.type];
-              if (!aRules) {
-                return;
-              }
-
-              const rules = aRules[b.type];
-              if (!rules) {
-                return;
-              }
-
-              currentRelationship.value = c.relationship.type;
-              possibleRelationships.value = rules.map((rule) => {
-                if (typeof rule === 'string') {
-                  return rule;
-                }
-
-                return rule.relationship;
-              });
+              possibleRelationships.value = getApplicableRules(a, b).map((rule) => rule.type).flat();
             },
           };
 
@@ -964,9 +925,18 @@ export default createComponent({
     }
 
     async function addNode() {
+      if (definitions.value.length === 0) {
+        context.root.$notification.open({
+          message: 'No definitions found. Unable to create new node.',
+          position: 'is-top-right',
+          type: 'is-warning',
+        });
+        return;
+      }
+
       const node: ProvenanceNode = {
-        type: 'ModelBuildingActivity',
         id: uniqueId(),
+        definitionId: definitions.value[0].id,
       };
 
       const result = await makeRequest(() => backend.updateOrCreateNode(node));
@@ -998,31 +968,24 @@ export default createComponent({
       const a = selectedConnection.value.source.node;
       const b = selectedConnection.value.target.node;
 
-      const cached = cachedConnections.value[a.type] = cachedConnections.value[a.type] || {};
-      cached[b.type] = relationship;
-
-      const newProperties = {
-        ...originalConnection,
-        type: relationship,
-      };
+      const copy = { ...originalConnection };
+      copy.type = relationship;
 
       const result = await makeRequest(() => backend.updateOrCreateDependency({
         source: connection.source.id,
         target: connection.target.id,
-        properties: newProperties,
-      }));
-      if (result.result !== 'success') {
-        return;
-      }
+        properties: copy,
+      }), () => {
+        // This feels a bit messy
+        // Set the relationship
+        // Set the relationship of the actual data
+        // Then render the graph again
+        currentRelationship.value = relationship;
+        originalConnection.type = relationship;
 
-      // This feels a bit messy
-      // Set the relationship
-      // Set the relationship of the actual data
-      // Then render the graph again
-      currentRelationship.value = relationship;
-      Object.assign(originalConnection, newProperties);
-      renderGraph();
-      cancelRelationshipSelection();
+        renderGraph();
+        cancelRelationshipSelection();
+      });
     }
 
     async function deleteRelationship() {
@@ -1164,7 +1127,7 @@ export default createComponent({
       debouncedRenderGraph();
 
       // Only validate the connections if the type of node changed.
-      if (key === 'type') {
+      if (key === 'definitionId') {
         validateConnections(node);
       }
     }
@@ -1192,6 +1155,7 @@ export default createComponent({
     });
 
     return {
+      definitions,
       dependencies,
       version,
       showHelp,

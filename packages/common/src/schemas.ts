@@ -17,6 +17,7 @@ export const NodeDefinitionSchema = n.schema({
     },
     name: {
       type: n.string,
+      unique: true,
     },
     classification: {
       type: n.union([
@@ -36,10 +37,8 @@ export const NodeDefinitionSchema = n.schema({
   },
 });
 
-export const RelationshipRuleSchema = n.relationship({
+export const RelationshipRuleSchema = n.schema({
   name: 'RelationshipRule',
-  source: NodeDefinitionSchema,
-  target: NodeDefinitionSchema,
   required: {
     id: {
       primary: true,
@@ -54,6 +53,12 @@ export const RelationshipRuleSchema = n.relationship({
         n.literal('one-to-many')
       ]),
     },
+    source: {
+      type: n.string,
+    },
+    target: {
+      type: n.string,
+    }
   },
 });
 
@@ -136,8 +141,6 @@ export const ProvenanceNodeSchema = n.schema({
   },
 });
 
-export const provenanceNodeTypes = NodeDefinitionSchema.required.classification.type.types.map((t) => t.value);
-
 export const InformationRelationshipSchema = n.relationship({
   name: 'HAS_INFORMATION',
   source: ProvenanceNodeSchema,
@@ -175,7 +178,7 @@ export type NodeDefinition = n.TypeOf<typeof NodeDefinitionSchema>;
 
 export type RelationshipRule = n.TypeOf<typeof RelationshipRuleSchema>;
 
-export type ProvenanceNodeType = NodeDefinition['classification'];
+export type ProvenanceNodeClassification = NodeDefinition['classification'];
 
 export type DependencyRelationship = n.TypeOf<typeof DependencyRelationshipSchema>;
 

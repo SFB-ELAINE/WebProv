@@ -13,12 +13,10 @@ import {
   schemas,
   relationships,
   BackendItem,
-  indexes
 } from 'common';
 
 import * as dotenv from 'dotenv';
 import neo4j from 'neo4j-driver';
-import { Index } from 'common/dist/neon';
 dotenv.config();
 
 // All of these are prepended with GRAPHENEDB because we are currently deploying using the Graphene Neo4j add-on for Heroku
@@ -267,21 +265,6 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
   });
 };
 
-export const getMax = async <S extends Schema, K extends keyof TypeOf<S>>(schema: S, key: K) => {
-  return await withHandling(async (): Promise<BackendItem<number> | BackendError> => {
-    const session = driver.session();
-    const result: StatementResult<[number | null]> = await session.run(`
-    MATCH (n:${schema.name}) RETURN MAX(n.${key})
-    `)
-
-    session.close();
-    return {
-      result: 'success',
-      item: result.records[0].get(0) || 0,
-    }
-  });
-}
-
 export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
   schema: R, information: RelationshipInformation<TypeOf<R>>,
 ) => {
@@ -340,36 +323,5 @@ export const initialize = async () => {
     };
   };
 
-  for (const index of indexes) {
-    const keys = index.keys.map((key) => `'${key}'`).join(', ')
-    console.log(`Creating index: ${index.name}`)
-    try {
-      await session.run(`CALL db.index.fulltext.createNodeIndex('${index.name}', ['${index.schema.name}'], [${keys}])`)
-    } catch (e) {
-      // Ignore error, thrown if index already exists
-      // TODO lookup createOrUpdate??
-    }
-  }
-
   session.close();
-}
-
-export const query = async <S extends Schema, I extends Index<S>>(index: I, searchText: string) => {
-  return await withHandling(async (): Promise<BackendItems<any>> => {
-    if (searchText === '') {
-      return {
-        result: 'success',
-        items: [],
-      }
-    }
-
-    const session = driver.session();
-    const result = await session.run(`CALL db.index.fulltext.queryNodes('${index.name}', '${searchText}')`);
-    const results = result.records.map(record => record.get(0));
-    session.close();
-    return {
-      result: 'success',
-      items: results,
-    };
-  })
 }

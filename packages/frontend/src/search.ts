@@ -4,7 +4,6 @@ import { Study } from 'common';
 export interface SearchItem {
   id: string;
   title: string;
-  type: string;
   study: Study | undefined;
   extra: string[];
 }

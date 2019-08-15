@@ -13,8 +13,6 @@ import {
   deleteRelationship,
   deleteRelationshipByType,
   initialize,
-  getMax,
-  query,
 } from './cypher';
 import { 
   ProvenanceAPI, 
@@ -26,8 +24,9 @@ import {
   BackendError,
   BackendNotFound,
   BackendSuccess,
+  RelationshipRuleSchema,
+  NodeDefinitionSchema,
 } from 'common';
-import { ProvenanceNodeIndex } from 'common/dist/schemas';
 
 export function literal<T extends string>(o: T): T {
   return o;
@@ -59,21 +58,21 @@ export const resetDatabase = async () => {
   for (const node of data.nodes) {
     const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
-      console.error(`ERROR: Error creating ${node.type}: ${result.message}`);
+      console.error(`ERROR: Error creating node: ${result.message}`);
     }
   }
 
   for (const study of data.studies) {
     const result = await updateOrCreate(StudySchema, study);
     if (result.result === 'error') {
-      console.error(`ERROR: Error creating stufy: ${result.message}`);
+      console.error(`ERROR: Error creating study: ${result.message}`);
     }
   }
 
-  for (const node of data.informationNodes) {
-    const result = await updateOrCreate(InformationFieldSchema, node);
+  for (const field of data.informationNodes) {
+    const result = await updateOrCreate(InformationFieldSchema, field);
     if (result.result === 'error') {
-      console.error(`ERROR: Error creating information: ${result.message}`);
+      console.error(`ERROR: Error creating field: ${result.message}`);
     }
   }
 
@@ -83,6 +82,20 @@ export const resetDatabase = async () => {
       target: connection.target.id,
       properties: connection.properties,
     });
+  }
+
+  for (const rule of data.rules) {
+    const result = await updateOrCreate(RelationshipRuleSchema, rule);
+    if (result.result === 'error') {
+      console.error(`ERROR: Error creating rule: ${result.message}`);
+    }
+  }
+
+  for (const definition of data.definitions) {
+    const result = await updateOrCreate(NodeDefinitionSchema, definition);
+    if (result.result === 'error') {
+      console.error(`ERROR: Error creating definition: ${result.message}`);
+    }
   }
 };
 
@@ -105,6 +118,14 @@ const create = async () => {
     return 'OK';
   });
 
+  router.get('/rules', async () => {
+    return await getItems(RelationshipRuleSchema);
+  })
+
+  router.get('/definitions', async () => {
+    return await getItems(NodeDefinitionSchema);
+  })
+
   router.get('/information', async () => {
     return await getItems(InformationFieldSchema);
   });
@@ -123,10 +144,6 @@ const create = async () => {
 
   router.get('/studies', async () => {
     return await getItems(StudySchema);
-  });
-
-  router.get('/studies/study-id/max', async () => {
-    return await getMax(StudySchema, 'studyId');
   });
 
   router.delete('/nodes', async (req) => {
@@ -169,10 +186,6 @@ const create = async () => {
   router.delete('/nodes/dependencies', async (req) => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
-
-  router.get('/search' as any, async (req) => {
-    return await query(ProvenanceNodeIndex, req.query.text || '');
-  })
 
   // Heroku sets the port and we must use this port
   const PORT = Number.parseInt(process.env.PORT || '') || 3000;

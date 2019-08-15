@@ -5,6 +5,8 @@ import {
   InformationRelationship,
   ProvenanceNode,
   Study,
+  RelationshipRule,
+  NodeDefinition,
 } from './schemas';
 
 export interface BackendSuccess {
@@ -55,6 +57,18 @@ export interface ProvenanceAPI {
       response: BackendSuccess | BackendNotFound | BackendError;
     },
   };
+
+  '/rules': {
+    GET: {
+      response: BackendError | BackendItems<RelationshipRule>,
+    }
+  }
+
+  '/definitions': {
+    GET: {
+      response: BackendError | BackendItems<NodeDefinition>,
+    }
+  }
 
   '/nodes': {
     GET: {
