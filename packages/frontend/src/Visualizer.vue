@@ -166,6 +166,7 @@ import {
   toTsv,
   TsvRow,
   download,
+  flat,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -834,7 +835,8 @@ export default createComponent({
         const id = '' + studyId;
         const point = nodeLookup.value[id] ? nodeLookup.value[id] : pointToPlaceNode.value;
         const node: GroupNode = {
-          ...point,
+          x: point.x,
+          y: point.y,
           isGroup: true,
           studyId,
           id,
@@ -888,17 +890,21 @@ export default createComponent({
             source,
             target,
             color: c.color,
-            onDidClick: () => {
+            onDidMousedown: (e: MouseEvent) => {
+              e.stopImmediatePropagation();
+            },
+            onDidClick: (e) => {
               if (selectedConnection.value === c) {
                 cancelRelationshipSelection();
                 return;
               }
 
               selectedConnection.value = c;
+              currentRelationship.value = c.relationship.type;
 
               const a = c.source.node;
               const b = c.target.node;
-              possibleRelationships.value = getApplicableRules(a, b).map((rule) => rule.type).flat();
+              possibleRelationships.value = flat(getApplicableRules(a, b).map((rule) => rule.type));
             },
           };
 

@@ -44,3 +44,5 @@ export const NODE_HEIGHT = 40;
 export const NODE_RADIUS = 10;
 export const STUDY_STROKE = 'rgb(0, 0, 0)';
 export const STUDY_WIDTH = 50;
+export const IS_MOBILE = /Mobi|Android/i.test(navigator.userAgent);
+

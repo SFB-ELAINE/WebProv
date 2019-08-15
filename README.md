@@ -2,6 +2,7 @@
 The goal of this project is the create a web platform to automatically visualize a provenance model. The data required to create these visualizations should be stored in a graph database. The web platform will also feature an editor to allow users to manually create provenance models that can be stored within the database.
 
 [Link to Demo](https://sfb-elaine.github.io/WebProv/)
+> The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
 
 ## Environment Setup
 ### Node

@@ -260,6 +260,11 @@ export default createComponent({
           if (d.onDidClick) {
             d.onDidClick(d3.event);
           }
+        })
+        .on('mousedown', (d) => {
+          if (d.onDidMousedown) {
+            d.onDidMousedown(d3.event);
+          }
         });
 
       const link = svg.append('g')

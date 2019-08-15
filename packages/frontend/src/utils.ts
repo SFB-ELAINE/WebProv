@@ -432,3 +432,9 @@ export const download = (args: { filename: string, text: string }) => {
   element.click();
   document.body.removeChild(element);
 };
+
+export const flat = <T>(lists: T[][]) => {
+  const list: T[] = [];
+  lists.forEach((subList) => list.push(...subList));
+  return list;
+};
