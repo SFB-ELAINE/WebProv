@@ -8,10 +8,11 @@
       :links="links"
       :nodes="nodes"
       force 
-      zoom
+      zoomable
       arrows
-      drag
+      draggable
       :pan.sync="pan"
+      :zoom.sync="zoom"
       hulls
       :hull-click="hullClick"
       :hull-dblclick="hullDblclick"
@@ -287,6 +288,9 @@ export default createComponent({
 
     // The current pan of the visualization
     const pan = value({ x: 0, y: 0 });
+
+    // The current zoom of the visualization
+    const zoom = value(0.5);
 
     const exportNodes = () => {
       // TODO export definition
@@ -635,8 +639,8 @@ export default createComponent({
       e.stopImmediatePropagation();
       const setCenter = () => {
         lineStart.value = {
-          x: pan.value.x + node.x + node.width / 2,
-          y: pan.value.y + node.y + node.height / 2,
+          x: pan.value.x + (node.x + node.width / 2) * zoom.value,
+          y: pan.value.y + (node.y + node.height / 2) * zoom.value,
         };
       };
 
@@ -647,8 +651,16 @@ export default createComponent({
         return nodes.value
           .filter(isSingleNode) // we can't make connections to group nodes
           .filter((n) => {
-            const ul = { x: n.x + pan.value.x, y: n.y + pan.value.y }; // upper left corner
-            const lr = { x: ul.x + n.width, y: ul.y + n.height }; // lower right corner
+            // TODO fix with zoom
+            const ul = {
+              x: n.x * zoom.value + pan.value.x,
+              y: n.y * zoom.value + pan.value.y,
+            }; // upper left corner
+
+            const lr = {
+              x: ul.x + n.width,
+              y: ul.y + n.height,
+            }; // lower right corner
             return n !== node && point.x > ul.x && point.y > ul.y && lr.x > point.x && lr.y > point.y;
           });
       };
@@ -1176,6 +1188,7 @@ export default createComponent({
       lineStart,
       lineEnd,
       pan,
+      zoom,
       fabActions,
       searchItems,
       expandStudy,
