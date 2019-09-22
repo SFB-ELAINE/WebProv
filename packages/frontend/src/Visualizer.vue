@@ -290,7 +290,7 @@ export default createComponent({
     const pan = value({ x: 0, y: 0 });
 
     // The current zoom of the visualization
-    const zoom = value(0.5);
+    const zoom = value(1);
 
     const exportNodes = () => {
       // TODO export definition
