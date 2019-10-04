@@ -168,6 +168,10 @@ import {
   TsvRow,
   download,
   flat,
+  exportData,
+  ExportInterfaceRow,
+  importData,
+  notifier,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -292,17 +296,25 @@ export default createComponent({
     // The current zoom of the visualization
     const zoom = value(1);
 
-    const exportNodes = () => {
-      // TODO export definition
-      interface ExportRow {
-        id: string;
-        label: string;
-        studyId?: string;
-        informationFields: Array<{ key: string, value: string }>;
-        dependencies: Array<{ target: string, type: DependencyType }>;
+    const importNodes = async () => {
+      const importResult = await importData();
+      if (importResult.type === 'error') {
+        notifier.danger('An error occured during import.\n' + importResult.message);
+        return;
       }
 
-      const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportRow | undefined => {
+      const data = importResult.data;
+      const uploadResult = await backend.upload(data);
+      if (uploadResult.result === 'error') {
+        notifier.danger('An error occured during the upload to the database.\n' + uploadResult.message);
+        return;
+      }
+
+      notifier.info('Successfully uploaded data to the database. Please refresh the page.');
+    };
+
+    const exportNodes = () => {
+      const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportInterfaceRow | undefined => {
         const show = nodesToShow.value[nodeId];
         if (!show) {
           return;
@@ -313,33 +325,35 @@ export default createComponent({
 
         const connections = getConnections(node.id) || [];
         const nodeDependencies = connections.map((connection) => ({
-          target: connection.target,
+          targetId: connection.target,
           type: connection.properties.type,
+          relationshipId: connection.properties.id,
         }));
 
-        const nodeInformationFields = getInformationNodesFromProvenance(node).map((field) => {
-          return {
-            key: field.key,
-            value: field.value,
-          };
-        });
+        const informationFieldRelationships = getInformationRelationship(node.id);
+        const nodeInformationFields = informationFieldRelationships.map((relationship) => {
+          const informationField = getInformationNode(relationship.target);
+          if (!informationField) {
+            return;
+          }
 
+          return {
+            id: informationField.id,
+            key: informationField.key,
+            value: informationField.value,
+            relationshipId: relationship.properties.id,
+          };
+        }).filter(isDefined);
 
         const definition = getDefinition(node);
         return {
-          id: node.id,
-          label: getLabel(node, definition, studyLookup.value, modelVersionLookup.value),
-          studyId: node.studyId,
+          node,
           dependencies: nodeDependencies,
           informationFields: nodeInformationFields,
         };
-      });
+      }).filter(isDefined);
 
-      const tsv = toTsv(exportRows.filter(isDefined) as any);
-      download({
-        filename: 'exported-provenance-nodes.tsv',
-        text: tsv,
-      });
+      exportData(exportRows);
     };
 
     const fabActions: FabAction[] = [
@@ -352,9 +366,14 @@ export default createComponent({
         },
       },
       {
-        name: 'Export Graph as TSV',
+        name: 'Export Graph as JSON',
         icon: 'cloud_download',
         callback: exportNodes,
+      },
+      {
+        name: 'Import Graph from JSON',
+        icon: 'cloud_upload',
+        callback: importNodes,
       },
       {
         name: 'Show Help',

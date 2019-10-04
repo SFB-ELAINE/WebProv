@@ -1,17 +1,18 @@
 import Vue, { ComponentOptions } from 'vue';
 import {
   ProvenanceNode,
-  DependencyType,
   Study,
-  uniqueId,
   BackendError,
   BackendNotFound,
   keys,
+  DependencyRelationship,
+  RelationshipTypeUnion,
+  NodeDefinition,
 } from 'common';
+import * as c from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
-import { DependencyRelationship, NodeDefinition } from 'common/dist/schemas';
 
 export interface HighLevelRelationship {
   relationship: DependencyRelationship;
@@ -259,6 +260,30 @@ export function createComponent<Props>(
 }
 // Remove until here
 
+const notify = (payload: { indefinite: boolean, message: string, type: 'danger' | 'info' }) => {
+  NotificationProgrammatic.open({
+    indefinite: payload.indefinite,
+    message: payload.message,
+    position: 'is-top-right',
+    type: `is-${payload.type}`,
+  });
+};
+
+export const notifier = {
+  danger(message: string) {
+    notify({
+      message,
+      indefinite: true,
+      type: 'danger',
+    });
+    notify({
+      message,
+      indefinite: true,
+      type: 'info',
+    });
+  },
+};
+
 export async function makeRequest<T extends { result: 'success' }>(
   f: () => Promise<T | BackendError | BackendNotFound>, onSuccess?: (result: T) => void,
 ) {
@@ -274,19 +299,9 @@ export async function makeRequest<T extends { result: 'success' }>(
   }
 
   if (result.result === 'error') {
-    NotificationProgrammatic.open({
-      indefinite: true,
-      message: result.message,
-      position: 'is-top-right',
-      type: 'is-danger',
-    });
+    notifier.danger(result.message);
   } else if (result.result === 'not-found') {
-    NotificationProgrammatic.open({
-      indefinite: true,
-      message: 'Item not found in database',
-      position: 'is-top-right',
-      type: 'is-danger',
-    });
+    notifier.danger('Item not found in database');
   } else {
     if (onSuccess) {
       onSuccess(result);
@@ -433,8 +448,110 @@ export const download = (args: { filename: string, text: string }) => {
   document.body.removeChild(element);
 };
 
+/**
+ * Opens the file picker and filters to the given extension type. Returns a string representing
+ * the contents of the chosen file.
+ *
+ * @param ext The extension.
+ */
+export const upload = async (ext: string): Promise<string> => {
+  ext = ext.trim();
+  if (ext[0] === '.') {
+    ext = ext.slice(1);
+  }
+
+  return '';
+};
+
 export const flat = <T>(lists: T[][]) => {
   const list: T[] = [];
   lists.forEach((subList) => list.push(...subList));
   return list;
+};
+
+const ExportInterfaceRowType = c.type({
+  node: c.intersection([
+    c.type({
+      id: c.string,
+      definitionId: c.string,
+    }),
+    c.partial({
+      studyId: c.string,
+      label: c.string,
+    }),
+  ]),
+  dependencies: c.array(c.type({
+    type: RelationshipTypeUnion,
+    /**
+     * The ID of the target node. The source ID is taken from the node.
+     */
+    targetId: c.string,
+    /**
+     * The ID of the relationship.
+     */
+    relationshipId: c.string,
+  })),
+  informationFields: c.array(c.type({
+    key: c.string,
+    value: c.string,
+    /**
+     * The ID of the information node.
+     */
+    id: c.string,
+    /**
+     * The ID of the relationship.
+     */
+    relationshipId: c.string,
+  })),
+});
+
+const ExportInterfaceType = c.array(ExportInterfaceRowType);
+
+export type ExportInterfaceRow = c.IoTypeOf<typeof ExportInterfaceRowType>;
+export type ExportInterface = c.IoTypeOf<typeof ExportInterfaceType>;
+
+export const exportData = (
+  data: ExportInterface,
+) => {
+  download({
+    filename: 'exported-provenance-nodes.json',
+    text: JSON.stringify(data),
+  });
+};
+
+interface ImportError {
+  type: 'error';
+  message: string;
+}
+
+interface ImportSuccess {
+  type: 'success';
+  data: ExportInterface;
+}
+
+export const importData = async (): Promise<ImportError | ImportSuccess>  => {
+  const str = await upload('.json');
+
+  let json;
+  try {
+    json = JSON.parse(str);
+  } catch (e) {
+    return {
+      type: 'error',
+      message: 'Unable to parse JSON: ' + e.message,
+    };
+  }
+
+  const result = ExportInterfaceType.decode(json);
+  if (c.either.isLeft(result)) {
+    return {
+      type: 'error',
+      message: 'Data is not in expected format\n\n' + c.PathReporter.report(result).join('\n\n'),
+    };
+  }
+
+  return {
+    type: 'success',
+    data: result.right,
+  };
 };

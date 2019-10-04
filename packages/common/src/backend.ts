@@ -48,7 +48,7 @@ export interface ProvenanceAPI {
     }
 
     POST: {
-      body: InformationField;
+      body: InformationField | InformationField[];
       response: BackendSuccess | BackendError;
     }
 
@@ -76,9 +76,7 @@ export interface ProvenanceAPI {
     }
 
     POST: {
-      body: {
-        item: ProvenanceNode;
-      }
+      body: ProvenanceNode | ProvenanceNode[];
       response: BackendSuccess | BackendError;
     }
 

@@ -4,7 +4,7 @@ import * as n from './neon';
  * A comprehensive list of the types of relationships that can be formed between provenance nodes. 
  * Rules restrict the actual relationships that can be formed.
  */
-const RelationshipTypeUnion = n.union([
+export const RelationshipTypeUnion = n.union([
   n.literal('Used'),
   n.literal('Used for validation'),
   n.literal('Used for calibration'),

@@ -1,4 +1,4 @@
-import axios from 'restyped-axios';
+import axios from '@/axios';
 import {
   Study,
   ProvenanceNode,
@@ -7,8 +7,11 @@ import {
   InformationField,
   InformationRelationship,
   DependencyRelationship,
+  BackendError,
+  BackendSuccess,
+  uniqueId,
 } from 'common';
-import { getLogger } from '@/utils';
+import { getLogger, ExportInterface } from '@/utils';
 
 const logger = getLogger();
 
@@ -26,12 +29,12 @@ api.interceptors.request.use((request) => {
 });
 
 export const updateOrCreateNode = async (
-  node: ProvenanceNode,
+  node: ProvenanceNode | ProvenanceNode[],
 ) => {
-  return (await api.post('/nodes', { item: node })).data;
+  return (await api.post('/nodes', node)).data;
 };
 
-export const updateOrCreateInformationNode = async (node: InformationField) => {
+export const updateOrCreateInformationNode = async (node: InformationField | InformationField[]) => {
   return (await api.post('/information', node)).data;
 };
 
@@ -47,6 +50,7 @@ export const updateOrCreateDependency = async (
   return (await api.post('/nodes/dependencies', information)).data;
 };
 
+// TODO refactor this into two functions. This will make it easier
 export const addInformationEntry = async (
   relationship: RelationshipInformation<InformationRelationship>,
   information: InformationField,
@@ -96,4 +100,51 @@ export const getNodeDependencies = async () => {
 
 export const getNodeInformation = async () => {
   return (await api.get('/nodes/information')).data;
+};
+
+export const upload = async (data: ExportInterface): Promise<BackendError | BackendSuccess> => {
+  const allNodes: ProvenanceNode[] = [];
+  const informationRelationships: Array<RelationshipInformation<InformationRelationship>> = [];
+  const allInformationFields: InformationField[] = [];
+
+  data.forEach((row) => {
+    const node = {
+      ...row.node,
+      id: row.node.id || uniqueId(),
+    };
+
+    allNodes.push(node);
+
+    const informationFields = row.informationFields.map((informationField) => ({
+      key: informationField.key,
+      value: informationField.value,
+      id: informationField.id || uniqueId(),
+    }));
+
+    allInformationFields.push(...informationFields);
+
+    informationRelationships.push(...informationFields.map((informationField) => ({
+      source: row.node.id,
+      target: informationField.id,
+      properties: informationField,
+    })));
+  });
+
+  {
+    const result = await updateOrCreateNode(nodes);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create nodes. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateInformationNode();
+  }
+
+  return {
+    result: 'success',
+  };
 };

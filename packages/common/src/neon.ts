@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
-export { boolean, string, number, union, literal, array } from 'io-ts';
+// TODO remove as IoTypeOf
+export { boolean, string, number, union, literal, array, type, TypeOf as IoTypeOf } from 'io-ts';
 
 // neon is just a random name
 // It's based on neo4j
@@ -65,19 +66,32 @@ export const relationship = <
   return r;
 };
 
-type GetTypes<F extends Fields> = { [K in keyof F]: F[K]['type'] };
+export type GetTypes<F extends Fields> = { [K in keyof F]: F[K]['type'] };
 
-type Required<F extends Fields> = t.TypeOf<t.TypeC<GetTypes<F>>>;
+export type Required<F extends Fields> = t.TypeOf<t.TypeC<GetTypes<F>>>;
 
-type Optional<F extends Fields> = t.TypeOf<t.PartialC<GetTypes<F>>>;
+export type Optional<F extends Fields> = t.TypeOf<t.PartialC<GetTypes<F>>>;
 
-type Keys<S extends Schema> = keyof TypeOf<S> & string;
+export type Defined<T> = Exclude<T, undefined>;
 
-type Defined<T> = Exclude<T, undefined>;
-
+/**
+ * Enough information about the relationship so we can identity the source node
+ * and the target node.
+ */
 export interface RelationshipBasics<T> {
+  /**
+   * The source node ID.
+   */
   source: string;
+
+  /**
+   * The target node ID.
+   */
   target: string;
+
+  /**
+   * The properties of the relationship.
+   */
   properties: T;
 }
 

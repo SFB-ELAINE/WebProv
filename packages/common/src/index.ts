@@ -3,7 +3,13 @@ export {
   keys,
   tuple,
   getType,
+  relationshipInformationType,
 } from './utils';
+
+// TODO remove
+export { PathReporter } from 'io-ts/lib/PathReporter'
+export { either } from 'fp-ts';
+export { intersection, partial } from 'io-ts';
 
 export {
   Study,
@@ -22,6 +28,7 @@ export {
   StudySchema,
   InformationFieldSchema,
   DependencyRelationship,
+  RelationshipTypeUnion,
 } from './schemas';
 
 export {
@@ -49,5 +56,8 @@ export {
   TypeOf,
   RelationshipSchema,
   schemas,
+  array,
+  IoTypeOf,
   relationships,
+  type,
 } from './neon';

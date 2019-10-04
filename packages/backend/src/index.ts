@@ -170,6 +170,7 @@ const create = async () => {
     return await getRelationships(InformationRelationshipSchema);
   });
 
+  // TODO this should only create the relatinoship
   router.post('/nodes/information', async (req) => {
     const result1 = await updateOrCreate(InformationFieldSchema, req.body.information);
     if (result1.result !== 'success') {
