@@ -20,16 +20,12 @@ export const RelationshipTypeUnion = n.union([
 export const NodeDefinitionSchema = n.schema({
   name: 'NodeDefinition',
   required: {
+    /**
+     * The ID and human readable name of the node.
+     */
     id: {
       primary: true,
       type: n.string,
-    },
-    /**
-     * The human readable name of the node.
-     */
-    name: {
-      type: n.string,
-      unique: true,
     },
     /**
      * The classification of the node. There are three different possible classifications.
@@ -123,13 +119,13 @@ export const RelationshipRuleSchema = n.schema({
       ]),
     },
     /**
-     * The definition ID of the source.
+     * The definition name of the source.
      */
     source: {
       type: n.string,
     },
     /**
-     * The definition ID of the target.
+     * The definition name of the target.
      */
     target: {
       type: n.string,
@@ -185,7 +181,7 @@ export const ProvenanceNodeSchema = n.schema({
       type: n.string,
     },
     /**
-     * The id of the definition of the node.
+     * The name of the definition of the node.
      * 
      * FIXME If the definition is deleted, then this id will no longer be valid. 
      */

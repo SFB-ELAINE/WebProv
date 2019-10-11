@@ -23,7 +23,7 @@ const toObject = <T>(arg: Array<[string, T]>) => {
 // Required<Defined<S['required']>>, t.TypeC<S['optional']>
 
 type IntersectionHelper<S extends Schema> = t.IntersectionC<
-  [t.TypeC<GetTypes<S['required']>>, t.TypeC<GetTypes<Defined<S['optional']>>>]
+  [t.TypeC<GetTypes<S['required']>>, t.PartialC<GetTypes<Defined<S['optional']>>>]
 >
 
 export const getType = <S extends Schema>(schema: S): IntersectionHelper<S> => {

@@ -9,7 +9,7 @@ export {
 // TODO remove
 export { PathReporter } from 'io-ts/lib/PathReporter'
 export { either } from 'fp-ts';
-export { intersection, partial } from 'io-ts';
+export { intersection, partial, TypeC } from 'io-ts';
 
 export {
   Study,

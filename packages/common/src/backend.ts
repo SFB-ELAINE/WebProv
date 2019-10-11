@@ -1,4 +1,4 @@
-import { RelationshipBasics } from './neon';
+import { RelationshipBasics, RelationshipInformation, Schema } from './neon';
 import {
   DependencyRelationship,
   InformationField,
@@ -37,6 +37,8 @@ export interface BackendNotFound {
   result: 'not-found';
 }
 
+type SingleOrArray<S> = RelationshipInformation<S> | Array<RelationshipInformation<S>>;
+
 export interface ProvenanceAPI {
   '/health': {
     //
@@ -57,6 +59,13 @@ export interface ProvenanceAPI {
       response: BackendSuccess | BackendNotFound | BackendError;
     },
   };
+
+  '/information-relationships': {
+    POST: {
+      body: SingleOrArray<InformationRelationship>;
+      response: BackendError | BackendItems<InformationField>,
+    }
+  }
 
   '/rules': {
     GET: {
@@ -98,9 +107,7 @@ export interface ProvenanceAPI {
     }
 
     POST: {
-      body: {
-        item: Study;
-      }
+      body: Study | Study[];
       response: BackendSuccess | BackendError;
     }
 
@@ -116,7 +123,7 @@ export interface ProvenanceAPI {
     },
 
     POST: {
-      body: RelationshipBasics<DependencyRelationship>
+      body: SingleOrArray<DependencyRelationship>;
       response: BackendSuccess | BackendError;
     }
 

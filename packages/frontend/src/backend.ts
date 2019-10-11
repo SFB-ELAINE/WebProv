@@ -10,6 +10,7 @@ import {
   BackendError,
   BackendSuccess,
   uniqueId,
+  Schema,
 } from 'common';
 import { getLogger, ExportInterface } from '@/utils';
 
@@ -39,15 +40,24 @@ export const updateOrCreateInformationNode = async (node: InformationField | Inf
 };
 
 export const updateOrCreateStudy = async (
-  study: Study,
+  study: Study | Study[],
 ) => {
-  return (await api.post('/studies', { item: study })).data;
+  return (await api.post('/studies', study)).data;
 };
 
+type SingleOrArray<S> = RelationshipInformation<S> | Array<RelationshipInformation<S>>;
+
+
 export const updateOrCreateDependency = async (
-  information: RelationshipInformation<DependencyRelationship>,
+  information: SingleOrArray<DependencyRelationship>,
 ) => {
   return (await api.post('/nodes/dependencies', information)).data;
+};
+
+export const updateOrCreateInformationRelationship = async (
+  information: SingleOrArray<InformationRelationship>,
+) => {
+  return (await api.post('/information-relationships', information)).data;
 };
 
 // TODO refactor this into two functions. This will make it easier
@@ -103,45 +113,56 @@ export const getNodeInformation = async () => {
 };
 
 export const upload = async (data: ExportInterface): Promise<BackendError | BackendSuccess> => {
-  const allNodes: ProvenanceNode[] = [];
-  const informationRelationships: Array<RelationshipInformation<InformationRelationship>> = [];
-  const allInformationFields: InformationField[] = [];
 
-  data.forEach((row) => {
-    const node = {
-      ...row.node,
-      id: row.node.id || uniqueId(),
-    };
-
-    allNodes.push(node);
-
-    const informationFields = row.informationFields.map((informationField) => ({
-      key: informationField.key,
-      value: informationField.value,
-      id: informationField.id || uniqueId(),
-    }));
-
-    allInformationFields.push(...informationFields);
-
-    informationRelationships.push(...informationFields.map((informationField) => ({
-      source: row.node.id,
-      target: informationField.id,
-      properties: informationField,
-    })));
-  });
 
   {
-    const result = await updateOrCreateNode(nodes);
+    const result = await updateOrCreateNode(data.provenanceNodes);
     if (result.result === 'error') {
       return {
         result: 'error',
-        message: 'Unable to create nodes. Please try again.\n\n' + result.message,
+        message: 'Unable to create provenance nodes. Please try again.\n\n' + result.message,
       };
     }
   }
 
   {
-    const result = await updateOrCreateInformationNode();
+    const result = await updateOrCreateInformationNode(data.informationFields);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create information nodes. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateDependency(data.dependencyRelationships);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create provenance node dependencies. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateInformationRelationship(data.informationRelationships);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create information relationships. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateStudy(data.studies);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create information relationships. Please try again.\n\n' + result.message,
+      };
+    }
   }
 
   return {

@@ -276,6 +276,8 @@ export const notifier = {
       indefinite: true,
       type: 'danger',
     });
+  },
+  info(message: string) {
     notify({
       message,
       indefinite: true,
@@ -505,7 +507,22 @@ const ExportInterfaceRowType = c.type({
   })),
 });
 
-const ExportInterfaceType = c.array(ExportInterfaceRowType);
+const getRelationshipInformationType = <S extends c.Schema>(t: S) => {
+  return c.type({
+    source: c.string,
+    target: c.string,
+    properties: c.getType(t),
+  });
+};
+
+// const ExportInterfaceType = c.array(ExportInterfaceRowType);
+const ExportInterfaceType = c.type({
+  provenanceNodes: c.array(c.getType(c.ProvenanceNodeSchema)),
+  informationFields: c.array(c.getType(c.InformationFieldSchema)),
+  informationRelationships: c.array(getRelationshipInformationType(c.InformationRelationshipSchema)),
+  dependencyRelationships: c.array(getRelationshipInformationType(c.DependencyRelationshipSchema)),
+  studies: c.array(c.getType(c.StudySchema)),
+});
 
 export type ExportInterfaceRow = c.IoTypeOf<typeof ExportInterfaceRowType>;
 export type ExportInterface = c.IoTypeOf<typeof ExportInterfaceType>;

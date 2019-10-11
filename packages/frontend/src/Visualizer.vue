@@ -314,46 +314,44 @@ export default createComponent({
     };
 
     const exportNodes = () => {
-      const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportInterfaceRow | undefined => {
-        const show = nodesToShow.value[nodeId];
-        if (!show) {
-          return;
-        }
+      const provenanceNodesForExport = provenanceNodes.value.filter((node) => {
+        return nodesToShow.value.hasOwnProperty(node.id);
+      });
 
-        const highLevelNode = highLevelNodeLookup.value[nodeId];
-        const node = highLevelNode.node;
+      const dependenciesForExport = dependencies.value.filter((dependency) => {
+        return (
+          nodesToShow.value.hasOwnProperty(dependency.source) &&
+          nodesToShow.value.hasOwnProperty(dependency.target)
+        );
+      });
 
-        const connections = getConnections(node.id) || [];
-        const nodeDependencies = connections.map((connection) => ({
-          targetId: connection.target,
-          type: connection.properties.type,
-          relationshipId: connection.properties.id,
-        }));
+      const informationRelationshipsForExport = informationRelations.value.filter((informationRelation) => {
+        return nodesToShow.value.hasOwnProperty(informationRelation.source);
+      });
 
-        const informationFieldRelationships = getInformationRelationship(node.id);
-        const nodeInformationFields = informationFieldRelationships.map((relationship) => {
-          const informationField = getInformationNode(relationship.target);
-          if (!informationField) {
-            return;
-          }
+      const informationFieldsForExportIds = new Set(
+        informationRelationshipsForExport.map((informatinoRelationship) => informatinoRelationship.target),
+      );
 
-          return {
-            id: informationField.id,
-            key: informationField.key,
-            value: informationField.value,
-            relationshipId: relationship.properties.id,
-          };
-        }).filter(isDefined);
+      const informationFieldsForExport = informationNodes.value.filter((informationField) => {
+        return informationFieldsForExportIds.has(informationField.id);
+      });
 
-        const definition = getDefinition(node);
-        return {
-          node,
-          dependencies: nodeDependencies,
-          informationFields: nodeInformationFields,
-        };
-      }).filter(isDefined);
+      const studyIdsForExport = new Set(
+        provenanceNodesForExport.map((provenanceNode) => provenanceNode.studyId).filter(isDefined),
+      );
 
-      exportData(exportRows);
+      const studiesForExport = studies.value.filter((study) => {
+        return studyIdsForExport.has(study.id);
+      });
+
+      exportData({
+        provenanceNodes: provenanceNodesForExport,
+        informationFields: informationFieldsForExport,
+        informationRelationships: informationRelationshipsForExport,
+        dependencyRelationships: dependenciesForExport,
+        studies: studiesForExport,
+      });
     };
 
     const fabActions: FabAction[] = [

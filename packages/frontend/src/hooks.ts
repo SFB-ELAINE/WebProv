@@ -1,5 +1,5 @@
 import { computed, value, onMounted, Wrapper } from 'vue-function-api';
-import { makeLookup, makeRequest, addBToA, Lookup, HighLevelNode } from '@/utils';
+import { makeLookup, makeRequest, addBToA, Lookup, HighLevelNode, makeLookupBy } from '@/utils';
 import {
   NodeDefinition,
   ProvenanceNode,
@@ -173,11 +173,11 @@ export const useDefinitions = () => {
           continue;
         }
 
-        if (!count.hasOwnProperty(definition.name)) {
-          count[definition.name] = 0;
+        if (!count.hasOwnProperty(definition.id)) {
+          count[definition.id] = 0;
         }
 
-        count[definition.name]++;
+        count[definition.id]++;
       }
 
       fullCountsLookup[node.id] = count;
@@ -191,7 +191,7 @@ export const useDefinitions = () => {
     const counts: Lookup<number> = {};
     highLevelNodes.forEach((node) => {
       const definition = getDefinition(node.node);
-      counts[node.id] = definition ? fullCountsLookup[node.id][definition.name] : 0;
+      counts[node.id] = definition ? fullCountsLookup[node.id][definition.id] : 0;
     });
 
     // sort smallest to largest by count
@@ -206,15 +206,15 @@ export const useDefinitions = () => {
         return;
       }
 
-      if (!indices.hasOwnProperty(definition.name)) {
-        indices[definition.name] = 0;
+      if (!indices.hasOwnProperty(definition.id)) {
+        indices[definition.id] = 0;
       }
 
       // add one before so that the number starts at 1
-      indices[definition.name]++;
+      indices[definition.id]++;
 
       // start the number at 1, not 0
-      lookup[node.id] = indices[definition.name];
+      lookup[node.id] = indices[definition.id];
     });
 
     return lookup;
