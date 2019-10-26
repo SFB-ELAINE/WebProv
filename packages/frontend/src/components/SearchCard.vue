@@ -66,8 +66,7 @@
 import Vue from 'vue';
 import Card from '@/components/Card.vue';
 import { SearchItem, search } from '@/search';
-import { createComponent } from '@/utils';
-import { value } from 'vue-function-api';
+import { ref, createComponent } from '@vue/composition-api';
 import { IS_MOBILE } from '../constants';
 
 export default createComponent({
@@ -82,9 +81,11 @@ export default createComponent({
     items: { type: Array as () => SearchItem[], required: true },
   },
   setup(props, context) {
-    const refs = context.refs as { card: Vue, input: Vue & { focus: () => void } };
-    const results = value<SearchItem[]>([]);
-    const searchText = value('');
+    const cardRef = ref<Vue>(null);
+    const inputRef = ref<Vue & { focus: () => void }>(null);
+
+    const results = ref<SearchItem[]>([]);
+    const searchText = ref('');
 
     function checkEnter(e: MouseEvent) {
       if (e.which === 13) { // ENTER
@@ -99,15 +100,19 @@ export default createComponent({
     }
 
     function startSearch() {
+      if (!cardRef.value || !inputRef.value) {
+        return;
+      }
+
       const loadingComponent = context.root.$loading.open({
-        container: refs.card.$el,
+        container: cardRef.value.$el,
       });
 
 
       if (IS_MOBILE) {
         // Blur the input when the search is started. This is very useful for touch devices
         // If we don't do this, anytime the user touches the screen the keyboard will open
-        const input = refs.input.$refs.input as HTMLInputElement;
+        const input = inputRef.value.$refs.input as HTMLInputElement;
         input.blur();
       }
 
@@ -118,7 +123,9 @@ export default createComponent({
     function clear() {
       results.value = [];
       searchText.value = '';
-      refs.input.focus();
+      if (inputRef.value) {
+        inputRef.value.focus();
+      }
     }
 
     return {
@@ -128,6 +135,8 @@ export default createComponent({
       checkEmpty,
       checkEnter,
       clear,
+      card: cardRef,
+      input: inputRef,
     };
   },
 });

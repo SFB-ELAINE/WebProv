@@ -52,8 +52,7 @@ import Card from '@/components/Card.vue';
 import D3 from '@/components/D3.vue';
 import Relationship from '@/components/Relationship.vue';
 import Node from '@/components/Node.vue';
-import { createComponent } from '@/utils';
-import { computed } from 'vue-function-api';
+import { computed, createComponent } from '@vue/composition-api';
 
 export default createComponent({
   name: 'ProvLegendCard',

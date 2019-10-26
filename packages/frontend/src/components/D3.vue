@@ -14,8 +14,8 @@ import * as d3 from 'd3';
 import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { intersection, createComponent, getRandomColor, addEventListener, update } from '@/utils';
-import { computed, watch, onMounted, value } from 'vue-function-api';
+import { intersection, getRandomColor, addEventListener, update } from '@/utils';
+import { computed, watch, onMounted, ref, createComponent } from '@vue/composition-api';
 import svgPanZoom from 'svg-pan-zoom';
 import { makeLookup, Lookup } from 'common';
 
@@ -54,10 +54,10 @@ export default createComponent({
     colorChanges: { type: Array as () => D3NodeColorCombo[], default: () => [] },
   },
   setup(props, context) {
-    const refs = context.refs as { svg: SVGElement };
+    const svgRef = ref<SVGElement>(null);
 
-    const addedLinks = value<MyLink[]>([]);
-    const addedNodes = value<D3Node[]>([]);
+    const addedLinks = ref<MyLink[]>([]);
+    const addedNodes = ref<D3Node[]>([]);
     let selection: d3.Selection<any, D3Node, any, any> | null = null;
     const curve = d3.line().curve(d3.curveCardinalClosed.tension(0.85));
 
@@ -198,7 +198,7 @@ export default createComponent({
 
     let svgPanZoomInstance: SvgPanZoom.Instance | undefined;
     function doRender() {
-      const svg = d3.select(refs.svg);
+      const svg = d3.select(svgRef.value);
       svg.selectAll('*').remove();
 
       const checkAndCall = <V>(f?: (v: V) => void) => (v: V) => {
@@ -493,7 +493,7 @@ export default createComponent({
           }
 
 
-          const instance = svgPanZoomInstance = svgPanZoom(refs.svg, {
+          const instance = svgPanZoomInstance = svgPanZoom(svgRef.value!, {
             fit: false,
             center: false,
             dblClickZoomEnabled: false,
@@ -548,6 +548,7 @@ export default createComponent({
           disposer.dispose();
         });
       },
+      svg: svgRef,
     };
   },
 });

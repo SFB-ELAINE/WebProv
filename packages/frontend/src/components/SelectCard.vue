@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { createComponent } from '@/utils';
+import { createComponent } from '@vue/composition-api';
 
 export default createComponent({
   name: 'SelectCard',
