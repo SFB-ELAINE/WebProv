@@ -270,31 +270,32 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
 };
 
 export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
-  schema: R, information: RelationshipInformation<TypeOf<R>>,
+  schema: R, relationships: RelationshipInformation<TypeOf<R>> | Array<RelationshipInformation<TypeOf<R>>>,
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
-    const type = getType(schema);
     const session = driver.session();
 
-    console.info(`Creating information relationship between ${information.source} and ${information.target}`);
-    const result: StatementResult<[Neo4jRelationship<R>]> = await session.run(
+    if (!Array.isArray(relationships)) {
+      relationships = [relationships];
+    }
+
+    const result: StatementResult<[Neo4jRelationship<R>[]]> = await session.run(
       `
-      MATCH (a:${schema.source.name} { id: $source }), (b:${schema.target.name} { id: $target })
+      UNWIND $relationships AS relationship
+      MATCH (a:${schema.source.name} { id: relationship.source }), (b:${schema.target.name} { id: relationship.target })
       MERGE (a)-[r:${schema.name}]->(b)
-      ON CREATE SET r = $props
-      ON MATCH SET r = $props
+      ON CREATE SET r = relationship.properties
+      ON MATCH SET r = relationship.properties
       RETURN r
       `, 
       { 
-        source: information.source, 
-        target: information.target, 
-        props: type.encode(information.properties) 
+        relationships,
       }
     )
 
     session.close();
     
-    if (result.records.length !== 1) {
+    if (result.records[0].length !== relationships.length) {
       return {
         result: 'error',
         message: 'Connection not created/updated successfully.'

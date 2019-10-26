@@ -313,19 +313,18 @@ export default createComponent({
 
     const exportNodes = () => {
       const provenanceNodesForExport = provenanceNodes.value.filter((node) => {
-        return true || nodesToShow.value.hasOwnProperty(node.id);
+        return nodesToShow.value.hasOwnProperty(node.id);
       });
 
       const dependenciesForExport = dependencies.value.filter((dependency) => {
         return (
-          true ||
           nodesToShow.value.hasOwnProperty(dependency.source) &&
           nodesToShow.value.hasOwnProperty(dependency.target)
         );
       });
 
       const informationRelationshipsForExport = informationRelations.value.filter((informationRelation) => {
-        return true || nodesToShow.value.hasOwnProperty(informationRelation.source);
+        return nodesToShow.value.hasOwnProperty(informationRelation.source);
       });
 
       const informationFieldsForExportIds = new Set(

@@ -1,939 +1,1533 @@
 {
-  "models" : [ null, {
-    "id" : 1,
-    "source" : "Lee et al., PLoS Bio. 2003"
-  }, {
-    "id" : 2,
-    "source" : "Cho et al., FEBS Let. 2006"
-  }, {
-    "id" : 3,
-    "source" : "van Leeuwen et al., J. o. Theor. Bio. 2007"
-  }, {
-    "id" : 4,
-    "source" : "Wawra et al., FEBS Let. 2007"
-  }, {
-    "id" : 5,
-    "source" : "Goldbeter et al., J. o. Theor. Bio. 2008"
-  }, {
-    "id" : 6,
-    "source" : "Mirams et al., J. o. Math. Bio. 2009"
-  }, {
-    "id" : 7,
-    "source" : "van Leeuwen et al., Cell Prol. 2009"
-  }, {
-    "id" : 8,
-    "source" : "Kogan et al., Biochem. J. 2012"
-  }, {
-    "id" : 9,
-    "source" : "Mazemondet et al., PLoS ONE 2012"
-  }, {
-    "id" : 10,
-    "source" : "Wang et al., Theor. Bio. and Med. Mod. 2013"
-  }, {
-    "id" : 11,
-    "source" : "Chen et al., PLoS ONE 2014"
-  }, {
-    "id" : 12,
-    "source" : "Haack et al., PLoS comp. bio. 2015"
-  } ],
-  "nodes" : {
-    "A001923050" : {
-      "id" : "A001923050",
-      "information" : [ [ "Cell line", "Xenopus egg extract" ], [ "Source", "Salic et al. 2000" ] ],
-      "name" : "W13",
-      "studyId" : 13,
-      "type" : "wet-lab-data"
-    },
-    "A009285831" : {
-      "connections" : [ {
-        "id" : "A153297771",
-        "targetId" : "A449736921",
-        "type" : "generated-by"
-      } ],
-      "id" : "A009285831",
-      "studyId" : 12,
-      "type" : "model",
-      "version" : 1
-    },
-    "A010799370" : {
-      "connections" : [ {
-        "id" : "A829142539",
-        "targetId" : "A103132485",
-        "type" : "used"
-      } ],
-      "id" : "A010799370",
-      "studyId" : 1,
-      "type" : "model-exploration-activity"
-    },
-    "A012633800" : {
-      "id" : "A012633800",
-      "information" : [ [ "Source", "Jho 2002" ] ],
-      "name" : "W15",
-      "studyId" : 15,
-      "type" : "wet-lab-data"
-    },
-    "A079697865" : {
-      "id" : "A079697865",
-      "information" : [ [ "Source", "Hernandez et al. 2012" ] ],
-      "name" : "W29",
-      "studyId" : 29,
-      "type" : "wet-lab-data"
-    },
-    "A086920068" : {
-      "connections" : [ {
-        "id" : "A460682375",
-        "targetId" : "A103132485",
-        "type" : "used"
-      }, {
-        "id" : "A201019328",
-        "targetId" : "A079697865",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A230313490",
-        "targetId" : "A569827115",
-        "type" : "used-for-calibration"
-      } ],
-      "id" : "A086920068",
-      "studyId" : 11,
-      "type" : "model-building-activity"
-    },
-    "A093483763" : {
-      "id" : "A093483763",
-      "information" : [ [ "Source", "Wawrzak et al., Biochem. and Biophys. Comm. 2007" ] ],
-      "name" : "W24",
-      "studyId" : 24,
-      "type" : "wet-lab-data"
-    },
-    "A099330504" : {
-      "connections" : [ {
-        "id" : "A627480201",
-        "targetId" : "A734340245",
-        "type" : "generated-by"
-      } ],
-      "id" : "A099330504",
-      "studyId" : 3,
-      "type" : "model"
-    },
-    "A103132485" : {
-      "connections" : [ {
-        "id" : "A157398225",
-        "targetId" : "A314876427",
-        "type" : "generated-by"
-      } ],
-      "id" : "A103132485",
-      "studyId" : 1,
-      "type" : "model",
-      "version" : 1
-    },
-    "A115044825" : {
-      "connections" : [ {
-        "id" : "A879962977",
-        "targetId" : "A103132485",
-        "type" : "used"
-      }, {
-        "id" : "A318258038",
-        "targetId" : "A508066469",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A964994780",
-        "targetId" : "A884573140",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A157918541",
-        "targetId" : "A115493412",
-        "type" : "used-for-calibration"
-      } ],
-      "id" : "A115044825",
-      "studyId" : 9,
-      "type" : "model-building-activity"
-    },
-    "A115493412" : {
-      "id" : "A115493412",
-      "information" : [ [ "Source", "Krieghoff et al., J. of Cell S. 2006" ] ],
-      "name" : "W25",
-      "studyId" : 25,
-      "type" : "wet-lab-data"
-    },
-    "A124842097" : {
-      "connections" : [ {
-        "id" : "A484321281",
-        "targetId" : "A449736921",
-        "type" : "generated-by"
-      } ],
-      "id" : "A124842097",
-      "name" : "S12_1",
-      "studyId" : 12,
-      "type" : "simulation-data"
-    },
-    "A127294063" : {
-      "connections" : [ {
-        "id" : "A483217241",
-        "targetId" : "A146522066",
-        "type" : "used"
-      } ],
-      "id" : "A127294063",
-      "studyId" : 6,
-      "type" : "model-exploration-activity"
-    },
-    "A134256186" : {
-      "connections" : [ {
-        "id" : "A959815028",
-        "targetId" : "A255192436",
-        "type" : "generated-by"
-      } ],
-      "id" : "A134256186",
-      "studyId" : 10,
-      "type" : "model"
-    },
-    "A143395797" : {
-      "id" : "A143395797",
-      "information" : [ [ "Cell line", "Xenopus egg extract" ] ],
-      "name" : "W1_2",
-      "studyId" : 1,
-      "type" : "wet-lab-data"
-    },
-    "A146522066" : {
-      "connections" : [ {
-        "id" : "A993355264",
-        "targetId" : "A746508654",
-        "type" : "generated-by"
-      } ],
-      "id" : "A146522066",
-      "studyId" : 6,
-      "type" : "model"
-    },
-    "A149742941" : {
-      "connections" : [ {
-        "id" : "A586430924",
-        "targetId" : "A127294063",
-        "type" : "generated-by"
-      } ],
-      "id" : "A149742941",
-      "name" : "S6_1",
-      "studyId" : 6,
-      "type" : "simulation-data"
-    },
-    "A183997002" : {
-      "id" : "A183997002",
-      "information" : [ [ "Cell line", "HEK293T" ], [ "Source", "Sakane et al., J. of Cell Sc. 2010" ] ],
-      "name" : "W37",
-      "studyId" : 37,
-      "type" : "wet-lab-data"
-    },
-    "A195351062" : {
-      "connections" : [ {
-        "id" : "A556890467",
-        "targetId" : "A115044825",
-        "type" : "generated-by"
-      } ],
-      "id" : "A195351062",
-      "name" : "S9_3",
-      "studyId" : 9,
-      "type" : "simulation-data"
-    },
-    "A195411586" : {
-      "connections" : [ {
-        "id" : "A617520613",
-        "targetId" : "A522044492",
-        "type" : "generated-by"
-      } ],
-      "id" : "A195411586",
-      "name" : "S5_1",
-      "studyId" : 5,
-      "type" : "simulation-data"
-    },
-    "A195472778" : {
-      "connections" : [ {
-        "id" : "A718074209",
-        "targetId" : "A226313155",
-        "type" : "generated-by"
-      } ],
-      "id" : "A195472778",
-      "studyId" : 2,
-      "type" : "model"
-    },
-    "A201740434" : {
-      "connections" : [ {
-        "id" : "A759226829",
-        "targetId" : "A911689798",
-        "type" : "generated-by"
-      } ],
-      "id" : "A201740434",
-      "name" : "S4_2",
-      "studyId" : 4,
-      "type" : "simulation-data"
-    },
-    "A208331684" : {
-      "connections" : [ {
-        "id" : "A554955107",
-        "targetId" : "A103132485",
-        "type" : "used"
-      }, {
-        "id" : "A224119448",
-        "targetId" : "A012633800",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A989366007",
-        "targetId" : "A299066927",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A027809498",
-        "targetId" : "A378036419",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A282536599",
-        "targetId" : "A496767979",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A326876118",
-        "targetId" : "A986153283",
-        "type" : "used-for-validation"
-      } ],
-      "id" : "A208331684",
-      "studyId" : 4,
-      "type" : "model-building-activity"
-    },
-    "A226313155" : {
-      "connections" : [ {
-        "id" : "A590893149",
-        "targetId" : "A508066469",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A933153432",
-        "targetId" : "A103132485",
-        "type" : "used"
-      } ],
-      "id" : "A226313155",
-      "studyId" : 2,
-      "type" : "model-building-activity"
-    },
-    "A231149992" : {
-      "connections" : [ {
-        "id" : "A779142138",
-        "targetId" : "A846747356",
-        "type" : "generated-by"
-      } ],
-      "id" : "A231149992",
-      "type" : "model"
-    },
-    "A250901843" : {
-      "connections" : [ {
-        "id" : "A939511728",
-        "targetId" : "A297655804",
-        "type" : "generated-by"
-      } ],
-      "id" : "A250901843",
-      "name" : "S10_1",
-      "studyId" : 10,
-      "type" : "simulation-data"
-    },
-    "A255192436" : {
-      "connections" : [ {
-        "id" : "A164635299",
-        "targetId" : "A698314747",
-        "type" : "used"
-      }, {
-        "id" : "A547741801",
-        "targetId" : "A587875740",
-        "type" : "used-for-validation"
-      } ],
-      "id" : "A255192436",
-      "studyId" : 10,
-      "type" : "model-building-activity"
-    },
-    "A263151338" : {
-      "connections" : [ {
-        "id" : "A884581666",
-        "targetId" : "A859883803",
-        "type" : "used"
-      } ],
-      "id" : "A263151338",
-      "name" : "S7_1",
-      "studyId" : 7,
-      "type" : "model-exploration-activity"
-    },
-    "A297655804" : {
-      "connections" : [ {
-        "id" : "A318584975",
-        "targetId" : "A134256186",
-        "type" : "used"
-      } ],
-      "id" : "A297655804",
-      "studyId" : 10,
-      "type" : "model-exploration-activity"
-    },
-    "A299066927" : {
-      "id" : "A299066927",
-      "information" : [ [ "Source", "Kim 2006" ] ],
-      "name" : "W16",
-      "studyId" : 16,
-      "type" : "wet-lab-data"
-    },
-    "A314876427" : {
-      "connections" : [ {
-        "id" : "A033823498",
-        "targetId" : "A001923050",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A923648947",
-        "targetId" : "A875657907",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A954551814",
-        "targetId" : "A143395797",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A201270081",
-        "targetId" : "A784472316",
-        "type" : "used-for-calibration"
-      } ],
-      "id" : "A314876427",
-      "studyId" : 1,
-      "type" : "model-building-activity"
-    },
-    "A332057791" : {
-      "connections" : [ {
-        "id" : "A846984467",
-        "targetId" : "A531431430",
-        "type" : "generated-by"
-      } ],
-      "id" : "A332057791",
-      "name" : "S11_1",
-      "studyId" : 11,
-      "type" : "simulation-data"
-    },
-    "A334613561" : {
-      "id" : "A334613561",
-      "information" : [ [ "Cell line", "hNPCs" ] ],
-      "name" : "Wx_3",
-      "studyId" : 12,
-      "type" : "wet-lab-data"
-    },
-    "A354063635" : {
-      "connections" : [ {
-        "id" : "A012770038",
-        "targetId" : "A115044825",
-        "type" : "generated-by"
-      } ],
-      "id" : "A354063635",
-      "studyId" : 9,
-      "type" : "model"
-    },
-    "A366615769" : {
-      "connections" : [ {
-        "id" : "A184637883",
-        "targetId" : "A099330504",
-        "type" : "used"
-      } ],
-      "id" : "A366615769",
-      "studyId" : 3,
-      "type" : "model-exploration-activity"
-    },
-    "A373641592" : {
-      "connections" : [ {
-        "id" : "A805899372",
-        "targetId" : "A086920068",
-        "type" : "generated-by"
-      } ],
-      "id" : "A373641592",
-      "studyId" : 11,
-      "type" : "model"
-    },
-    "A378036419" : {
-      "id" : "A378036419",
-      "information" : [ [ "Source", "Lewis 2003" ] ],
-      "name" : "W17",
-      "studyId" : 17,
-      "type" : "wet-lab-data"
-    },
-    "A401406521" : {
-      "connections" : [ {
-        "id" : "A921766187",
-        "targetId" : "A812936428",
-        "type" : "generated-by"
-      } ],
-      "id" : "A401406521",
-      "studyId" : 8,
-      "type" : "model"
-    },
-    "A403111294" : {
-      "connections" : [ {
-        "id" : "A451834337",
-        "targetId" : "A115044825",
-        "type" : "generated-by"
-      } ],
-      "id" : "A403111294",
-      "name" : "S9_1",
-      "studyId" : 9,
-      "type" : "simulation-data"
-    },
-    "A414408274" : {
-      "connections" : [ {
-        "id" : "A041501683",
-        "targetId" : "A115044825",
-        "type" : "generated-by"
-      } ],
-      "id" : "A414408274",
-      "name" : "S9_2",
-      "studyId" : 9,
-      "type" : "simulation-data"
-    },
-    "A416514212" : {
-      "connections" : [ {
-        "id" : "A872470318",
-        "targetId" : "A195472778",
-        "type" : "used"
-      } ],
-      "id" : "A416514212",
-      "studyId" : 2,
-      "type" : "model-exploration-activity"
-    },
-    "A449736921" : {
-      "connections" : [ {
-        "id" : "A652901294",
-        "targetId" : "A928132133",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A947844170",
-        "targetId" : "A873140939",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A887179402",
-        "targetId" : "A183997002",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A747369366",
-        "targetId" : "A508066469",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A723528216",
-        "targetId" : "A875657907",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A490167297",
-        "targetId" : "A726853443",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A963316505",
-        "targetId" : "A648265268",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A015041146",
-        "targetId" : "A378036419",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A468399385",
-        "targetId" : "A115493412",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A233070083",
-        "targetId" : "A884573140",
-        "type" : "used-for-calibration"
-      } ],
-      "id" : "A449736921",
-      "studyId" : 12,
-      "type" : "model-building-activity"
-    },
-    "A468252252" : {
-      "connections" : [ {
-        "id" : "A373126013",
-        "targetId" : "A532219776",
-        "type" : "generated-by"
-      } ],
-      "id" : "A468252252",
-      "name" : "S12_2",
-      "studyId" : 12,
-      "type" : "simulation-data"
-    },
-    "A471418901" : {
-      "connections" : [ {
-        "id" : "A620270307",
-        "targetId" : "A517739361",
-        "type" : "generated-by"
-      } ],
-      "id" : "A471418901",
-      "name" : "S8_1",
-      "studyId" : 8,
-      "type" : "simulation-data"
-    },
-    "A496767979" : {
-      "id" : "A496767979",
-      "information" : [ [ "Source", "Dequeant 2006" ] ],
-      "name" : "W18",
-      "studyId" : 18,
-      "type" : "wet-lab-data"
-    },
-    "A508066469" : {
-      "connections" : [ {
-        "id" : "A926079891",
-        "targetId" : "A010799370",
-        "type" : "generated-by"
-      } ],
-      "id" : "A508066469",
-      "name" : "S1_2",
-      "studyId" : 1,
-      "type" : "simulation-data"
-    },
-    "A510706108" : {
-      "connections" : [ {
-        "id" : "A493141600",
-        "targetId" : "A263151338",
-        "type" : "generated-by"
-      } ],
-      "id" : "A510706108",
-      "name" : "S7_1",
-      "studyId" : 7,
-      "type" : "simulation-data"
-    },
-    "A517739361" : {
-      "connections" : [ {
-        "id" : "A810385840",
-        "targetId" : "A401406521",
-        "type" : "used"
-      } ],
-      "id" : "A517739361",
-      "studyId" : 8,
-      "type" : "model-exploration-activity"
-    },
-    "A522044492" : {
-      "connections" : [ {
-        "id" : "A502410131",
-        "targetId" : "A698314747",
-        "type" : "used"
-      } ],
-      "id" : "A522044492",
-      "studyId" : 5,
-      "type" : "model-exploration-activity"
-    },
-    "A523037001" : {
-      "connections" : [ {
-        "id" : "A222360789",
-        "targetId" : "A911689798",
-        "type" : "generated-by"
-      } ],
-      "id" : "A523037001",
-      "name" : "S4_1",
-      "studyId" : 4,
-      "type" : "simulation-data"
-    },
-    "A531431430" : {
-      "connections" : [ {
-        "id" : "A936223210",
-        "targetId" : "A373641592",
-        "type" : "used"
-      } ],
-      "id" : "A531431430",
-      "studyId" : 11,
-      "type" : "model-exploration-activity"
-    },
-    "A532219776" : {
-      "connections" : [ {
-        "id" : "A205773933",
-        "targetId" : "A334613561",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A132082052",
-        "targetId" : "A874108436",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A811693098",
-        "targetId" : "A800156116",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A503849941",
-        "targetId" : "A009285831",
-        "type" : "used"
-      } ],
-      "id" : "A532219776",
-      "studyId" : 12,
-      "type" : "model-building-activity"
-    },
-    "A537508193" : {
-      "connections" : [ {
-        "id" : "A526145911",
-        "targetId" : "A208331684",
-        "type" : "generated-by"
-      } ],
-      "id" : "A537508193",
-      "studyId" : 4,
-      "type" : "model"
-    },
-    "A537669126" : {
-      "id" : "A537669126",
-      "type" : "model"
-    },
-    "A547420081" : {
-      "connections" : [ {
-        "id" : "A100180184",
-        "targetId" : "A263151338",
-        "type" : "generated-by"
-      } ],
-      "id" : "A547420081",
-      "name" : "S7_2",
-      "studyId" : 7,
-      "type" : "simulation-data"
-    },
-    "A560906719" : {
-      "connections" : [ {
-        "id" : "A318309660",
-        "targetId" : "A532219776",
-        "type" : "generated-by"
-      } ],
-      "id" : "A560906719",
-      "studyId" : 12,
-      "type" : "model",
-      "version" : 2
-    },
-    "A569827115" : {
-      "id" : "A569827115",
-      "information" : [ [ "Source", "Kim et al. 2013" ] ],
-      "name" : "W30",
-      "studyId" : 30,
-      "type" : "wet-lab-data"
-    },
-    "A587875740" : {
-      "id" : "A587875740",
-      "information" : [ [ "Source", "Gibb et al., Devel. Bio. 2009" ] ],
-      "name" : "W28",
-      "studyId" : 28,
-      "type" : "wet-lab-data"
-    },
-    "A648265268" : {
-      "id" : "A648265268",
-      "information" : [ [ "Source", "Bafico" ] ],
-      "name" : "W40",
-      "studyId" : 40,
-      "type" : "wet-lab-data"
-    },
-    "A660188117" : {
-      "id" : "A660188117",
-      "information" : [ [ "Source", "Galli et al., Devel. Dyn. 2006" ] ],
-      "name" : "W23",
-      "studyId" : 23,
-      "type" : "wet-lab-data"
-    },
-    "A698314747" : {
-      "connections" : [ {
-        "id" : "A576025749",
-        "targetId" : "A935744816",
-        "type" : "generated-by"
-      } ],
-      "id" : "A698314747",
-      "studyId" : 5,
-      "type" : "model"
-    },
-    "A726853443" : {
-      "id" : "A726853443",
-      "information" : [ [ "Source", "Ozhan et al., 2013" ] ],
-      "name" : "W38",
-      "studyId" : 38,
-      "type" : "wet-lab-data"
-    },
-    "A734340245" : {
-      "connections" : [ {
-        "id" : "A684949186",
-        "targetId" : "A103132485",
-        "type" : "used"
-      } ],
-      "id" : "A734340245",
-      "studyId" : 3,
-      "type" : "model-building-activity"
-    },
-    "A746508654" : {
-      "connections" : [ {
-        "id" : "A014194191",
-        "targetId" : "A103132485",
-        "type" : "used"
-      }, {
-        "id" : "A040117917",
-        "targetId" : "A195472778",
-        "type" : "used"
-      } ],
-      "id" : "A746508654",
-      "studyId" : 6,
-      "type" : "model-building-activity"
-    },
-    "A759753362" : {
-      "connections" : [ {
-        "id" : "A376241068",
-        "targetId" : "A416514212",
-        "type" : "generated-by"
-      } ],
-      "id" : "A759753362",
-      "name" : "S2_1",
-      "studyId" : 2,
-      "type" : "simulation-data"
-    },
-    "A773216340" : {
-      "id" : "A773216340",
-      "name" : "W8_1",
-      "studyId" : 8,
-      "type" : "wet-lab-data"
-    },
-    "A784472316" : {
-      "id" : "A784472316",
-      "information" : [ [ "Source", "Lee 2001" ] ],
-      "name" : "W14",
-      "studyId" : 14,
-      "type" : "wet-lab-data"
-    },
-    "A800156116" : {
-      "id" : "A800156116",
-      "information" : [ [ "Cell line", "Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)" ] ],
-      "name" : "W12_3",
-      "studyId" : 12,
-      "type" : "wet-lab-data"
-    },
-    "A801017673" : {
-      "connections" : [ {
-        "id" : "A455397573",
-        "targetId" : "A099330504",
-        "type" : "used"
-      } ],
-      "id" : "A801017673",
-      "studyId" : 7,
-      "type" : "model-building-activity"
-    },
-    "A812936428" : {
-      "connections" : [ {
-        "id" : "A448378409",
-        "targetId" : "A103132485",
-        "type" : "used"
-      }, {
-        "id" : "A544937964",
-        "targetId" : "A773216340",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A668060884",
-        "targetId" : "A944983313",
-        "type" : "used-for-calibration"
-      }, {
-        "id" : "A146917745",
-        "targetId" : "A660188117",
-        "type" : "used-for-validation"
-      }, {
-        "id" : "A265739467",
-        "targetId" : "A093483763",
-        "type" : "used-for-validation"
-      } ],
-      "id" : "A812936428",
-      "studyId" : 8,
-      "type" : "model-building-activity"
-    },
-    "A843913264" : {
-      "connections" : [ {
-        "id" : "A658524739",
-        "targetId" : "A115044825",
-        "type" : "generated-by"
-      } ],
-      "id" : "A843913264",
-      "name" : "S9_4",
-      "studyId" : 9,
-      "type" : "simulation-data"
-    },
-    "A846747356" : {
-      "id" : "A846747356",
-      "type" : "model-building-activity"
-    },
-    "A859883803" : {
-      "connections" : [ {
-        "id" : "A794772243",
-        "targetId" : "A801017673",
-        "type" : "generated-by"
-      } ],
-      "id" : "A859883803",
-      "studyId" : 7,
-      "type" : "model"
-    },
-    "A873140939" : {
-      "id" : "A873140939",
-      "information" : [ [ "Cell line", "Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)" ], [ "Source", "Pralle et al., J. of Cell Bio. 2000" ] ],
-      "name" : "W39",
-      "studyId" : 39,
-      "type" : "wet-lab-data"
-    },
-    "A874108436" : {
-      "id" : "A874108436",
-      "information" : [ [ "Cell line", "hNPCs" ] ],
-      "name" : "W12_2",
-      "studyId" : 12,
-      "type" : "wet-lab-data"
-    },
-    "A875657907" : {
-      "id" : "A875657907",
-      "information" : [ [ "Cell line", "Xenopus egg extract" ] ],
-      "name" : "W1_1",
-      "studyId" : 1,
-      "type" : "wet-lab-data"
-    },
-    "A884573140" : {
-      "id" : "A884573140",
-      "name" : "W9_1",
-      "studyId" : 9,
-      "type" : "wet-lab-data"
-    },
-    "A906920809" : {
-      "connections" : [ {
-        "id" : "A716389702",
-        "targetId" : "A366615769",
-        "type" : "generated-by"
-      } ],
-      "id" : "A906920809",
-      "name" : "S2_1",
-      "studyId" : 3,
-      "type" : "simulation-data"
-    },
-    "A911689798" : {
-      "connections" : [ {
-        "id" : "A230036818",
-        "targetId" : "A537508193",
-        "type" : "used"
-      } ],
-      "id" : "A911689798",
-      "studyId" : 4,
-      "type" : "model-exploration-activity"
-    },
-    "A928132133" : {
-      "id" : "A928132133",
-      "information" : [ [ "Cell line", "hNPCs" ] ],
-      "name" : "W12_1",
-      "studyId" : 12,
-      "type" : "wet-lab-data"
-    },
-    "A935744816" : {
-      "connections" : [ {
-        "id" : "A034016956",
-        "targetId" : "A103132485",
-        "type" : "used"
-      } ],
-      "id" : "A935744816",
-      "studyId" : 5,
-      "type" : "model-building-activity"
-    },
-    "A944983313" : {
-      "id" : "A944983313",
-      "information" : [ [ "Source", "Hannoush et al., PLoS ONE 2008" ] ],
-      "name" : "W22",
-      "studyId" : 22,
-      "type" : "wet-lab-data"
-    },
-    "A985633245" : {
-      "connections" : [ {
-        "id" : "A035298222",
-        "targetId" : "A314876427",
-        "type" : "generated-by"
-      } ],
-      "id" : "A985633245",
-      "name" : "S1_1",
-      "studyId" : 1,
-      "type" : "simulation-data"
-    },
-    "A986153283" : {
-      "id" : "A986153283",
-      "information" : [ [ "Source", "Tam 1981" ] ],
-      "name" : "W19",
-      "studyId" : 19,
-      "type" : "wet-lab-data"
-    }
-  }
+  "provenanceNodes": [
+      {
+          "studyId": "A443197215",
+          "id": "A103132485",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A400650917",
+          "id": "A115044825",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "id": "A115493412",
+          "label": "W25",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A291499317",
+          "label": "S12_1",
+          "id": "A124842097",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A865810124",
+          "id": "A127294063",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A475414004",
+          "id": "A134256186",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A443197215",
+          "label": "W1_2",
+          "id": "A143395797",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A865810124",
+          "id": "A146522066",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A865810124",
+          "label": "S6_1",
+          "id": "A149742941",
+          "definitionId": "SimulationData"
+      },
+      {
+          "id": "A183997002",
+          "label": "W37",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A400650917",
+          "label": "S9_3",
+          "id": "A195351062",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A026341463",
+          "label": "S5_1",
+          "id": "A195411586",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A550807320",
+          "id": "A195472778",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A389456510",
+          "label": "S4_2",
+          "id": "A201740434",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A389456510",
+          "id": "A208331684",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A550807320",
+          "id": "A226313155",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "id": "A231149992",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A475414004",
+          "label": "S10_1",
+          "id": "A250901843",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A475414004",
+          "id": "A255192436",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A642654412",
+          "label": "S7_1",
+          "id": "A263151338",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A475414004",
+          "id": "A297655804",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "id": "A299066927",
+          "label": "W16",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A443197215",
+          "id": "A314876427",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A272562262",
+          "label": "S11_1",
+          "id": "A332057791",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A291499317",
+          "label": "Wx_3",
+          "id": "A334613561",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A400650917",
+          "id": "A354063635",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A061364775",
+          "id": "A366615769",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A272562262",
+          "id": "A373641592",
+          "definitionId": "Model"
+      },
+      {
+          "id": "A378036419",
+          "label": "W17",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A524331478",
+          "id": "A401406521",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A400650917",
+          "label": "S9_1",
+          "id": "A403111294",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A400650917",
+          "label": "S9_2",
+          "id": "A414408274",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A550807320",
+          "id": "A416514212",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A291499317",
+          "id": "A449736921",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A291499317",
+          "label": "S12_2",
+          "id": "A468252252",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A524331478",
+          "label": "S8_1",
+          "id": "A471418901",
+          "definitionId": "SimulationData"
+      },
+      {
+          "id": "A496767979",
+          "label": "W18",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A443197215",
+          "label": "S1_2",
+          "id": "A508066469",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A642654412",
+          "label": "S7_1",
+          "id": "A510706108",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A524331478",
+          "id": "A517739361",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A026341463",
+          "id": "A522044492",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A389456510",
+          "label": "S4_1",
+          "id": "A523037001",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A272562262",
+          "id": "A531431430",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A291499317",
+          "id": "A532219776",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A389456510",
+          "id": "A537508193",
+          "definitionId": "Model"
+      },
+      {
+          "id": "A537669126",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A642654412",
+          "label": "S7_2",
+          "id": "A547420081",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A291499317",
+          "id": "A560906719",
+          "definitionId": "Model"
+      },
+      {
+          "id": "A569827115",
+          "label": "W30",
+          "definitionId": "WetLabData"
+      },
+      {
+          "id": "A587875740",
+          "label": "W28",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A642654412",
+          "id": "A859883803",
+          "definitionId": "Model"
+      },
+      {
+          "id": "A873140939",
+          "label": "W39",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A291499317",
+          "label": "W12_2",
+          "id": "A874108436",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A443197215",
+          "label": "W1_1",
+          "id": "A875657907",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A400650917",
+          "label": "W9_1",
+          "id": "A884573140",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A061364775",
+          "label": "S2_1",
+          "id": "A906920809",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A389456510",
+          "id": "A911689798",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "studyId": "A291499317",
+          "label": "W12_1",
+          "id": "A928132133",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A026341463",
+          "id": "A935744816",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "id": "A944983313",
+          "label": "W22",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A443197215",
+          "label": "S1_1",
+          "id": "A985633245",
+          "definitionId": "SimulationData"
+      },
+      {
+          "id": "A986153283",
+          "label": "W19",
+          "definitionId": "WetLabData"
+      },
+      {
+          "id": "A001923050",
+          "label": "W13",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A291499317",
+          "id": "A009285831",
+          "definitionId": "Model"
+      },
+      {
+          "studyId": "A443197215",
+          "id": "A010799370",
+          "definitionId": "ModelExplorationActivity"
+      },
+      {
+          "id": "A012633800",
+          "label": "W15",
+          "definitionId": "WetLabData"
+      },
+      {
+          "id": "A079697865",
+          "label": "W29",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A272562262",
+          "id": "A086920068",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "id": "A093483763",
+          "label": "W24",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A061364775",
+          "id": "A099330504",
+          "definitionId": "Model"
+      },
+      {
+          "id": "A648265268",
+          "label": "W40",
+          "definitionId": "WetLabData"
+      },
+      {
+          "id": "A660188117",
+          "label": "W23",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A026341463",
+          "id": "A698314747",
+          "definitionId": "Model"
+      },
+      {
+          "id": "A726853443",
+          "label": "W38",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A061364775",
+          "id": "A734340245",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A865810124",
+          "id": "A746508654",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A550807320",
+          "label": "S2_1",
+          "id": "A759753362",
+          "definitionId": "SimulationData"
+      },
+      {
+          "studyId": "A524331478",
+          "label": "W8_1",
+          "id": "A773216340",
+          "definitionId": "WetLabData"
+      },
+      {
+          "id": "A784472316",
+          "label": "W14",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A291499317",
+          "label": "W12_3",
+          "id": "A800156116",
+          "definitionId": "WetLabData"
+      },
+      {
+          "studyId": "A642654412",
+          "id": "A801017673",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A524331478",
+          "id": "A812936428",
+          "definitionId": "ModelBuildingActivity"
+      },
+      {
+          "studyId": "A400650917",
+          "label": "S9_4",
+          "id": "A843913264",
+          "definitionId": "SimulationData"
+      },
+      {
+          "id": "A846747356",
+          "definitionId": "ModelBuildingActivity"
+      }
+  ],
+  "informationFields": [
+      {
+          "value": "Tam 1981",
+          "key": "Source",
+          "id": "A567425625"
+      },
+      {
+          "value": "Xenopus egg extract",
+          "key": "Cell line",
+          "id": "A549723921"
+      },
+      {
+          "value": "Salic et al. 2000",
+          "key": "Source",
+          "id": "A268035528"
+      },
+      {
+          "value": "Jho 2002",
+          "key": "Source",
+          "id": "A909910474"
+      },
+      {
+          "value": "Hernandez et al. 2012",
+          "key": "Source",
+          "id": "A176924227"
+      },
+      {
+          "value": "Wawrzak et al., Biochem. and Biophys. Comm. 2007",
+          "key": "Source",
+          "id": "A522430646"
+      },
+      {
+          "value": "Krieghoff et al., J. of Cell S. 2006",
+          "key": "Source",
+          "id": "A159839467"
+      },
+      {
+          "value": "Xenopus egg extract",
+          "key": "Cell line",
+          "id": "A309803545"
+      },
+      {
+          "value": "HEK293T",
+          "key": "Cell line",
+          "id": "A388794180"
+      },
+      {
+          "value": "Sakane et al., J. of Cell Sc. 2010",
+          "key": "Source",
+          "id": "A006482425"
+      },
+      {
+          "value": "Kim 2006",
+          "key": "Source",
+          "id": "A187729071"
+      },
+      {
+          "value": "hNPCs",
+          "key": "Cell line",
+          "id": "A596323318"
+      },
+      {
+          "value": "Lewis 2003",
+          "key": "Source",
+          "id": "A754015277"
+      },
+      {
+          "value": "Dequeant 2006",
+          "key": "Source",
+          "id": "A908829694"
+      },
+      {
+          "value": "Kim et al. 2013",
+          "key": "Source",
+          "id": "A520986441"
+      },
+      {
+          "value": "Gibb et al., Devel. Bio. 2009",
+          "key": "Source",
+          "id": "A920613545"
+      },
+      {
+          "value": "Bafico",
+          "key": "Source",
+          "id": "A318069133"
+      },
+      {
+          "value": "Galli et al., Devel. Dyn. 2006",
+          "key": "Source",
+          "id": "A941199274"
+      },
+      {
+          "value": "Ozhan et al., 2013",
+          "key": "Source",
+          "id": "A554197222"
+      },
+      {
+          "value": "Lee 2001",
+          "key": "Source",
+          "id": "A439040245"
+      },
+      {
+          "value": "Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)",
+          "key": "Cell line",
+          "id": "A752721262"
+      },
+      {
+          "value": "Diverse cell lines (L, HIH3T3, N1E-115, nHPC, BHK, PTK2)",
+          "key": "Cell line",
+          "id": "A617140747"
+      },
+      {
+          "value": "Pralle et al., J. of Cell Bio. 2000",
+          "key": "Source",
+          "id": "A641533512"
+      },
+      {
+          "value": "hNPCs",
+          "key": "Cell line",
+          "id": "A788388534"
+      },
+      {
+          "value": "Xenopus egg extract",
+          "key": "Cell line",
+          "id": "A828933252"
+      },
+      {
+          "value": "hNPCs",
+          "key": "Cell line",
+          "id": "A897470588"
+      },
+      {
+          "value": "Hannoush et al., PLoS ONE 2008",
+          "key": "Source",
+          "id": "A249596612"
+      }
+  ],
+  "informationRelationships": [
+      {
+          "properties": {
+              "id": "A077357120"
+          },
+          "source": "A986153283",
+          "target": "A567425625"
+      },
+      {
+          "properties": {
+              "id": "A397927799"
+          },
+          "source": "A001923050",
+          "target": "A549723921"
+      },
+      {
+          "properties": {
+              "id": "A532677223"
+          },
+          "source": "A001923050",
+          "target": "A268035528"
+      },
+      {
+          "properties": {
+              "id": "A084145730"
+          },
+          "source": "A012633800",
+          "target": "A909910474"
+      },
+      {
+          "properties": {
+              "id": "A533084681"
+          },
+          "source": "A079697865",
+          "target": "A176924227"
+      },
+      {
+          "properties": {
+              "id": "A309978465"
+          },
+          "source": "A093483763",
+          "target": "A522430646"
+      },
+      {
+          "properties": {
+              "id": "A967373028"
+          },
+          "source": "A115493412",
+          "target": "A159839467"
+      },
+      {
+          "properties": {
+              "id": "A846992911"
+          },
+          "source": "A143395797",
+          "target": "A309803545"
+      },
+      {
+          "properties": {
+              "id": "A692797655"
+          },
+          "source": "A183997002",
+          "target": "A388794180"
+      },
+      {
+          "properties": {
+              "id": "A321640926"
+          },
+          "source": "A183997002",
+          "target": "A006482425"
+      },
+      {
+          "properties": {
+              "id": "A224403953"
+          },
+          "source": "A299066927",
+          "target": "A187729071"
+      },
+      {
+          "properties": {
+              "id": "A675820567"
+          },
+          "source": "A334613561",
+          "target": "A596323318"
+      },
+      {
+          "properties": {
+              "id": "A711832983"
+          },
+          "source": "A378036419",
+          "target": "A754015277"
+      },
+      {
+          "properties": {
+              "id": "A644785101"
+          },
+          "source": "A496767979",
+          "target": "A908829694"
+      },
+      {
+          "properties": {
+              "id": "A854622840"
+          },
+          "source": "A569827115",
+          "target": "A520986441"
+      },
+      {
+          "properties": {
+              "id": "A456327376"
+          },
+          "source": "A587875740",
+          "target": "A920613545"
+      },
+      {
+          "properties": {
+              "id": "A019807007"
+          },
+          "source": "A648265268",
+          "target": "A318069133"
+      },
+      {
+          "properties": {
+              "id": "A213572109"
+          },
+          "source": "A660188117",
+          "target": "A941199274"
+      },
+      {
+          "properties": {
+              "id": "A417312384"
+          },
+          "source": "A726853443",
+          "target": "A554197222"
+      },
+      {
+          "properties": {
+              "id": "A291093502"
+          },
+          "source": "A784472316",
+          "target": "A439040245"
+      },
+      {
+          "properties": {
+              "id": "A079289839"
+          },
+          "source": "A800156116",
+          "target": "A752721262"
+      },
+      {
+          "properties": {
+              "id": "A092353485"
+          },
+          "source": "A873140939",
+          "target": "A617140747"
+      },
+      {
+          "properties": {
+              "id": "A152734723"
+          },
+          "source": "A873140939",
+          "target": "A641533512"
+      },
+      {
+          "properties": {
+              "id": "A250548288"
+          },
+          "source": "A874108436",
+          "target": "A788388534"
+      },
+      {
+          "properties": {
+              "id": "A803683560"
+          },
+          "source": "A875657907",
+          "target": "A828933252"
+      },
+      {
+          "properties": {
+              "id": "A659260355"
+          },
+          "source": "A928132133",
+          "target": "A897470588"
+      },
+      {
+          "properties": {
+              "id": "A031717058"
+          },
+          "source": "A944983313",
+          "target": "A249596612"
+      }
+  ],
+  "dependencyRelationships": [
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A157398225"
+          },
+          "source": "A103132485",
+          "target": "A314876427"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A157918541"
+          },
+          "source": "A115044825",
+          "target": "A115493412"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A964994780"
+          },
+          "source": "A115044825",
+          "target": "A884573140"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A318258038"
+          },
+          "source": "A115044825",
+          "target": "A508066469"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A879962977"
+          },
+          "source": "A115044825",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A484321281"
+          },
+          "source": "A124842097",
+          "target": "A449736921"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A483217241"
+          },
+          "source": "A127294063",
+          "target": "A146522066"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A959815028"
+          },
+          "source": "A134256186",
+          "target": "A255192436"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A993355264"
+          },
+          "source": "A146522066",
+          "target": "A746508654"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A586430924"
+          },
+          "source": "A149742941",
+          "target": "A127294063"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A556890467"
+          },
+          "source": "A195351062",
+          "target": "A115044825"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A617520613"
+          },
+          "source": "A195411586",
+          "target": "A522044492"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A718074209"
+          },
+          "source": "A195472778",
+          "target": "A226313155"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A759226829"
+          },
+          "source": "A201740434",
+          "target": "A911689798"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A326876118"
+          },
+          "source": "A208331684",
+          "target": "A986153283"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A282536599"
+          },
+          "source": "A208331684",
+          "target": "A496767979"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A027809498"
+          },
+          "source": "A208331684",
+          "target": "A378036419"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A989366007"
+          },
+          "source": "A208331684",
+          "target": "A299066927"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A224119448"
+          },
+          "source": "A208331684",
+          "target": "A012633800"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A554955107"
+          },
+          "source": "A208331684",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A933153432"
+          },
+          "source": "A226313155",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A590893149"
+          },
+          "source": "A226313155",
+          "target": "A508066469"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A779142138"
+          },
+          "source": "A231149992",
+          "target": "A846747356"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A939511728"
+          },
+          "source": "A250901843",
+          "target": "A297655804"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A547741801"
+          },
+          "source": "A255192436",
+          "target": "A587875740"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A164635299"
+          },
+          "source": "A255192436",
+          "target": "A698314747"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A884581666"
+          },
+          "source": "A263151338",
+          "target": "A859883803"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A318584975"
+          },
+          "source": "A297655804",
+          "target": "A134256186"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A201270081"
+          },
+          "source": "A314876427",
+          "target": "A784472316"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A954551814"
+          },
+          "source": "A314876427",
+          "target": "A143395797"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A923648947"
+          },
+          "source": "A314876427",
+          "target": "A875657907"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A033823498"
+          },
+          "source": "A314876427",
+          "target": "A001923050"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A846984467"
+          },
+          "source": "A332057791",
+          "target": "A531431430"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A012770038"
+          },
+          "source": "A354063635",
+          "target": "A115044825"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A184637883"
+          },
+          "source": "A366615769",
+          "target": "A099330504"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A805899372"
+          },
+          "source": "A373641592",
+          "target": "A086920068"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A921766187"
+          },
+          "source": "A401406521",
+          "target": "A812936428"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A451834337"
+          },
+          "source": "A403111294",
+          "target": "A115044825"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A041501683"
+          },
+          "source": "A414408274",
+          "target": "A115044825"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A872470318"
+          },
+          "source": "A416514212",
+          "target": "A195472778"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A233070083"
+          },
+          "source": "A449736921",
+          "target": "A884573140"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A468399385"
+          },
+          "source": "A449736921",
+          "target": "A115493412"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A015041146"
+          },
+          "source": "A449736921",
+          "target": "A378036419"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A963316505"
+          },
+          "source": "A449736921",
+          "target": "A648265268"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A490167297"
+          },
+          "source": "A449736921",
+          "target": "A726853443"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A723528216"
+          },
+          "source": "A449736921",
+          "target": "A875657907"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A747369366"
+          },
+          "source": "A449736921",
+          "target": "A508066469"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A887179402"
+          },
+          "source": "A449736921",
+          "target": "A183997002"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A947844170"
+          },
+          "source": "A449736921",
+          "target": "A873140939"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A652901294"
+          },
+          "source": "A449736921",
+          "target": "A928132133"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A373126013"
+          },
+          "source": "A468252252",
+          "target": "A532219776"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A620270307"
+          },
+          "source": "A471418901",
+          "target": "A517739361"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A926079891"
+          },
+          "source": "A508066469",
+          "target": "A010799370"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A493141600"
+          },
+          "source": "A510706108",
+          "target": "A263151338"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A810385840"
+          },
+          "source": "A517739361",
+          "target": "A401406521"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A502410131"
+          },
+          "source": "A522044492",
+          "target": "A698314747"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A222360789"
+          },
+          "source": "A523037001",
+          "target": "A911689798"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A936223210"
+          },
+          "source": "A531431430",
+          "target": "A373641592"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A503849941"
+          },
+          "source": "A532219776",
+          "target": "A009285831"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A811693098"
+          },
+          "source": "A532219776",
+          "target": "A800156116"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A132082052"
+          },
+          "source": "A532219776",
+          "target": "A874108436"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A205773933"
+          },
+          "source": "A532219776",
+          "target": "A334613561"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A526145911"
+          },
+          "source": "A537508193",
+          "target": "A208331684"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A100180184"
+          },
+          "source": "A547420081",
+          "target": "A263151338"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A318309660"
+          },
+          "source": "A560906719",
+          "target": "A532219776"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A794772243"
+          },
+          "source": "A859883803",
+          "target": "A801017673"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A716389702"
+          },
+          "source": "A906920809",
+          "target": "A366615769"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A230036818"
+          },
+          "source": "A911689798",
+          "target": "A537508193"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A034016956"
+          },
+          "source": "A935744816",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A035298222"
+          },
+          "source": "A985633245",
+          "target": "A314876427"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A153297771"
+          },
+          "source": "A009285831",
+          "target": "A449736921"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A829142539"
+          },
+          "source": "A010799370",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A230313490"
+          },
+          "source": "A086920068",
+          "target": "A569827115"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A201019328"
+          },
+          "source": "A086920068",
+          "target": "A079697865"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A460682375"
+          },
+          "source": "A086920068",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A627480201"
+          },
+          "source": "A099330504",
+          "target": "A734340245"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A576025749"
+          },
+          "source": "A698314747",
+          "target": "A935744816"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A684949186"
+          },
+          "source": "A734340245",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A040117917"
+          },
+          "source": "A746508654",
+          "target": "A195472778"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A014194191"
+          },
+          "source": "A746508654",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A376241068"
+          },
+          "source": "A759753362",
+          "target": "A416514212"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A455397573"
+          },
+          "source": "A801017673",
+          "target": "A099330504"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A265739467"
+          },
+          "source": "A812936428",
+          "target": "A093483763"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A146917745"
+          },
+          "source": "A812936428",
+          "target": "A660188117"
+      },
+      {
+          "properties": {
+              "type": "Used for calibration",
+              "id": "A668060884"
+          },
+          "source": "A812936428",
+          "target": "A944983313"
+      },
+      {
+          "properties": {
+              "type": "Used for validation",
+              "id": "A544937964"
+          },
+          "source": "A812936428",
+          "target": "A773216340"
+      },
+      {
+          "properties": {
+              "type": "Used",
+              "id": "A448378409"
+          },
+          "source": "A812936428",
+          "target": "A103132485"
+      },
+      {
+          "properties": {
+              "type": "Generated by",
+              "id": "A658524739"
+          },
+          "source": "A843913264",
+          "target": "A115044825"
+      }
+  ],
+  "studies": [
+      {
+          "source": "Lee et al., PLoS Bio. 2003",
+          "id": "A443197215"
+      },
+      {
+          "source": "Cho et al., FEBS Let. 2006",
+          "id": "A550807320"
+      },
+      {
+          "id": "A061364775",
+          "source": "van Leeuwen et al., J. o. Theor. Bio. 2007"
+      },
+      {
+          "id": "A389456510",
+          "source": "Wawra et al., FEBS Let. 2007"
+      },
+      {
+          "id": "A026341463",
+          "source": "Goldbeter et al., J. o. Theor. Bio. 2008"
+      },
+      {
+          "id": "A865810124",
+          "source": "Mirams et al., J. o. Math. Bio. 2009"
+      },
+      {
+          "id": "A642654412",
+          "source": "van Leeuwen et al., Cell Prol. 2009"
+      },
+      {
+          "id": "A524331478",
+          "source": "Kogan et al., Biochem. J. 2012"
+      },
+      {
+          "id": "A400650917",
+          "source": "Mazemondet et al., PLoS ONE 2012"
+      },
+      {
+          "id": "A475414004",
+          "source": "Wang et al., Theor. Bio. and Med. Mod. 2013"
+      },
+      {
+          "source": "Chen et al., PLoS ONE 2014",
+          "id": "A272562262"
+      },
+      {
+          "id": "A291499317",
+          "source": "Haack et al., PLoS comp. bio. 2015"
+      }
+  ]
 }

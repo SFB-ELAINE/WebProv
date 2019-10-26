@@ -2,9 +2,8 @@ import RestypedRouter from 'restyped-express-async';
 import express from 'express';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
-import * as data2 from './data.2';
 import * as data from './data';
-import { 
+import {
   getItems, 
   deleteItem, 
   updateOrCreate, 
@@ -27,6 +26,7 @@ import {
   BackendSuccess,
   RelationshipRuleSchema,
   NodeDefinitionSchema,
+  DependencyType,
 } from 'common';
 
 export function literal<T extends string>(o: T): T {
@@ -55,35 +55,46 @@ const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | B
 export const resetDatabase = async () => {
   clearDatabase();
 
-  console.log('Creating ' + data2.nodes.length + ' Nodes');
-  for (const node of data2.nodes) {
-    console.log('Creating node: ' + node.id);
+  console.log('Creating ' + data.provenanceNodes.length + ' Nodes');
+  for (const node of data.provenanceNodes) {
     const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating node: ${result.message}`);
     }
   }
 
-  for (const study of data2.studies) {
+  for (const study of data.studies) {
     const result = await updateOrCreate(StudySchema, study);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating study: ${result.message}`);
     }
   }
 
-  for (const field of data2.informationNodes) {
+  for (const field of data.informationFields) {
     const result = await updateOrCreate(InformationFieldSchema, field);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating field: ${result.message}`);
     }
   }
 
-  for (const connection of data2.connections) {
-    await updateOrCreateConnection(connection.schema, {
-      source: connection.source.id,
-      target: connection.target.id,
-      properties: connection.properties,
+  console.log('Creating ' + data.dependencyRelationships.length + ' dependencies')
+  for (const dependency of data.dependencyRelationships) {
+    const result = await updateOrCreateConnection(DependencyRelationshipSchema, {
+      source: dependency.source,
+      target: dependency.target,
+      properties: {
+        id: dependency.properties.id,
+        type: dependency.properties.type as DependencyType,
+      },
     });
+
+    if (result.result === 'error') {
+      console.error(`ERROR: Error creating dependency: ${result.message}`);
+    }
+  }
+
+  for (const relationship of data.informationRelationships) {
+    await updateOrCreateConnection(InformationRelationshipSchema, relationship);
   }
 
   for (const rule of data.rules) {
@@ -183,7 +194,7 @@ const create = async () => {
   });
 
   router.post('/studies', async (req) => {
-    return await updateOrCreate(StudySchema, req.body.item);
+    return await updateOrCreate(StudySchema, req.body);
   });
 
   router.delete('/nodes/dependencies', async (req) => {
