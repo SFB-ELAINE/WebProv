@@ -7,9 +7,8 @@
 </template>
 
 <script lang="ts">
-import { createComponent } from '@/utils';
 import VueFab from 'vue-fab';
-import { computed } from 'vue-function-api';
+import { computed, createComponent } from '@vue/composition-api';
 
 export interface FabAction {
   name: string;

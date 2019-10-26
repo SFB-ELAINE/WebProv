@@ -157,7 +157,6 @@ import {
   get,
   makeRequest,
   getLogger,
-  createComponent,
   HighLevelRelationship,
   HighLevelNode,
   merge,
@@ -190,7 +189,7 @@ import {
   makeLookupBy,
 } from 'common';
 import { version } from '../package.json';
-import { computed, value, onMounted } from 'vue-function-api';
+import { computed, ref, onMounted, createComponent } from '@vue/composition-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
 import { useRules, useDefinitions } from '@/hooks';
 
@@ -246,17 +245,19 @@ export default createComponent({
     const { getDefinition, createModelVersionLookup, getClassification, definitions } = useDefinitions();
 
     // The package version number
-    const provenanceNodes = value<ProvenanceNode[]>([]);
-    const informationNodes = value<InformationField[]>([]);
-    const dependencies = value<Array<RelationshipInformation<DependencyRelationship>>>([]);
-    const informationRelations = value<Array<RelationshipInformation<InformationRelationship>>>([]);
+    const provenanceNodes = ref<ProvenanceNode[]>([]);
+    const informationNodes = ref<InformationField[]>([]);
+    const dependencies = ref<Array<RelationshipInformation<DependencyRelationship>>>([]);
+    const informationRelations = ref<Array<RelationshipInformation<InformationRelationship>>>([]);
 
     // which studies are currently expanded
-    const expanded = value<Lookup<boolean>>({});
+    const expanded = ref<Lookup<boolean>>({});
 
     // The current nodes that are passed to D3
-    const nodes = value<Node[]>([]);
-    const links = value<Link[]>([]);
+    const nodes = ref<Node[]>([]);
+    const links = ref<Link[]>([]);
+
+    const uploaderRef = ref<HTMLInputElement>(null);
 
     const legendProps = {
       nodeOutline: NODE_OUTLINE,
@@ -266,36 +267,36 @@ export default createComponent({
 
     // All of the nodes to show
     // If a node is in a group that isn't expanded, it will not actually be shown
-    const nodesToShow = value<Lookup<boolean>>({});
+    const nodesToShow = ref<Lookup<boolean>>({});
 
     // Used when users click the "See more" button so that new nodes aren't placed at 0, 0
     // Instead, they are initially placed at the location of the clicked node
-    const pointToPlaceNode = value({ x: 0, y: 0 });
+    const pointToPlaceNode = ref({ x: 0, y: 0 });
 
     // Used when drawing line in edit mode
-    const lineStart = value<Point | null>(null);
-    const lineEnd = value<Point | null>(null);
+    const lineStart = ref<Point | null>(null);
+    const lineEnd = ref<Point | null>(null);
 
-    const selectedConnection = value<HighLevelRelationship | null>(null);
-    const currentRelationship = value<DependencyType | null>(null);
-    const possibleRelationships = value<DependencyType[] | null>(null);
+    const selectedConnection = ref<HighLevelRelationship | null>(null);
+    const currentRelationship = ref<DependencyType | null>(null);
+    const possibleRelationships = ref<DependencyType[] | null>(null);
 
     // used to display information on a card
-    const selectedNode = value<ProvenanceNode | null>(null);
+    const selectedNode = ref<ProvenanceNode | null>(null);
 
-    const studies = value<Study[]>([]);
-
-    // Whether to show the help information
-    const showHelp = value(false);
+    const studies = ref<Study[]>([]);
 
     // Whether to show the help information
-    const showEditTools = value(false);
+    const showHelp = ref(false);
+
+    // Whether to show the help information
+    const showEditTools = ref(false);
 
     // The current pan of the visualization
-    const pan = value({ x: 0, y: 0 });
+    const pan = ref({ x: 0, y: 0 });
 
     // The current zoom of the visualization
-    const zoom = value(1);
+    const zoom = ref(1);
 
     interface HTMLInputEvent extends Event {
       target: HTMLInputElement & EventTarget;
@@ -396,8 +397,9 @@ export default createComponent({
         name: 'Import Graph from JSON',
         icon: 'cloud_upload',
         callback: () => {
-          const uploader = context.refs.uploader as HTMLInputElement;
-          uploader.click();
+          if (uploaderRef.value) {
+            uploaderRef.value.click();
+          }
         },
       },
       {
@@ -417,7 +419,7 @@ export default createComponent({
     ];
 
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
-    const selectedStudy = value<Study | null>(null);
+    const selectedStudy = ref<Study | null>(null);
 
     const debouncedRenderGraph = debounce(renderGraph, 500);
     const debouncedUpdateOrCreateNode = debounce((node: ProvenanceNode) => {
@@ -433,7 +435,7 @@ export default createComponent({
     }, 500);
 
     // Used to change the color of individual nodes without having to re-render the whole graph
-    const colorChanges = value<D3NodeColorCombo[]>([]);
+    const colorChanges = ref<D3NodeColorCombo[]>([]);
 
     const height = computed(() => {
       // OK, so for some reason we have to remove 7 here so that there is no overlow
@@ -1299,6 +1301,7 @@ export default createComponent({
       deleteRelationship,
       studies,
       importNodes,
+      uploader: uploaderRef,
     };
   },
 });

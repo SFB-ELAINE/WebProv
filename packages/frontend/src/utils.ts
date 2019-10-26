@@ -1,4 +1,4 @@
-import Vue, { ComponentOptions } from 'vue';
+import Vue from 'vue';
 import {
   ProvenanceNode,
   Study,
@@ -6,13 +6,10 @@ import {
   BackendNotFound,
   keys,
   DependencyRelationship,
-  RelationshipTypeUnion,
   Lookup,
   NodeDefinition,
 } from 'common';
 import * as c from 'common';
-import { PropsDefinition } from 'vue/types/options';
-import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
 
 export interface HighLevelRelationship {
@@ -195,33 +192,6 @@ export function get<T>(o: { [k: string]: T }, key: keyof typeof o, defaultValue?
 export const setVue = <T extends object>(o: T, k: keyof T & string, v: T[typeof k]) => {
   Vue.set(o, k, v);
 };
-
-// FIXME Remove when https://github.com/vuejs/vue-function-api/issues/15 is resolved
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
-type ComponentOptionsWithSetup<Props> = Omit<ComponentOptions<Vue>, 'props' | 'setup'> & {
-  props?: PropsDefinition<Props>;
-  setup?: (
-    this: undefined,
-    props: Readonly<Props>,
-    context: Context,
-  ) => object | null | undefined | void;
-};
-
-// when props is an object
-export function createComponent<Props>(
-  compOptions: ComponentOptionsWithSetup<Props>,
-): ComponentOptions<Vue>;
-// when props is an array
-export function createComponent<Props extends string = never>(
-  compOptions: ComponentOptionsWithSetup<Record<Props, any>>,
-): ComponentOptions<Vue>;
-
-export function createComponent<Props>(
-  compOptions: ComponentOptionsWithSetup<Props>,
-): ComponentOptions<Vue> {
-  return (compOptions as any) as ComponentOptions<Vue>;
-}
-// Remove until here
 
 const notify = (payload: { indefinite: boolean, message: string, type: 'danger' | 'info' }) => {
   NotificationProgrammatic.open({

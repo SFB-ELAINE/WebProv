@@ -10,6 +10,7 @@
   "dependencies": {
     "@types/d3": "^5.7.2",
     "@types/lodash.debounce": "^4.0.6",
+    "@vue/composition-api": "^0.3.2",
     "buefy": "^0.7.7",
     "common": "^0.1.0",
     "core-js": "^2.6.5",
@@ -19,8 +20,7 @@
     "restyped-axios": "^2.0.0",
     "svg-pan-zoom": "^3.6.0",
     "vue": "^2.6.10",
-    "vue-fab": "^2.3.1",
-    "vue-function-api": "^2.0.6"
+    "vue-fab": "^2.3.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",

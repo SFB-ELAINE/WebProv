@@ -25,8 +25,8 @@
 <script lang="ts">
 import Card from '@/components/Card.vue';
 import { Study, uniqueId } from 'common';
-import { setVue, createComponent, makeRequest } from '@/utils';
-import { value } from 'vue-function-api';
+import { setVue, makeRequest } from '@/utils';
+import { ref, createComponent } from '@vue/composition-api';
 
 export default createComponent({
   name: 'StudyCard',
@@ -38,7 +38,7 @@ export default createComponent({
     },
   },
   setup(props, context) {
-    const searchModel = value('');
+    const searchModel = ref('');
 
     const close = () => {
       context.emit('close');

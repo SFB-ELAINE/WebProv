@@ -1,8 +1,7 @@
 <script lang="ts">
 import * as d3 from 'd3';
 import { isD3 } from '@/d3';
-import { createComponent } from '@/utils';
-import { onMounted } from 'vue-function-api';
+import { onMounted, createComponent } from '@vue/composition-api';
 
 export default createComponent({
   name: 'Relationship',

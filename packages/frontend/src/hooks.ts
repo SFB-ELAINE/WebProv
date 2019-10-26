@@ -1,4 +1,4 @@
-import { computed, value, onMounted } from 'vue-function-api';
+import { computed, ref, onMounted } from '@vue/composition-api';
 import { makeRequest, addBToA, HighLevelNode } from '@/utils';
 import {
   NodeDefinition,
@@ -23,7 +23,7 @@ interface Cant {
 }
 
 export const useRules = () => {
-  const rules = value<RelationshipRule[]>([]);
+  const rules = ref<RelationshipRule[]>([]);
 
   /**
    * Determines the default relationship between two nodes based on the valid relationship types. If none exist, nothing
@@ -107,7 +107,7 @@ export const useRules = () => {
 };
 
 export const useDefinitions = () => {
-  const definitions = value<NodeDefinition[]>([]);
+  const definitions = ref<NodeDefinition[]>([]);
   const definitionLookup = computed(() => makeLookup(definitions.value));
   const getDefinition = (node: ProvenanceNode) => {
     if (!definitionLookup.value.hasOwnProperty(node.definitionId)) {

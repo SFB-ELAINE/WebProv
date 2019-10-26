@@ -10,11 +10,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import Visualizer from '@/Visualizer.vue';
-import { value, onMounted, onUnmounted, createComponent } from 'vue-function-api';
+import { ref, onMounted, onUnmounted, createComponent } from '@vue/composition-api';
 
 function useWindowSize() {
-  const windowWidth = value(window.innerWidth);
-  const windowHeight = value(window.innerHeight);
+  const windowWidth = ref(window.innerWidth);
+  const windowHeight = ref(window.innerHeight);
 
   const update = () => {
     windowWidth.value = window.innerWidth;

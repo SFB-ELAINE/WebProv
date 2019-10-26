@@ -61,7 +61,6 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { createComponent } from '../utils';
 import {
   ProvenanceNode,
   InformationField,
@@ -69,6 +68,7 @@ import {
   Study,
   NodeDefinition,
 } from 'common';
+import { createComponent } from '@vue/composition-api';
 
 export default createComponent({
   name: 'NodeFormCard',
