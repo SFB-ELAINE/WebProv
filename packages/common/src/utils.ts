@@ -47,4 +47,60 @@ export const relationshipInformationType = <S extends Schema>(schema: S) => {
     target: t.string,
     properties: getType(schema),
   })
-}
+};
+
+/**
+ * Filters and transforms the type to type T.
+ * 
+ * @param o Anything.
+ */
+export const isDefined = <T>(o: T | undefined): o is T => {
+  return o !== undefined;
+};
+
+/**
+ * Turns a list of lists into a list.
+ * 
+ * @param lists The lists.
+ */
+export const flat = <T>(lists: T[][]): T[] => {
+  const list: T[] = [];
+  lists.forEach((subList) => list.push(...subList));
+  return list;
+};
+
+// The following methods are useful for making lookups.
+export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
+  const lookup: Lookup<T> = {};
+  for (const item of array) {
+    lookup[item.id] = item;
+  }
+  return lookup;
+};
+
+export const makeLookupBy = <T, F extends (t: T) => string | number>(
+  array: Iterable<T>, f: F,
+) => {
+  const lookup: Lookup<T> = {};
+  for (const item of array) {
+    lookup[f(item)] = item;
+  }
+  return lookup;
+};
+
+export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
+  array: Iterable<T>, f: F,
+) => {
+  const lookup: Lookup<T[]> = {};
+  for (const item of array) {
+    const key = f(item);
+    if (!lookup[key]) {
+      lookup[key] = [];
+    }
+
+    lookup[key].push(item);
+  }
+  return lookup;
+};
+
+export interface Lookup<T> { [k: string]: T; }

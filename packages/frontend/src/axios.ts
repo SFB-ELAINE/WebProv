@@ -1,6 +1,7 @@
 // This a simple wrapper around restyped-axios to improve typing
 
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'restyped-axios';
 import { RestypedBase, RestypedIndexedBase, RestypedRoute } from 'restyped';
 
 export interface TypedAxiosRequestConfig<
@@ -58,5 +59,5 @@ export interface TypedAxiosStatic<API extends RestypedBase = any> extends TypedA
   create<T extends API>(config?: AxiosRequestConfig): TypedAxiosInstance<T>;
 }
 
-declare const TypedAxios: TypedAxiosStatic;
+const TypedAxios: TypedAxiosStatic = axios;
 export default TypedAxios;

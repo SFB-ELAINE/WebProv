@@ -12,7 +12,6 @@ import {
   RelationshipInformation,
   schemas,
   relationships,
-  BackendItem,
 } from 'common';
 
 import * as dotenv from 'dotenv';
@@ -51,30 +50,35 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
 };
 
 export const updateOrCreate = async <S extends Schema>(
-  schema: S, obj: TypeOf<S>
+  schema: S, objects: TypeOf<S> | Array<TypeOf<S>>
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
-    const type = getType(schema);
-
-    const partial: Partial<typeof obj> = {};
-    for (const key of keys(obj)) {
-      if (obj[key] !== undefined) {
-        partial[key] = obj[key];
-      }
+    if (!Array.isArray(objects)) {
+      objects = [objects];
     }
+
+    const partials = objects.map((obj, i) => {
+      const partial: Partial<TypeOf<S>> = {};
+      for (const key of keys(obj)) {
+        if (obj[key] !== undefined) {
+          partial[key] = obj[key];
+        }
+      }
+      return partial;
+    })
 
     // Create an encoding of the object
     const session = driver.session();
     const result: StatementResult<[Neo4jNode<S>]> = await session.run(
       `
-      MERGE (n:${schema.name} { id: $id })
-      ON CREATE SET n = $partial
-      ON MATCH  SET n = $partial
+      UNWIND $partials AS partial
+      MERGE (n:${schema.name} { id: partial.id })
+      ON CREATE SET n = partial
+      ON MATCH  SET n = partial
       return n
       `, 
       {
-        id: obj.id,
-        partial: type.encode(partial),
+        partials,
       }
     )
 

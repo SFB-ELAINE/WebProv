@@ -29,41 +29,35 @@ const addRelationship = <A extends Schema, B extends Schema, R extends Relations
 
 // Definitions
 const model: NodeDefinition = {
-  id: uniqueId(),
-  name: 'Model',
+  id: 'Model',
   classification: 'entity',
   labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
 }
 
 const wetLabData: NodeDefinition = {
-  id: uniqueId(),
-  name: 'WetLabData',
+  id: 'WetLabData',
   classification: 'entity',
 }
 
 const simulationData: NodeDefinition = {
-  id: uniqueId(),
-  name: 'SimulationData',
+  id: 'SimulationData',
   classification: 'entity',
 }
 
 const modelBuildingActivity: NodeDefinition = {
-  id: uniqueId(),
-  name: 'ModelBuildingActivity',
+  id: 'ModelBuildingActivity',
   label: 'MBA',
   classification: 'activity',
 }
 
 const modelExplorationActivity: NodeDefinition = {
-  id: uniqueId(),
-  name: 'ModelExplorationActivity',
+  id: 'ModelExplorationActivity',
   label: 'MEA',
   classification: 'activity',
 }
 
 const theoreticalKnowledge: NodeDefinition = {
-  id: uniqueId(),
-  name: 'TheoreticalKnowledge',
+  id: 'TheoreticalKnowledge',
   label: 'MEA',
   classification: 'activity',
 }

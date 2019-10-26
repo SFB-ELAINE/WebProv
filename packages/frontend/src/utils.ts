@@ -7,6 +7,7 @@ import {
   keys,
   DependencyRelationship,
   RelationshipTypeUnion,
+  Lookup,
   NodeDefinition,
 } from 'common';
 import * as c from 'common';
@@ -27,42 +28,6 @@ export interface HighLevelNode {
   outgoing: HighLevelRelationship[];
   incoming: HighLevelRelationship[];
 }
-
-// The following methods are useful for making lookups.
-export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
-  const lookup: Lookup<T> = {};
-  for (const item of array) {
-    lookup[item.id] = item;
-  }
-  return lookup;
-};
-
-export const makeLookupBy = <T, F extends (t: T) => string | number>(
-  array: Iterable<T>, f: F,
-) => {
-  const lookup: Lookup<T> = {};
-  for (const item of array) {
-    lookup[f(item)] = item;
-  }
-  return lookup;
-};
-
-export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
-  array: Iterable<T>, f: F,
-) => {
-  const lookup: Lookup<T[]> = {};
-  for (const item of array) {
-    const key = f(item);
-    if (!lookup[key]) {
-      lookup[key] = [];
-    }
-
-    lookup[key].push(item);
-  }
-  return lookup;
-};
-
-export interface Lookup<T> { [k: string]: T; }
 
 interface StudyLookup {
   [id: string]: Study | undefined;
@@ -363,16 +328,11 @@ export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End
   };
 }
 
-export const isDefined = <T>(o: T | undefined): o is T => {
-  return o !== undefined;
-};
-
 // This seems weird, but I'm just doing it to avoid tslint warnings.
 // Also, we can easily modify this method to return other objects rather than console
 export const getLogger = () => {
   return console;
 };
-
 
 export function getRandomColor() {
   const letters = '0123456789ABCDEF';
@@ -454,6 +414,8 @@ export const download = (args: { filename: string, text: string }) => {
  * Opens the file picker and filters to the given extension type. Returns a string representing
  * the contents of the chosen file.
  *
+ * TODO(jacob)
+ *
  * @param ext The extension.
  */
 export const upload = async (ext: string): Promise<string> => {
@@ -465,48 +427,6 @@ export const upload = async (ext: string): Promise<string> => {
   return '';
 };
 
-export const flat = <T>(lists: T[][]) => {
-  const list: T[] = [];
-  lists.forEach((subList) => list.push(...subList));
-  return list;
-};
-
-const ExportInterfaceRowType = c.type({
-  node: c.intersection([
-    c.type({
-      id: c.string,
-      definitionId: c.string,
-    }),
-    c.partial({
-      studyId: c.string,
-      label: c.string,
-    }),
-  ]),
-  dependencies: c.array(c.type({
-    type: RelationshipTypeUnion,
-    /**
-     * The ID of the target node. The source ID is taken from the node.
-     */
-    targetId: c.string,
-    /**
-     * The ID of the relationship.
-     */
-    relationshipId: c.string,
-  })),
-  informationFields: c.array(c.type({
-    key: c.string,
-    value: c.string,
-    /**
-     * The ID of the information node.
-     */
-    id: c.string,
-    /**
-     * The ID of the relationship.
-     */
-    relationshipId: c.string,
-  })),
-});
-
 const getRelationshipInformationType = <S extends c.Schema>(t: S) => {
   return c.type({
     source: c.string,
@@ -515,7 +435,6 @@ const getRelationshipInformationType = <S extends c.Schema>(t: S) => {
   });
 };
 
-// const ExportInterfaceType = c.array(ExportInterfaceRowType);
 const ExportInterfaceType = c.type({
   provenanceNodes: c.array(c.getType(c.ProvenanceNodeSchema)),
   informationFields: c.array(c.getType(c.InformationFieldSchema)),
@@ -524,7 +443,6 @@ const ExportInterfaceType = c.type({
   studies: c.array(c.getType(c.StudySchema)),
 });
 
-export type ExportInterfaceRow = c.IoTypeOf<typeof ExportInterfaceRowType>;
 export type ExportInterface = c.IoTypeOf<typeof ExportInterfaceType>;
 
 export const exportData = (
@@ -560,7 +478,7 @@ export const importData = async (): Promise<ImportError | ImportSuccess>  => {
   }
 
   const result = ExportInterfaceType.decode(json);
-  if (c.either.isLeft(result)) {
+  if (c.isLeft(result)) {
     return {
       type: 'error',
       message: 'Data is not in expected format\n\n' + c.PathReporter.report(result).join('\n\n'),

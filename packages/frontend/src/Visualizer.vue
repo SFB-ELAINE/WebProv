@@ -150,15 +150,10 @@ import ProvLegendCard from '@/components/ProvLegendCard.vue';
 import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';
 import {
-  Lookup,
   getLabel,
-  makeLookup,
   addEventListeners,
   get,
   makeRequest,
-  makeLookupBy,
-  makeArrayLookupBy,
-  isDefined,
   getLogger,
   createComponent,
   HighLevelRelationship,
@@ -167,9 +162,7 @@ import {
   toTsv,
   TsvRow,
   download,
-  flat,
   exportData,
-  ExportInterfaceRow,
   importData,
   notifier,
 } from '@/utils';
@@ -187,7 +180,13 @@ import {
   InformationRelationship,
   RelationshipRule,
   NodeDefinition,
-} from 'common/dist/schemas';
+  Lookup,
+  flat,
+  isDefined,
+  makeArrayLookupBy,
+  makeLookup,
+  makeLookupBy,
+} from 'common';
 import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';

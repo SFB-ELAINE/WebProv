@@ -1,6 +1,27 @@
+export { 
+  boolean, 
+  string, 
+  number, 
+  union, 
+  literal, 
+  array, 
+  type,
+  TypeOf as IoTypeOf,
+} from 'io-ts';
+
+export {
+  PathReporter,
+} from 'io-ts/lib/PathReporter';
+
+export {
+  right,
+  left,
+  either,
+  isLeft,
+  isRight,
+} from 'fp-ts/lib/Either';
+
 import * as t from 'io-ts';
-// TODO remove as IoTypeOf
-export { boolean, string, number, union, literal, array, type, TypeOf as IoTypeOf } from 'io-ts';
 
 // neon is just a random name
 // It's based on neo4j

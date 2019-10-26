@@ -1,7 +1,9 @@
-import { computed, value, onMounted, Wrapper } from 'vue-function-api';
-import { makeLookup, makeRequest, addBToA, Lookup, HighLevelNode, makeLookupBy } from '@/utils';
+import { computed, value, onMounted } from 'vue-function-api';
+import { makeRequest, addBToA, HighLevelNode } from '@/utils';
 import {
   NodeDefinition,
+  makeLookup,
+  Lookup,
   ProvenanceNode,
   RelationshipRule,
   DependencyType,

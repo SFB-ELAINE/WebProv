@@ -1,4 +1,4 @@
-import { RelationshipBasics, RelationshipInformation, Schema } from './neon';
+import { RelationshipBasics, RelationshipInformation } from './neon';
 import {
   DependencyRelationship,
   InformationField,

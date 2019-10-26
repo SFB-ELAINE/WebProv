@@ -155,7 +155,7 @@ const create = async () => {
   });
 
   router.post('/nodes', async (req) => {
-    return await updateOrCreate(ProvenanceNodeSchema, req.body.item);
+    return await updateOrCreate(ProvenanceNodeSchema, req.body);
   });
 
   router.get('/nodes/dependencies', async () => {
