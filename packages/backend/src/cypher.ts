@@ -254,15 +254,17 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
   return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
     const session = driver.session();
     
-    const result: StatementResult<[Neo4jNode<S>]> = await session.run(`
+    const result = await session.run(`
     MATCH (:${schema.source.name})-[r:${schema.name}]-(:${schema.target.name}) 
     WHERE r.id = $id
     DELETE r
+    RETURN r
     `, { id });
 
     session.close();
 
-    if (result.records.length !== 1) {
+    // For some reason, when we delete 1 item, we get two back?
+    if (result.records.length !== 2) {
       return {
         result: 'not-found',
       }
