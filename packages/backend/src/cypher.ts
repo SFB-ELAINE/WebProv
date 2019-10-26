@@ -69,7 +69,7 @@ export const updateOrCreate = async <S extends Schema>(
 
     // Create an encoding of the object
     const session = driver.session();
-    const result: StatementResult<[Neo4jNode<S>]> = await session.run(
+    const result: StatementResult<Neo4jNode<S>[]> = await session.run(
       `
       UNWIND $partials AS partial
       MERGE (n:${schema.name} { id: partial.id })
@@ -84,7 +84,7 @@ export const updateOrCreate = async <S extends Schema>(
 
     session.close();
 
-    if (result.records.length !== 1) {
+    if (result.records.length !== partials.length) {
       return {
         result: 'error',
         message: 'Node was not created/updated successfully.'
@@ -279,7 +279,7 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
       relationships = [relationships];
     }
 
-    const result: StatementResult<[Neo4jRelationship<R>[]]> = await session.run(
+    const result: StatementResult<Neo4jRelationship<R>[]> = await session.run(
       `
       UNWIND $relationships AS relationship
       MATCH (a:${schema.source.name} { id: relationship.source }), (b:${schema.target.name} { id: relationship.target })
@@ -295,7 +295,7 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
 
     session.close();
     
-    if (result.records[0].length !== relationships.length) {
+    if (result.records.length !== relationships.length) {
       return {
         result: 'error',
         message: 'Connection not created/updated successfully.'

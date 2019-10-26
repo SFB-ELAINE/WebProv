@@ -63,7 +63,7 @@ export interface ProvenanceAPI {
   '/information-relationships': {
     POST: {
       body: SingleOrArray<InformationRelationship>;
-      response: BackendError | BackendItems<InformationField>,
+      response: BackendError | BackendSuccess,
     }
   }
 

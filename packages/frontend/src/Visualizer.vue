@@ -1,5 +1,7 @@
 <template>
   <div>
+    <input style="display: none" ref="uploader" type="file" @change="importNodes">
+
     <!-- This is the main svg animation -->
     <d3
       ref="d3"
@@ -164,6 +166,7 @@ import {
   exportData,
   importData,
   notifier,
+  readFile,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -294,8 +297,28 @@ export default createComponent({
     // The current zoom of the visualization
     const zoom = value(1);
 
-    const importNodes = async () => {
-      const importResult = await importData();
+    interface HTMLInputEvent extends Event {
+      target: HTMLInputElement & EventTarget;
+    }
+
+    const importNodes = async (e: HTMLInputEvent) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) {
+        return;
+      }
+
+      const file = files[0];
+      const contents = await readFile(file);
+      if (typeof contents !== 'string') {
+        context.root.$notification.open({
+          message: 'The chosen file was empty.',
+          position: 'is-top-right',
+          type: 'is-warning',
+        });
+        return;
+      }
+
+      const importResult = await importData(contents);
       if (importResult.type === 'error') {
         notifier.danger('An error occured during import.\n' + importResult.message);
         return;
@@ -312,6 +335,9 @@ export default createComponent({
     };
 
     const exportNodes = () => {
+      // OK so we ONLY want to export data that is on the screen
+      // This (unfortunently a bit complicated) filters accomplish this task
+
       const provenanceNodesForExport = provenanceNodes.value.filter((node) => {
         return nodesToShow.value.hasOwnProperty(node.id);
       });
@@ -369,7 +395,10 @@ export default createComponent({
       {
         name: 'Import Graph from JSON',
         icon: 'cloud_upload',
-        callback: importNodes,
+        callback: () => {
+          const uploader = context.refs.uploader as HTMLInputElement;
+          uploader.click();
+        },
       },
       {
         name: 'Show Help',
@@ -1270,6 +1299,7 @@ export default createComponent({
       cancelRelationshipSelection,
       deleteRelationship,
       studies,
+      importNodes,
     };
   },
 });

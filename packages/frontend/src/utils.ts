@@ -410,23 +410,6 @@ export const download = (args: { filename: string, text: string }) => {
   document.body.removeChild(element);
 };
 
-/**
- * Opens the file picker and filters to the given extension type. Returns a string representing
- * the contents of the chosen file.
- *
- * TODO(jacob)
- *
- * @param ext The extension.
- */
-export const upload = async (ext: string): Promise<string> => {
-  ext = ext.trim();
-  if (ext[0] === '.') {
-    ext = ext.slice(1);
-  }
-
-  return '';
-};
-
 const getRelationshipInformationType = <S extends c.Schema>(t: S) => {
   return c.type({
     source: c.string,
@@ -464,9 +447,7 @@ interface ImportSuccess {
   data: ExportInterface;
 }
 
-export const importData = async (): Promise<ImportError | ImportSuccess>  => {
-  const str = await upload('.json');
-
+export const importData = async (str: string): Promise<ImportError | ImportSuccess>  => {
   let json;
   try {
     json = JSON.parse(str);
@@ -489,4 +470,20 @@ export const importData = async (): Promise<ImportError | ImportSuccess>  => {
     type: 'success',
     data: result.right,
   };
+};
+
+
+export const readFile = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (!event.target) {
+        return;
+      }
+
+      const contents = (event.target as any).result;
+      resolve(contents);
+    };
+    reader.readAsText(file);
+  });
 };
