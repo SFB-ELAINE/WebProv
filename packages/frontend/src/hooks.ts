@@ -57,7 +57,7 @@ export const useRules = () => {
 
   const isValidRelationship = (a: ProvenanceNode, b: ProvenanceNode, type?: DependencyType) => {
     if (!type) {
-      return true;
+      return false;
     }
 
     return rules.value.some((rule) => {

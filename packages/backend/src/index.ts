@@ -52,8 +52,9 @@ const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | B
   };
 }
 
-export const resetDatabase = async () => {
-  clearDatabase();
+export const initializeData = async () => {
+  // We don't want to do this unless we are debugging
+  // clearDatabase();
 
   console.log('Creating ' + data.provenanceNodes.length + ' Nodes');
   for (const node of data.provenanceNodes) {
@@ -124,7 +125,7 @@ const create = async () => {
   const router = RestypedRouter<ProvenanceAPI>(apiRouter);
 
   await initialize();
-  // await resetDatabase();
+  await initializeData();
 
   // ROUTES //
   router.get('/health', async () => {

@@ -30,7 +30,6 @@ interface StudyLookup {
   [id: string]: Study | undefined;
 }
 
-
 /**
  * Determine the label for the provenance node. If a label is defined, that is used.
  *

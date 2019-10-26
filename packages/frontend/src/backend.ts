@@ -112,8 +112,6 @@ export const getNodeInformation = async () => {
 };
 
 export const upload = async (data: ExportInterface): Promise<BackendError | BackendSuccess> => {
-
-
   {
     const result = await updateOrCreateNode(data.provenanceNodes);
     if (result.result === 'error') {
