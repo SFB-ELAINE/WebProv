@@ -65,7 +65,7 @@ export const updateOrCreate = async <S extends Schema>(
         }
       }
       return partial;
-    })
+    });
 
     // Create an encoding of the object
     const session = driver.session();

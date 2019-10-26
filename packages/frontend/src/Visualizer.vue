@@ -161,7 +161,6 @@ import {
   merge,
   toTsv,
   TsvRow,
-  download,
   exportData,
   importData,
   notifier,
@@ -314,18 +313,19 @@ export default createComponent({
 
     const exportNodes = () => {
       const provenanceNodesForExport = provenanceNodes.value.filter((node) => {
-        return nodesToShow.value.hasOwnProperty(node.id);
+        return true || nodesToShow.value.hasOwnProperty(node.id);
       });
 
       const dependenciesForExport = dependencies.value.filter((dependency) => {
         return (
+          true ||
           nodesToShow.value.hasOwnProperty(dependency.source) &&
           nodesToShow.value.hasOwnProperty(dependency.target)
         );
       });
 
       const informationRelationshipsForExport = informationRelations.value.filter((informationRelation) => {
-        return nodesToShow.value.hasOwnProperty(informationRelation.source);
+        return true || nodesToShow.value.hasOwnProperty(informationRelation.source);
       });
 
       const informationFieldsForExportIds = new Set(
@@ -618,7 +618,11 @@ export default createComponent({
       }
 
       highLevelNodes.value.forEach(({ node, id }) => {
-        if (node.studyId === studyId) {
+        // If the node isn't in a study, then ONLY show that single node
+        if (
+          (studyId !== undefined && node.studyId === studyId) ||
+          (studyId === undefined && node.id === result.id)
+        ) {
           nodesToShow.value[id] = true;
         }
       });

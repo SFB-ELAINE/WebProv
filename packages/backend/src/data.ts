@@ -10,7 +10,6 @@ import {
   TypeOf,
   NodeDefinition,
   RelationshipRule,
-  RelationshipRuleSchema,
 } from 'common';
 
 export interface Relationship<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>> {

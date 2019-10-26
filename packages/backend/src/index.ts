@@ -2,6 +2,7 @@ import RestypedRouter from 'restyped-express-async';
 import express from 'express';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
+import * as data2 from './data.2';
 import * as data from './data';
 import { 
   getItems, 
@@ -54,29 +55,30 @@ const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | B
 export const resetDatabase = async () => {
   clearDatabase();
 
-  console.log('Creating ' + data.nodes.length + ' Nodes');
-  for (const node of data.nodes) {
+  console.log('Creating ' + data2.nodes.length + ' Nodes');
+  for (const node of data2.nodes) {
+    console.log('Creating node: ' + node.id);
     const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating node: ${result.message}`);
     }
   }
 
-  for (const study of data.studies) {
+  for (const study of data2.studies) {
     const result = await updateOrCreate(StudySchema, study);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating study: ${result.message}`);
     }
   }
 
-  for (const field of data.informationNodes) {
+  for (const field of data2.informationNodes) {
     const result = await updateOrCreate(InformationFieldSchema, field);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating field: ${result.message}`);
     }
   }
 
-  for (const connection of data.connections) {
+  for (const connection of data2.connections) {
     await updateOrCreateConnection(connection.schema, {
       source: connection.source.id,
       target: connection.target.id,

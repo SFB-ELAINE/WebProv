@@ -450,7 +450,7 @@ export const exportData = (
 ) => {
   download({
     filename: 'exported-provenance-nodes.json',
-    text: JSON.stringify(data),
+    text: JSON.stringify(data, null, 4),
   });
 };
 
