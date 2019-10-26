@@ -34,8 +34,6 @@ interface StudyLookup {
 }
 
 
-// let tpl = eval('`'+a.replace(/`/g,'\\`')+'`');
-// TODO
 /**
  * Determine the label for the provenance node. If a label is defined, that is used.
  *

@@ -254,14 +254,19 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
   return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
     const session = driver.session();
     
-    // TODO return failure information
-    await session.run(`
+    const result: StatementResult<[Neo4jNode<S>]> = await session.run(`
     MATCH (:${schema.source.name})-[r:${schema.name}]-(:${schema.target.name}) 
     WHERE r.id = $id
     DELETE r
     `, { id });
 
     session.close();
+
+    if (result.records.length !== 1) {
+      return {
+        result: 'not-found',
+      }
+    }
 
     return {
       result: 'success',

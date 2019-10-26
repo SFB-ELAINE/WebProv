@@ -699,7 +699,6 @@ export default createComponent({
         return nodes.value
           .filter(isSingleNode) // we can't make connections to group nodes
           .filter((n) => {
-            // TODO fix with zoom
             const ul = {
               x: n.x * zoom.value + pan.value.x,
               y: n.y * zoom.value + pan.value.y,
@@ -726,7 +725,7 @@ export default createComponent({
           const nodesInRange = getNodesInRange(ev);
 
           // reset the color of the previously selected node
-          // TODO this will cause a bug if the node was initially colored something else
+          // FIXME this will cause a bug if the node was initially colored something else
           if (targetNode) {
             colorChanges.value.push({ node: targetNode, color: NODE_OUTLINE });
             targetNode = null;
@@ -813,7 +812,7 @@ export default createComponent({
         provenanceNode: n,
         rx: getClassification(n) === 'entity' ? 10 : 0,
         // width and height are essential
-        // TODO add requirement to type file
+        // FIXME add requirement to type file
         // they are used in the other js files
         // ALSO, * 8 just kinda works well and 10 is the padding
         width: text.length * 8 + 10,

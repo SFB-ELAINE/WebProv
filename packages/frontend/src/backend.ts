@@ -60,7 +60,6 @@ export const updateOrCreateInformationRelationship = async (
   return (await api.post('/information-relationships', information)).data;
 };
 
-// TODO refactor this into two functions. This will make it easier
 export const addInformationEntry = async (
   relationship: RelationshipInformation<InformationRelationship>,
   information: InformationField,
