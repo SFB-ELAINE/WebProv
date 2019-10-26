@@ -3,7 +3,7 @@ import express from 'express';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import * as data from './data';
-import { 
+import {
   getItems, 
   deleteItem, 
   updateOrCreate, 
@@ -26,6 +26,7 @@ import {
   BackendSuccess,
   RelationshipRuleSchema,
   NodeDefinitionSchema,
+  DependencyType,
 } from 'common';
 
 export function literal<T extends string>(o: T): T {
@@ -54,8 +55,8 @@ const deleteNode = async (id: string): Promise<BackendSuccess | BackendError | B
 export const resetDatabase = async () => {
   clearDatabase();
 
-  console.log('Creating ' + data.nodes.length + ' Nodes');
-  for (const node of data.nodes) {
+  console.log('Creating ' + data.provenanceNodes.length + ' Nodes');
+  for (const node of data.provenanceNodes) {
     const result = await updateOrCreate(ProvenanceNodeSchema, node);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating node: ${result.message}`);
@@ -69,19 +70,31 @@ export const resetDatabase = async () => {
     }
   }
 
-  for (const field of data.informationNodes) {
+  for (const field of data.informationFields) {
     const result = await updateOrCreate(InformationFieldSchema, field);
     if (result.result === 'error') {
       console.error(`ERROR: Error creating field: ${result.message}`);
     }
   }
 
-  for (const connection of data.connections) {
-    await updateOrCreateConnection(connection.schema, {
-      source: connection.source.id,
-      target: connection.target.id,
-      properties: connection.properties,
+  console.log('Creating ' + data.dependencyRelationships.length + ' dependencies')
+  for (const dependency of data.dependencyRelationships) {
+    const result = await updateOrCreateConnection(DependencyRelationshipSchema, {
+      source: dependency.source,
+      target: dependency.target,
+      properties: {
+        id: dependency.properties.id,
+        type: dependency.properties.type as DependencyType,
+      },
     });
+
+    if (result.result === 'error') {
+      console.error(`ERROR: Error creating dependency: ${result.message}`);
+    }
+  }
+
+  for (const relationship of data.informationRelationships) {
+    await updateOrCreateConnection(InformationRelationshipSchema, relationship);
   }
 
   for (const rule of data.rules) {
@@ -111,7 +124,7 @@ const create = async () => {
   const router = RestypedRouter<ProvenanceAPI>(apiRouter);
 
   await initialize();
-  await resetDatabase();
+  // await resetDatabase();
 
   // ROUTES //
   router.get('/health', async () => {
@@ -155,7 +168,7 @@ const create = async () => {
   });
 
   router.post('/nodes', async (req) => {
-    return await updateOrCreate(ProvenanceNodeSchema, req.body.item);
+    return await updateOrCreate(ProvenanceNodeSchema, req.body);
   });
 
   router.get('/nodes/dependencies', async () => {
@@ -171,21 +184,25 @@ const create = async () => {
   });
 
   router.post('/nodes/information', async (req) => {
-    const result1 = await updateOrCreate(InformationFieldSchema, req.body.information);
-    if (result1.result !== 'success') {
-      return result1;
+    const result = await updateOrCreate(InformationFieldSchema, req.body.information);
+    if (result.result !== 'success') {
+      return result;
     }
 
     return await updateOrCreateConnection(InformationRelationshipSchema, req.body.relationship);
   });
 
   router.post('/studies', async (req) => {
-    return await updateOrCreate(StudySchema, req.body.item);
+    return await updateOrCreate(StudySchema, req.body);
   });
 
   router.delete('/nodes/dependencies', async (req) => {
     return await deleteRelationship(DependencyRelationshipSchema, req.query.id);
   });
+
+  router.post('/information-relationships', async (req) => {
+    return await updateOrCreateConnection(InformationRelationshipSchema, req.body);
+  })
 
   // Heroku sets the port and we must use this port
   const PORT = Number.parseInt(process.env.PORT || '') || 3000;

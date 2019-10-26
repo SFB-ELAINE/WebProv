@@ -8,7 +8,7 @@
           :key="definition.id" 
           :value="definition.id"
         >
-          {{ definition.name }}
+          {{ definition.id }}
         </option>
       </b-select>
     </b-field>

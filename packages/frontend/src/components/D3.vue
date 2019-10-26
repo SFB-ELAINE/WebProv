@@ -14,9 +14,10 @@ import * as d3 from 'd3';
 import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { makeLookup, Lookup, intersection, createComponent, getRandomColor, addEventListener, update } from '@/utils';
+import { intersection, createComponent, getRandomColor, addEventListener, update } from '@/utils';
 import { computed, watch, onMounted, value } from 'vue-function-api';
 import svgPanZoom from 'svg-pan-zoom';
+import { makeLookup, Lookup } from 'common';
 
 type HullListener = (node: D3Hull) => void;
 type NodeListener = (node: D3Node) => void;

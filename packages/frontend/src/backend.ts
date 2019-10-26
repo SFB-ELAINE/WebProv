@@ -1,4 +1,4 @@
-import axios from 'restyped-axios';
+import axios from '@/axios';
 import {
   Study,
   ProvenanceNode,
@@ -7,8 +7,12 @@ import {
   InformationField,
   InformationRelationship,
   DependencyRelationship,
+  BackendError,
+  BackendSuccess,
+  uniqueId,
+  Schema,
 } from 'common';
-import { getLogger } from '@/utils';
+import { getLogger, ExportInterface } from '@/utils';
 
 const logger = getLogger();
 
@@ -26,25 +30,34 @@ api.interceptors.request.use((request) => {
 });
 
 export const updateOrCreateNode = async (
-  node: ProvenanceNode,
+  node: ProvenanceNode | ProvenanceNode[],
 ) => {
-  return (await api.post('/nodes', { item: node })).data;
+  return (await api.post('/nodes', node)).data;
 };
 
-export const updateOrCreateInformationNode = async (node: InformationField) => {
+export const updateOrCreateInformationNode = async (node: InformationField | InformationField[]) => {
   return (await api.post('/information', node)).data;
 };
 
 export const updateOrCreateStudy = async (
-  study: Study,
+  study: Study | Study[],
 ) => {
-  return (await api.post('/studies', { item: study })).data;
+  return (await api.post('/studies', study)).data;
 };
 
+type SingleOrArray<S> = RelationshipInformation<S> | Array<RelationshipInformation<S>>;
+
+
 export const updateOrCreateDependency = async (
-  information: RelationshipInformation<DependencyRelationship>,
+  information: SingleOrArray<DependencyRelationship>,
 ) => {
   return (await api.post('/nodes/dependencies', information)).data;
+};
+
+export const updateOrCreateInformationRelationship = async (
+  information: SingleOrArray<InformationRelationship>,
+) => {
+  return (await api.post('/information-relationships', information)).data;
 };
 
 export const addInformationEntry = async (
@@ -96,4 +109,62 @@ export const getNodeDependencies = async () => {
 
 export const getNodeInformation = async () => {
   return (await api.get('/nodes/information')).data;
+};
+
+export const upload = async (data: ExportInterface): Promise<BackendError | BackendSuccess> => {
+
+
+  {
+    const result = await updateOrCreateNode(data.provenanceNodes);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create provenance nodes. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateInformationNode(data.informationFields);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create information nodes. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateDependency(data.dependencyRelationships);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create provenance node dependencies. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateInformationRelationship(data.informationRelationships);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create information relationships. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  {
+    const result = await updateOrCreateStudy(data.studies);
+    if (result.result === 'error') {
+      return {
+        result: 'error',
+        message: 'Unable to create information relationships. Please try again.\n\n' + result.message,
+      };
+    }
+  }
+
+  return {
+    result: 'success',
+  };
 };

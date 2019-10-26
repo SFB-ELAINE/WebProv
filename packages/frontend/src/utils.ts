@@ -1,17 +1,19 @@
 import Vue, { ComponentOptions } from 'vue';
 import {
   ProvenanceNode,
-  DependencyType,
   Study,
-  uniqueId,
   BackendError,
   BackendNotFound,
   keys,
+  DependencyRelationship,
+  RelationshipTypeUnion,
+  Lookup,
+  NodeDefinition,
 } from 'common';
+import * as c from 'common';
 import { PropsDefinition } from 'vue/types/options';
 import { Context } from 'vue-function-api/dist/types/vue';
 import { NotificationProgrammatic } from 'buefy/dist/components/notification';
-import { DependencyRelationship, NodeDefinition } from 'common/dist/schemas';
 
 export interface HighLevelRelationship {
   relationship: DependencyRelationship;
@@ -27,49 +29,11 @@ export interface HighLevelNode {
   incoming: HighLevelRelationship[];
 }
 
-// The following methods are useful for making lookups.
-export const makeLookup = <T extends { id: string | number }>(array: Iterable<T>) => {
-  const lookup: Lookup<T> = {};
-  for (const item of array) {
-    lookup[item.id] = item;
-  }
-  return lookup;
-};
-
-export const makeLookupBy = <T, F extends (t: T) => string | number>(
-  array: Iterable<T>, f: F,
-) => {
-  const lookup: Lookup<T> = {};
-  for (const item of array) {
-    lookup[f(item)] = item;
-  }
-  return lookup;
-};
-
-export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
-  array: Iterable<T>, f: F,
-) => {
-  const lookup: Lookup<T[]> = {};
-  for (const item of array) {
-    const key = f(item);
-    if (!lookup[key]) {
-      lookup[key] = [];
-    }
-
-    lookup[key].push(item);
-  }
-  return lookup;
-};
-
-export interface Lookup<T> { [k: string]: T; }
-
 interface StudyLookup {
   [id: string]: Study | undefined;
 }
 
 
-// let tpl = eval('`'+a.replace(/`/g,'\\`')+'`');
-// TODO
 /**
  * Determine the label for the provenance node. If a label is defined, that is used.
  *
@@ -259,6 +223,32 @@ export function createComponent<Props>(
 }
 // Remove until here
 
+const notify = (payload: { indefinite: boolean, message: string, type: 'danger' | 'info' }) => {
+  NotificationProgrammatic.open({
+    indefinite: payload.indefinite,
+    message: payload.message,
+    position: 'is-top-right',
+    type: `is-${payload.type}`,
+  });
+};
+
+export const notifier = {
+  danger(message: string) {
+    notify({
+      message,
+      indefinite: true,
+      type: 'danger',
+    });
+  },
+  info(message: string) {
+    notify({
+      message,
+      indefinite: true,
+      type: 'info',
+    });
+  },
+};
+
 export async function makeRequest<T extends { result: 'success' }>(
   f: () => Promise<T | BackendError | BackendNotFound>, onSuccess?: (result: T) => void,
 ) {
@@ -274,19 +264,9 @@ export async function makeRequest<T extends { result: 'success' }>(
   }
 
   if (result.result === 'error') {
-    NotificationProgrammatic.open({
-      indefinite: true,
-      message: result.message,
-      position: 'is-top-right',
-      type: 'is-danger',
-    });
+    notifier.danger(result.message);
   } else if (result.result === 'not-found') {
-    NotificationProgrammatic.open({
-      indefinite: true,
-      message: 'Item not found in database',
-      position: 'is-top-right',
-      type: 'is-danger',
-    });
+    notifier.danger('Item not found in database');
   } else {
     if (onSuccess) {
       onSuccess(result);
@@ -346,16 +326,11 @@ export function intersection(l1Start: Point, l1End: Point, l2Start: Point, l2End
   };
 }
 
-export const isDefined = <T>(o: T | undefined): o is T => {
-  return o !== undefined;
-};
-
 // This seems weird, but I'm just doing it to avoid tslint warnings.
 // Also, we can easily modify this method to return other objects rather than console
 export const getLogger = () => {
   return console;
 };
-
 
 export function getRandomColor() {
   const letters = '0123456789ABCDEF';
@@ -433,8 +408,80 @@ export const download = (args: { filename: string, text: string }) => {
   document.body.removeChild(element);
 };
 
-export const flat = <T>(lists: T[][]) => {
-  const list: T[] = [];
-  lists.forEach((subList) => list.push(...subList));
-  return list;
+const getRelationshipInformationType = <S extends c.Schema>(t: S) => {
+  return c.type({
+    source: c.string,
+    target: c.string,
+    properties: c.getType(t),
+  });
+};
+
+const ExportInterfaceType = c.type({
+  provenanceNodes: c.array(c.getType(c.ProvenanceNodeSchema)),
+  informationFields: c.array(c.getType(c.InformationFieldSchema)),
+  informationRelationships: c.array(getRelationshipInformationType(c.InformationRelationshipSchema)),
+  dependencyRelationships: c.array(getRelationshipInformationType(c.DependencyRelationshipSchema)),
+  studies: c.array(c.getType(c.StudySchema)),
+});
+
+export type ExportInterface = c.IoTypeOf<typeof ExportInterfaceType>;
+
+export const exportData = (
+  data: ExportInterface,
+) => {
+  download({
+    filename: 'exported-provenance-nodes.json',
+    text: JSON.stringify(data, null, 4),
+  });
+};
+
+interface ImportError {
+  type: 'error';
+  message: string;
+}
+
+interface ImportSuccess {
+  type: 'success';
+  data: ExportInterface;
+}
+
+export const importData = async (str: string): Promise<ImportError | ImportSuccess>  => {
+  let json;
+  try {
+    json = JSON.parse(str);
+  } catch (e) {
+    return {
+      type: 'error',
+      message: 'Unable to parse JSON: ' + e.message,
+    };
+  }
+
+  const result = ExportInterfaceType.decode(json);
+  if (c.isLeft(result)) {
+    return {
+      type: 'error',
+      message: 'Data is not in expected format\n\n' + c.PathReporter.report(result).join('\n\n'),
+    };
+  }
+
+  return {
+    type: 'success',
+    data: result.right,
+  };
+};
+
+
+export const readFile = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (!event.target) {
+        return;
+      }
+
+      const contents = (event.target as any).result;
+      resolve(contents);
+    };
+    reader.readAsText(file);
+  });
 };

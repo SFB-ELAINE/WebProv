@@ -3,6 +3,13 @@ export {
   keys,
   tuple,
   getType,
+  relationshipInformationType,
+  isDefined,
+  flat,
+  makeArrayLookupBy,
+  makeLookup,
+  makeLookupBy,
+  Lookup,
 } from './utils';
 
 export {
@@ -22,6 +29,7 @@ export {
   StudySchema,
   InformationFieldSchema,
   DependencyRelationship,
+  RelationshipTypeUnion,
 } from './schemas';
 
 export {
@@ -35,10 +43,6 @@ export {
 } from './backend';
 
 export {
-  boolean,
-  string,
-  number,
-  union,
   Primitive,
   PrimitiveArray,
   Schema,
@@ -50,4 +54,18 @@ export {
   RelationshipSchema,
   schemas,
   relationships,
+  boolean, 
+  string, 
+  number, 
+  union, 
+  literal, 
+  array, 
+  type,
+  IoTypeOf,
+  PathReporter,
+  right,
+  left,
+  either,
+  isLeft,
+  isRight,
 } from './neon';

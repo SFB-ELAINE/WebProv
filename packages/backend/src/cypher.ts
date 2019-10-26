@@ -12,7 +12,6 @@ import {
   RelationshipInformation,
   schemas,
   relationships,
-  BackendItem,
 } from 'common';
 
 import * as dotenv from 'dotenv';
@@ -51,36 +50,41 @@ const withHandling = async <T>(f: () => Promise<T>): Promise<T | BackendError> =
 };
 
 export const updateOrCreate = async <S extends Schema>(
-  schema: S, obj: TypeOf<S>
+  schema: S, objects: TypeOf<S> | Array<TypeOf<S>>
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
-    const type = getType(schema);
-
-    const partial: Partial<typeof obj> = {};
-    for (const key of keys(obj)) {
-      if (obj[key] !== undefined) {
-        partial[key] = obj[key];
-      }
+    if (!Array.isArray(objects)) {
+      objects = [objects];
     }
+
+    const partials = objects.map((obj, i) => {
+      const partial: Partial<TypeOf<S>> = {};
+      for (const key of keys(obj)) {
+        if (obj[key] !== undefined) {
+          partial[key] = obj[key];
+        }
+      }
+      return partial;
+    });
 
     // Create an encoding of the object
     const session = driver.session();
-    const result: StatementResult<[Neo4jNode<S>]> = await session.run(
+    const result: StatementResult<Neo4jNode<S>[]> = await session.run(
       `
-      MERGE (n:${schema.name} { id: $id })
-      ON CREATE SET n = $partial
-      ON MATCH  SET n = $partial
+      UNWIND $partials AS partial
+      MERGE (n:${schema.name} { id: partial.id })
+      ON CREATE SET n = partial
+      ON MATCH  SET n = partial
       return n
       `, 
       {
-        id: obj.id,
-        partial: type.encode(partial),
+        partials,
       }
     )
 
     session.close();
 
-    if (result.records.length !== 1) {
+    if (result.records.length !== partials.length) {
       return {
         result: 'error',
         message: 'Node was not created/updated successfully.'
@@ -250,14 +254,19 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
   return await withHandling(async (): Promise<BackendSuccess | BackendNotFound> => {
     const session = driver.session();
     
-    // TODO return failure information
-    await session.run(`
+    const result: StatementResult<[Neo4jNode<S>]> = await session.run(`
     MATCH (:${schema.source.name})-[r:${schema.name}]-(:${schema.target.name}) 
     WHERE r.id = $id
     DELETE r
     `, { id });
 
     session.close();
+
+    if (result.records.length !== 1) {
+      return {
+        result: 'not-found',
+      }
+    }
 
     return {
       result: 'success',
@@ -266,31 +275,32 @@ export const deleteRelationship = async <A extends Schema, B extends Schema>(
 };
 
 export const updateOrCreateConnection = async <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
-  schema: R, information: RelationshipInformation<TypeOf<R>>,
+  schema: R, relationships: RelationshipInformation<TypeOf<R>> | Array<RelationshipInformation<TypeOf<R>>>,
 ) => {
   return await withHandling(async (): Promise<BackendSuccess | BackendError> => {
-    const type = getType(schema);
     const session = driver.session();
 
-    console.info(`Creating information relationship between ${information.source} and ${information.target}`);
-    const result: StatementResult<[Neo4jRelationship<R>]> = await session.run(
+    if (!Array.isArray(relationships)) {
+      relationships = [relationships];
+    }
+
+    const result: StatementResult<Neo4jRelationship<R>[]> = await session.run(
       `
-      MATCH (a:${schema.source.name} { id: $source }), (b:${schema.target.name} { id: $target })
+      UNWIND $relationships AS relationship
+      MATCH (a:${schema.source.name} { id: relationship.source }), (b:${schema.target.name} { id: relationship.target })
       MERGE (a)-[r:${schema.name}]->(b)
-      ON CREATE SET r = $props
-      ON MATCH SET r = $props
+      ON CREATE SET r = relationship.properties
+      ON MATCH SET r = relationship.properties
       RETURN r
       `, 
       { 
-        source: information.source, 
-        target: information.target, 
-        props: type.encode(information.properties) 
+        relationships,
       }
     )
 
     session.close();
     
-    if (result.records.length !== 1) {
+    if (result.records.length !== relationships.length) {
       return {
         result: 'error',
         message: 'Connection not created/updated successfully.'

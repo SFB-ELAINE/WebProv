@@ -1,5 +1,7 @@
 <template>
   <div>
+    <input style="display: none" ref="uploader" type="file" @change="importNodes">
+
     <!-- This is the main svg animation -->
     <d3
       ref="d3"
@@ -150,15 +152,10 @@ import ProvLegendCard from '@/components/ProvLegendCard.vue';
 import InformationModal from '@/components/InformationModal.vue';
 import D3 from '@/components/D3.vue';
 import {
-  Lookup,
   getLabel,
-  makeLookup,
   addEventListeners,
   get,
   makeRequest,
-  makeLookupBy,
-  makeArrayLookupBy,
-  isDefined,
   getLogger,
   createComponent,
   HighLevelRelationship,
@@ -166,8 +163,10 @@ import {
   merge,
   toTsv,
   TsvRow,
-  download,
-  flat,
+  exportData,
+  importData,
+  notifier,
+  readFile,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -183,7 +182,13 @@ import {
   InformationRelationship,
   RelationshipRule,
   NodeDefinition,
-} from 'common/dist/schemas';
+  Lookup,
+  flat,
+  isDefined,
+  makeArrayLookupBy,
+  makeLookup,
+  makeLookupBy,
+} from 'common';
 import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
@@ -292,53 +297,84 @@ export default createComponent({
     // The current zoom of the visualization
     const zoom = value(1);
 
-    const exportNodes = () => {
-      // TODO export definition
-      interface ExportRow {
-        id: string;
-        label: string;
-        studyId?: string;
-        informationFields: Array<{ key: string, value: string }>;
-        dependencies: Array<{ target: string, type: DependencyType }>;
+    interface HTMLInputEvent extends Event {
+      target: HTMLInputElement & EventTarget;
+    }
+
+    const importNodes = async (e: HTMLInputEvent) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) {
+        return;
       }
 
-      const exportRows = Object.keys(nodesToShow.value).map((nodeId): ExportRow | undefined => {
-        const show = nodesToShow.value[nodeId];
-        if (!show) {
-          return;
-        }
-
-        const highLevelNode = highLevelNodeLookup.value[nodeId];
-        const node = highLevelNode.node;
-
-        const connections = getConnections(node.id) || [];
-        const nodeDependencies = connections.map((connection) => ({
-          target: connection.target,
-          type: connection.properties.type,
-        }));
-
-        const nodeInformationFields = getInformationNodesFromProvenance(node).map((field) => {
-          return {
-            key: field.key,
-            value: field.value,
-          };
+      const file = files[0];
+      const contents = await readFile(file);
+      if (typeof contents !== 'string') {
+        context.root.$notification.open({
+          message: 'The chosen file was empty.',
+          position: 'is-top-right',
+          type: 'is-warning',
         });
+        return;
+      }
 
+      const importResult = await importData(contents);
+      if (importResult.type === 'error') {
+        notifier.danger('An error occured during import.\n' + importResult.message);
+        return;
+      }
 
-        const definition = getDefinition(node);
-        return {
-          id: node.id,
-          label: getLabel(node, definition, studyLookup.value, modelVersionLookup.value),
-          studyId: node.studyId,
-          dependencies: nodeDependencies,
-          informationFields: nodeInformationFields,
-        };
+      const data = importResult.data;
+      const uploadResult = await backend.upload(data);
+      if (uploadResult.result === 'error') {
+        notifier.danger('An error occured during the upload to the database.\n' + uploadResult.message);
+        return;
+      }
+
+      notifier.info('Successfully uploaded data to the database. Please refresh the page.');
+    };
+
+    const exportNodes = () => {
+      // OK so we ONLY want to export data that is on the screen
+      // This (unfortunently a bit complicated) filters accomplish this task
+
+      const provenanceNodesForExport = provenanceNodes.value.filter((node) => {
+        return nodesToShow.value.hasOwnProperty(node.id);
       });
 
-      const tsv = toTsv(exportRows.filter(isDefined) as any);
-      download({
-        filename: 'exported-provenance-nodes.tsv',
-        text: tsv,
+      const dependenciesForExport = dependencies.value.filter((dependency) => {
+        return (
+          nodesToShow.value.hasOwnProperty(dependency.source) &&
+          nodesToShow.value.hasOwnProperty(dependency.target)
+        );
+      });
+
+      const informationRelationshipsForExport = informationRelations.value.filter((informationRelation) => {
+        return nodesToShow.value.hasOwnProperty(informationRelation.source);
+      });
+
+      const informationFieldsForExportIds = new Set(
+        informationRelationshipsForExport.map((informatinoRelationship) => informatinoRelationship.target),
+      );
+
+      const informationFieldsForExport = informationNodes.value.filter((informationField) => {
+        return informationFieldsForExportIds.has(informationField.id);
+      });
+
+      const studyIdsForExport = new Set(
+        provenanceNodesForExport.map((provenanceNode) => provenanceNode.studyId).filter(isDefined),
+      );
+
+      const studiesForExport = studies.value.filter((study) => {
+        return studyIdsForExport.has(study.id);
+      });
+
+      exportData({
+        provenanceNodes: provenanceNodesForExport,
+        informationFields: informationFieldsForExport,
+        informationRelationships: informationRelationshipsForExport,
+        dependencyRelationships: dependenciesForExport,
+        studies: studiesForExport,
       });
     };
 
@@ -352,9 +388,17 @@ export default createComponent({
         },
       },
       {
-        name: 'Export Graph as TSV',
+        name: 'Export Graph as JSON',
         icon: 'cloud_download',
         callback: exportNodes,
+      },
+      {
+        name: 'Import Graph from JSON',
+        icon: 'cloud_upload',
+        callback: () => {
+          const uploader = context.refs.uploader as HTMLInputElement;
+          uploader.click();
+        },
       },
       {
         name: 'Show Help',
@@ -602,7 +646,11 @@ export default createComponent({
       }
 
       highLevelNodes.value.forEach(({ node, id }) => {
-        if (node.studyId === studyId) {
+        // If the node isn't in a study, then ONLY show that single node
+        if (
+          (studyId !== undefined && node.studyId === studyId) ||
+          (studyId === undefined && node.id === result.id)
+        ) {
           nodesToShow.value[id] = true;
         }
       });
@@ -651,7 +699,6 @@ export default createComponent({
         return nodes.value
           .filter(isSingleNode) // we can't make connections to group nodes
           .filter((n) => {
-            // TODO fix with zoom
             const ul = {
               x: n.x * zoom.value + pan.value.x,
               y: n.y * zoom.value + pan.value.y,
@@ -678,7 +725,7 @@ export default createComponent({
           const nodesInRange = getNodesInRange(ev);
 
           // reset the color of the previously selected node
-          // TODO this will cause a bug if the node was initially colored something else
+          // FIXME this will cause a bug if the node was initially colored something else
           if (targetNode) {
             colorChanges.value.push({ node: targetNode, color: NODE_OUTLINE });
             targetNode = null;
@@ -765,7 +812,7 @@ export default createComponent({
         provenanceNode: n,
         rx: getClassification(n) === 'entity' ? 10 : 0,
         // width and height are essential
-        // TODO add requirement to type file
+        // FIXME add requirement to type file
         // they are used in the other js files
         // ALSO, * 8 just kinda works well and 10 is the padding
         width: text.length * 8 + 10,
@@ -1251,6 +1298,7 @@ export default createComponent({
       cancelRelationshipSelection,
       deleteRelationship,
       studies,
+      importNodes,
     };
   },
 });
