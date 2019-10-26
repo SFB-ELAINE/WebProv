@@ -1,7 +1,8 @@
 # Web Provenance
 The goal of this project is the create a web platform to automatically visualize a provenance model. The data required to create these visualizations should be stored in a graph database. The web platform will also feature an editor to allow users to manually create provenance models that can be stored within the database.
 
-[Link to Demo](https://infallible-lamarr-e47435.netlify.com/) (It needs a few minutes to 'warm up'.)
+[Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
+> The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
 
 ## Environment Setup
 ### Node
@@ -13,7 +14,16 @@ The first step to setting up your environment involves installing `Node.js` and 
 Next, if not already installed, `Neo4j` should be installed:
 1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
 1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
+1. Start the server using the `neo4j start` command.
 > `Docker` can also be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
+
+Also, create a `.env` file if you don't already have one:
+```
+GRAPHENEDB_BOLT_URL=bolt://localhost:7687
+GRAPHENEDB_BOLT_USER=neo4j
+GRAPHENEDB_BOLT_PASSWORD=PASSWORD_THAT_YOU_CREATED
+```
+> Make sure to place this `.env` file in `packages/backend`.
 
 ### Lerna
 This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is:
@@ -22,14 +32,14 @@ npm install # or `npm i`
 ```
 
 ## Development
-A `Makefile` file is present within both the frontend and backend repositories. To start a development server with hot-reload within each package, just run the following command:
+A `Makefile` file is present within both the frontend and backend packages. To start a development server with hot-reload within each package, just run the following command:
 ```
 make dev
 ```
 > Ensure that you start the backend server before starting the frontend server.
 
 ## Installing Dependencies
-If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, using the `lerna add` command. For example:
+If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, use the `lerna add` command. For example:
 ```
 npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
 ```
@@ -53,7 +63,7 @@ heroku addons:create graphenedb:dev-free --app $app
 Then, using the online dashboard, this repository was connected to GitHub for automatic deployments by clicking the `Enable Automatic Deploys` button. This connection triggers a new deployment of the backend on every merge into `master`.
 > This requires admin access to the repository.
 
-The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. This can be found within the `Heroku` project that you crated. Then, within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
+The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. This URL can be found within the `Heroku` project that you created. Then, within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
 
 ### Frontend
 The frontend is currently being deployed using `Netlify`. The following instructions were used to create the `Netlify` application:
@@ -62,11 +72,11 @@ The frontend is currently being deployed using `Netlify`. The following instruct
 1. Click `Continuous Deployment` > `GitHub`.
 1. Find the repository.
 1. Set the build command to `npm run build-frontend`.
-1. Set the publish directory to `_site` (must match folder in `vue.config.js`).
+1. Set the publish directory to `_site` (must match folder in `packages/frontend/vue.config.js`).
 1. Leave all other settings at their default values and click `Deploy site`.
 
 Whenever new commits are merged into `master`, the frontend will be built and deployed.
-> Ensure that you set the `VUE_APP_BACKEND_URL` environmental variable.
+> Ensure that you set the `VUE_APP_BACKEND_URL` environmental variable or else `localhost` will be used.
 
 ## Dependencies/Acknowledgements
 ### Frontend

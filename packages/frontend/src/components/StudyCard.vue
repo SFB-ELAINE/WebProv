@@ -1,5 +1,5 @@
 <template>
-  <card title="Simulation Study">
+  <card title="Study">
     <div>
       <b-field class="field" label="Source">
         <b-input 
@@ -15,9 +15,8 @@
       </b-field>
     </div>
     <template v-slot:footer>
-      <a class="card-footer-item" @click="cancel">Cancel</a>
+      <a class="card-footer-item" @click="close">Close</a>
       <a class="card-footer-item" @click="deleteStudy">Delete</a>
-      <a class="card-footer-item" @click="save">Save</a>
     </template>
   </card>
 </template>
@@ -25,24 +24,24 @@
 
 <script lang="ts">
 import Card from '@/components/Card.vue';
-import { SimulationStudy, uniqueId } from 'common';
+import { Study, uniqueId } from 'common';
 import { setVue, createComponent, makeRequest } from '@/utils';
 import { value } from 'vue-function-api';
 
 export default createComponent({
-  name: 'SimulationStudyCard',
+  name: 'StudyCard',
   components: { Card },
   props: {
     study: {
-      type: Object as () => SimulationStudy,
+      type: Object as () => Study,
       required: true,
     },
   },
   setup(props, context) {
     const searchModel = value('');
 
-    const cancel = () => {
-      context.emit('cancel');
+    const close = () => {
+      context.emit('close');
     };
 
     const deleteStudy = () => {
@@ -51,14 +50,12 @@ export default createComponent({
 
     const setSource = (source: string) => {
       setVue(props.study, 'source', source);
+      context.emit('update');
     };
 
     const setSignalingPathway = (signalingPathway: string) => {
       setVue(props.study, 'signalingPathway', signalingPathway);
-    };
-
-    const save = () => {
-      context.emit('save');
+      context.emit('update');
     };
 
     return {
@@ -66,8 +63,7 @@ export default createComponent({
       setSignalingPathway,
       searchModel,
       setSource,
-      cancel,
-      save,
+      close,
     };
   },
 });

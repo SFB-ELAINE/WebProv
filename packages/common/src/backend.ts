@@ -4,7 +4,9 @@ import {
   InformationField,
   InformationRelationship,
   ProvenanceNode,
-  SimulationStudy,
+  Study,
+  RelationshipRule,
+  NodeDefinition,
 } from './schemas';
 
 export interface BackendSuccess {
@@ -56,6 +58,18 @@ export interface ProvenanceAPI {
     },
   };
 
+  '/rules': {
+    GET: {
+      response: BackendError | BackendItems<RelationshipRule>,
+    }
+  }
+
+  '/definitions': {
+    GET: {
+      response: BackendError | BackendItems<NodeDefinition>,
+    }
+  }
+
   '/nodes': {
     GET: {
       response: BackendError | BackendItems<ProvenanceNode>,
@@ -82,12 +96,12 @@ export interface ProvenanceAPI {
 
   '/studies': {
     GET: {
-      response: BackendError | BackendItems<SimulationStudy>,
+      response: BackendError | BackendItems<Study>,
     }
 
     POST: {
       body: {
-        item: SimulationStudy;
+        item: Study;
       }
       response: BackendSuccess | BackendError;
     }

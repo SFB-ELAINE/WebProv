@@ -1,5 +1,5 @@
 import {
-  SimulationStudy,
+  Study,
   ProvenanceNode,
   uniqueId,
   InformationField,
@@ -8,6 +8,9 @@ import {
   Schema,
   DependencyRelationshipSchema,
   TypeOf,
+  NodeDefinition,
+  RelationshipRule,
+  RelationshipRuleSchema,
 } from 'common';
 
 export interface Relationship<A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>> {
@@ -18,19 +21,64 @@ export interface Relationship<A extends Schema, B extends Schema, R extends Rela
 }
 
 export const connections: Relationship<Schema, Schema, RelationshipSchema<Schema, Schema>>[] = [];
-
 const addRelationship = <A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>>(
   relationship: Relationship<A, B, R>,
 ) => {
   connections.push(relationship);
 }
 
+// Definitions
+const model: NodeDefinition = {
+  id: uniqueId(),
+  name: 'Model',
+  classification: 'entity',
+  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+}
+
+const wetLabData: NodeDefinition = {
+  id: uniqueId(),
+  name: 'WetLabData',
+  classification: 'entity',
+}
+
+const simulationData: NodeDefinition = {
+  id: uniqueId(),
+  name: 'SimulationData',
+  classification: 'entity',
+}
+
+const modelBuildingActivity: NodeDefinition = {
+  id: uniqueId(),
+  name: 'ModelBuildingActivity',
+  label: 'MBA',
+  classification: 'activity',
+}
+
+const modelExplorationActivity: NodeDefinition = {
+  id: uniqueId(),
+  name: 'ModelExplorationActivity',
+  label: 'MEA',
+  classification: 'activity',
+}
+
+const theoreticalKnowledge: NodeDefinition = {
+  id: uniqueId(),
+  name: 'TheoreticalKnowledge',
+  label: 'MEA',
+  classification: 'activity',
+}
+
 // M1
+const study1: Study = {
+  id: uniqueId(),
+  source: 'Lee et al., PLoS bio. 2003',
+};
+
 const WX_7: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   label: 'Wx_7',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const WX_7_INFORMATION: InformationField = {
@@ -50,9 +98,9 @@ addRelationship({
 
 const W1_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   label: 'W1_1',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const W1_1_INFORMATION: InformationField = {
@@ -72,9 +120,9 @@ addRelationship({
 
 const W1_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
+  studyId: study1.id,
   label: 'W1_2',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const W1_2_INFORMATION: InformationField = {
@@ -94,8 +142,8 @@ addRelationship({
 
 const MBA_3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
-  type: 'ModelBuildingActivity',
+  studyId: study1.id,
+  definitionId: modelBuildingActivity.id,
 };
 
 addRelationship({
@@ -131,8 +179,8 @@ addRelationship({
 
 const S1_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
-  type: 'SimulationData',
+  studyId: study1.id,
+  definitionId: simulationData.id,
   label: 'S1_1',
 };
 
@@ -146,16 +194,10 @@ addRelationship({
   },
 })
 
-const study1: SimulationStudy = {
-  id: uniqueId(),
-  studyId: 1,
-  source: 'Lee et al., PLoS bio. 2003',
-};
-
 const model3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
-  type: 'Model',
+  studyId: study1.id,
+  definitionId: model.id,
 };
 
 addRelationship({
@@ -170,8 +212,8 @@ addRelationship({
 
 const MEA: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
-  type: 'ModelExplorationActivity',
+  studyId: study1.id,
+  definitionId: modelExplorationActivity.id,
 };
 
 addRelationship({
@@ -186,8 +228,8 @@ addRelationship({
 
 const S1_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 1,
-  type: 'SimulationData',
+  studyId: study1.id,
+  definitionId: simulationData.id,
   label: 'S1_2',
 };
 
@@ -202,17 +244,16 @@ addRelationship({
 })
 
 // M12
-const study12: SimulationStudy = {
+const study12: Study = {
   id: uniqueId(),
-  studyId: 12,
   source: 'Haack et al., PLoS comp. bio. 2015',
 };
 
 const W12_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'W12_1',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const W12_1_INFORMATION: InformationField = {
@@ -232,9 +273,9 @@ addRelationship({
 
 const WX_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'Wx_1',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const WX_1_INFORMATION: InformationField = {
@@ -254,9 +295,9 @@ addRelationship({
 
 const WX_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'Wx_2',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const WX_2_INFORMATION: InformationField = {
@@ -277,8 +318,8 @@ addRelationship({
 // TODO Leaving out simulationsUsedForCalibration from M1
 const MBA_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
-  type: 'ModelBuildingActivity',
+  studyId: study12.id,
+  definitionId: modelBuildingActivity.id,
 };
 
 addRelationship({
@@ -324,8 +365,8 @@ addRelationship({
 
 const S12_1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
-  type: 'SimulationData',
+  studyId: study12.id,
+  definitionId: simulationData.id,
   label: 'S12_1',
 };
 
@@ -341,8 +382,8 @@ addRelationship({
 
 const model1: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
-  type: 'Model',
+  studyId: study12.id,
+  definitionId: model.id,
 };
 
 addRelationship({
@@ -357,9 +398,9 @@ addRelationship({
 
 const W12_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'W12_2',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const W12_2_INFORMATION: InformationField = {
@@ -379,9 +420,9 @@ addRelationship({
 
 const W12_3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'W12_3',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const W12_3_INFORMATION: InformationField = {
@@ -401,9 +442,9 @@ addRelationship({
 
 const WX_3: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
+  studyId: study12.id,
   label: 'Wx_3',
-  type: 'WetLabData',
+  definitionId: wetLabData.id,
 };
 
 const WX_3_INFORMATION: InformationField = {
@@ -423,8 +464,8 @@ addRelationship({
 
 const MBA_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
-  type: 'ModelBuildingActivity',
+  studyId: study12.id,
+  definitionId: modelBuildingActivity.id,
 };
 
 addRelationship({
@@ -467,11 +508,10 @@ addRelationship({
   }
 })
 
-
 const S12_2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
-  type: 'SimulationData',
+  studyId: study12.id,
+  definitionId: simulationData.id,
   label: 'S12_2',
 };
 
@@ -487,8 +527,8 @@ addRelationship({
 
 const model2: ProvenanceNode = {
   id: uniqueId(),
-  studyId: 12,
-  type: 'Model',
+  studyId: study12.id,
+  definitionId: model.id,
 };
 
 addRelationship({
@@ -499,7 +539,75 @@ addRelationship({
     id: uniqueId(),
     type: 'Generated by',
   }
-})
+});
+
+export const rules: RelationshipRule[] = [
+  {
+    id: uniqueId(),
+    type: ['Used for calibration', 'Used for validation'],
+    cardinality: 'one-to-many',
+    source: modelBuildingActivity.id,
+    target: wetLabData.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Used for calibration', 'Used for validation'],
+    cardinality: 'one-to-many',
+    source: modelBuildingActivity.id,
+    target: simulationData.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Used'],
+    cardinality: 'one-to-many',
+    source: modelBuildingActivity.id,
+    target: model.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Derived from'],
+    cardinality: 'one-to-one',
+    source: model.id,
+    target: model.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Generated by'],
+    cardinality: 'one-to-one',
+    source: model.id,
+    target: modelBuildingActivity.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Used'],
+    cardinality: 'one-to-one',
+    source: modelExplorationActivity.id,
+    target: model.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Generated by'],
+    cardinality: 'one-to-one',
+    source: simulationData.id,
+    target: modelBuildingActivity.id,
+  },
+  {
+    id: uniqueId(),
+    type: ['Generated by'],
+    cardinality: 'one-to-one',
+    source: simulationData.id,
+    target: modelExplorationActivity.id,
+  },
+]
+
+export const definitions: NodeDefinition[] = [
+  model,
+  wetLabData,
+  simulationData,
+  modelBuildingActivity,
+  modelExplorationActivity,
+  theoreticalKnowledge,
+]
 
 export const nodes: ProvenanceNode[] = [
   // MODEL 12
@@ -539,7 +647,7 @@ export const informationNodes: InformationField[] = [
   WX_3_INFORMATION,
 ]
 
-export const studies: SimulationStudy[] = [
+export const studies: Study[] = [
   study1,
   study12,
 ];

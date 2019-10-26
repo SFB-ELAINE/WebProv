@@ -2,23 +2,24 @@ export {
   uniqueId,
   keys,
   tuple,
-  isValidRelationship,
   getType,
 } from './utils';
 
 export {
-  SimulationStudy,
+  Study,
   DependencyType,
   ProvenanceNode,
-  ProvenanceNodeType,
-  relationshipRules,
-  provenanceNodeTypes,
+  ProvenanceNodeClassification,
+  NodeDefinitionSchema,
+  NodeDefinition,
+  RelationshipRule,
+  RelationshipRuleSchema,
   InformationField,
   InformationRelationship,
   InformationRelationshipSchema,
   DependencyRelationshipSchema,
   ProvenanceNodeSchema,
-  SimulationStudySchema,
+  StudySchema,
   InformationFieldSchema,
   DependencyRelationship,
 } from './schemas';
@@ -47,7 +48,6 @@ export {
   relationship,
   TypeOf,
   RelationshipSchema,
-  indexes,
   schemas,
   relationships,
 } from './neon';

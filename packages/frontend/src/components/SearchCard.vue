@@ -30,18 +30,11 @@
         <div style="display: flex; align-items: flex-start">
           <div>
             <h4 class="result--title">{{ result.title }}</h4>
-            <h6 class="result--type">{{ result.studyText === undefined ? 'No Study' : result.studyText }}</h6>
+            <h6 class="result--type">{{ result.study === undefined ? 'No Study' : result.study.source }}</h6>
             <p class="result--extra">{{ result.extra | format }}</p>
           </div>
           <div style="flex: 1"></div>
           <div style="display: flex">
-            <b-tooltip label="Open Study Information" position="is-left">
-              <b-button
-                type="is-text"
-                icon-right="information-outline"
-                @click="$emit('open-study', result)"
-              ></b-button>
-            </b-tooltip>
             <b-tooltip label="Show Provenance Graph" position="is-left">
               <b-button
                 style="transform: rotate(-90deg)"
@@ -75,6 +68,7 @@ import Card from '@/components/Card.vue';
 import { SearchItem, search } from '@/search';
 import { createComponent } from '@/utils';
 import { value } from 'vue-function-api';
+import { IS_MOBILE } from '../constants';
 
 export default createComponent({
   name: 'SearchCard',
@@ -110,10 +104,12 @@ export default createComponent({
       });
 
 
-      // Blur the input when the search is started. This is very useful for touch devices
-      // If we don't do this, anytime the user touches the screen the keyboard will open
-      const input = refs.input.$refs.input as HTMLInputElement;
-      input.blur();
+      if (IS_MOBILE) {
+        // Blur the input when the search is started. This is very useful for touch devices
+        // If we don't do this, anytime the user touches the screen the keyboard will open
+        const input = refs.input.$refs.input as HTMLInputElement;
+        input.blur();
+      }
 
       setTimeout(() => loadingComponent.close(), 0.5 * 1000);
       results.value = search(props.items, searchText.value);

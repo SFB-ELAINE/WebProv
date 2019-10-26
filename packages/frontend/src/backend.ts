@@ -1,6 +1,6 @@
 import axios from 'restyped-axios';
 import {
-  SimulationStudy,
+  Study,
   ProvenanceNode,
   ProvenanceAPI,
   RelationshipInformation,
@@ -35,12 +35,8 @@ export const updateOrCreateInformationNode = async (node: InformationField) => {
   return (await api.post('/information', node)).data;
 };
 
-export const getMaxStudyId = async () => {
-  return (await api.get('/studies/study-id/max')).data;
-};
-
 export const updateOrCreateStudy = async (
-  study: SimulationStudy,
+  study: Study,
 ) => {
   return (await api.post('/studies', { item: study })).data;
 };
@@ -76,6 +72,14 @@ export const deleteInformationNode = async (id: string) => {
 
 export const getStudies = async () => {
   return (await api.get('/studies')).data;
+};
+
+export const getRules = async () => {
+  return (await api.get('/rules')).data;
+};
+
+export const getDefinitions = async () => {
+  return (await api.get('/definitions')).data;
 };
 
 export const getNodes = async () => {

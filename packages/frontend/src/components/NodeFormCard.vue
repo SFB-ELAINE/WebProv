@@ -2,8 +2,14 @@
   <card title="Node">
 
     <b-field label="Type">
-      <b-select :value="node.type" @input="typeChange" expanded>
-        <option v-for="option in provenanceNodeTypes" :key="option" :value="option">{{ option }}</option>
+      <b-select :value="node.definitionId" @input="definitionChange" expanded>
+        <option 
+          v-for="definition in definitions" 
+          :key="definition.id" 
+          :value="definition.id"
+        >
+          {{ definition.name }}
+        </option>
       </b-select>
     </b-field>
 
@@ -17,10 +23,10 @@
         <option :value="undefined"></option>
         <option 
           v-for="study in studies" 
-          :key="study.studyId" 
-          :value="study.studyId"
+          :key="study.id" 
+          :value="study.id"
         >
-          {{ study.studyId }}
+          {{ study.source }}
         </option>
       </b-select>
     </b-field>
@@ -57,12 +63,11 @@
 import Card from '@/components/Card.vue';
 import { createComponent } from '../utils';
 import {
-  provenanceNodeTypes,
   ProvenanceNode,
   InformationField,
   uniqueId,
-  ProvenanceNodeType,
-  SimulationStudy,
+  Study,
+  NodeDefinition,
 } from 'common';
 
 export default createComponent({
@@ -71,7 +76,8 @@ export default createComponent({
   props: {
     node: { type: Object as () => ProvenanceNode, required: true },
     fields: { type: Array as () => InformationField[], required: true },
-    studies: { type: Array as () => SimulationStudy[], required: true },
+    studies: { type: Array as () => Study[], required: true },
+    definitions: { type: Array as () => NodeDefinition[], required: true },
   },
   setup(props, context) {
     function updateKey(index: number, newValue: string) {
@@ -100,12 +106,12 @@ export default createComponent({
       updateNode('label', value);
     }
 
-    function typeChange(value: ProvenanceNodeType) {
-      updateNode('type', value);
+    function definitionChange(definitionId: string) {
+      updateNode('definitionId', definitionId);
     }
 
-    function studyIdChange(value: string) {
-      updateNode('studyId', value ? +value : undefined);
+    function studyIdChange(value: string | undefined) {
+      updateNode('studyId', value);
     }
 
     function updateNode<K extends keyof ProvenanceNode>(key: K, value: ProvenanceNode[K]) {
@@ -119,10 +125,9 @@ export default createComponent({
     }
 
     return {
-      provenanceNodeTypes,
       deleteField,
       labelChange,
-      typeChange,
+      definitionChange,
       studyIdChange,
       updateNode,
       addField,

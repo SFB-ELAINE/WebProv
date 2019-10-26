@@ -8,11 +8,13 @@
       :links="links"
       :nodes="nodes"
       force 
-      zoom
+      zoomable
       arrows
-      drag
+      draggable
       :pan.sync="pan"
+      :zoom.sync="zoom"
       hulls
+      :hull-click="hullClick"
       :hull-dblclick="hullDblclick"
       :color-changes="colorChanges"
     ></d3>
@@ -40,7 +42,6 @@
         :items="searchItems"
         @open="expandStudy"
         @dependency="showProvenanceGraph"
-        @open-study="openStudy"
       ></search-card>
       <div style="flex: 1"></div>
 
@@ -76,13 +77,13 @@
         <prov-legend-card v-bind="legendProps"></prov-legend-card>
         <div class="spacer"></div>
 
-        <simulation-study-card
+        <study-card
           v-if="selectedStudy"
           :study="selectedStudy"
-          @cancel="cancelSelectedStudy"
+          @close="closeStudyCard"
           @delete="deleteSelectedStudy"
-          @save="saveSelectedStudy"
-        ></simulation-study-card>
+          @update="saveSelectedStudy"
+        ></study-card>
         <div v-if="selectedStudy" class="spacer"></div>
         
         <select-card
@@ -100,7 +101,8 @@
           v-if="selectedNode"
           :node="selectedNode"
           :fields="selectedNodeInformation"
-          :studies="simulationStudies"
+          :studies="studies"
+          :definitions="definitions"
           @close="deselectNode"
           @delete="deleteNode"
           @update:information:delete="deleteInformationNode"
@@ -131,22 +133,18 @@ import {
   INVALID_ENDPOINT_OUTLINE,
   NODE_HEIGHT,
   NODE_RADIUS,
-  SIMULATION_STUDY_STROKE,
-  SIMULATION_STUDY_WIDTH,
+  STUDY_STROKE,
+  STUDY_WIDTH,
   SELECTED_NODE_OUTLINE,
 } from '@/constants';
 import {
-  ProvenanceNodeType,
   ProvenanceNode,
-  relationshipRules,
   DependencyType,
-  provenanceNodeTypes,
-  SimulationStudy,
+  Study,
   RelationshipInformation,
   uniqueId,
   tuple,
   TypeOf,
-  isValidRelationship,
 } from 'common';
 import ProvLegendCard from '@/components/ProvLegendCard.vue';
 import InformationModal from '@/components/InformationModal.vue';
@@ -156,8 +154,6 @@ import {
   getLabel,
   makeLookup,
   addEventListeners,
-  createRelationship,
-  getDefaultRelationshipType,
   get,
   makeRequest,
   makeLookupBy,
@@ -165,30 +161,36 @@ import {
   isDefined,
   getLogger,
   createComponent,
-  createModelVersionLookup,
-  Connection,
+  HighLevelRelationship,
   HighLevelNode,
   merge,
-  getClassification,
   toTsv,
   TsvRow,
   download,
+  flat,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
 import NodeFormCard from '@/components/NodeFormCard.vue';
-import SimulationStudyCard from '@/components/SimulationStudyCard.vue';
+import StudyCard from '@/components/StudyCard.vue';
 import SelectCard from '@/components/SelectCard.vue';
 import { SearchItem, search } from '@/search';
 import * as backend from '@/backend';
 import debounce from 'lodash.debounce';
-import { DependencyRelationship, InformationField, InformationRelationship } from 'common/dist/schemas';
+import {
+  DependencyRelationship,
+  InformationField,
+  InformationRelationship,
+  RelationshipRule,
+  NodeDefinition,
+} from 'common/dist/schemas';
 import { version } from '../package.json';
 import { computed, value, onMounted } from 'vue-function-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
+import { useRules, useDefinitions } from '@/hooks';
 
 interface BaseNode extends D3Node {
-  studyId?: number;
+  studyId?: string;
   text: string;
 }
 
@@ -199,7 +201,6 @@ interface GroupNode extends BaseNode {
 interface SingleNode extends BaseNode {
   provenanceNode: ProvenanceNode;
   isGroup: false;
-  type: ProvenanceNodeType;
 }
 
 type Node = SingleNode | GroupNode;
@@ -212,12 +213,6 @@ interface Point {
   x: number;
   y: number;
 }
-
-export type RelationshipCache = {
-  [A in ProvenanceNodeType]?: {
-    [B in ProvenanceNodeType]?: DependencyType;
-  };
-};
 
 const isSingleNode = (node: Node): node is SingleNode => {
   return !node.isGroup;
@@ -233,7 +228,7 @@ export default createComponent({
     SearchCard,
     SelectCard,
     NodeFormCard,
-    SimulationStudyCard,
+    StudyCard,
     InformationModal,
     Fab,
   },
@@ -242,6 +237,9 @@ export default createComponent({
     windowWidth: { type: Number, required: true },
   },
   setup(props, context) {
+    const { getDefaultRelationshipType, isValidRelationship, getApplicableRules, createRelationship } = useRules();
+    const { getDefinition, createModelVersionLookup, getClassification, definitions } = useDefinitions();
+
     // The package version number
     const provenanceNodes = value<ProvenanceNode[]>([]);
     const informationNodes = value<InformationField[]>([]);
@@ -258,7 +256,7 @@ export default createComponent({
     const legendProps = {
       nodeOutline: NODE_OUTLINE,
       nodeRadius: NODE_RADIUS,
-      simulationStudyOutline: SIMULATION_STUDY_STROKE,
+      studyOutline: STUDY_STROKE,
     };
 
     // All of the nodes to show
@@ -273,19 +271,14 @@ export default createComponent({
     const lineStart = value<Point | null>(null);
     const lineEnd = value<Point | null>(null);
 
-    const selectedConnection = value<Connection | null>(null);
+    const selectedConnection = value<HighLevelRelationship | null>(null);
     const currentRelationship = value<DependencyType | null>(null);
     const possibleRelationships = value<DependencyType[] | null>(null);
 
     // used to display information on a card
     const selectedNode = value<ProvenanceNode | null>(null);
 
-    // This lookup is used to cache selected connections
-    // When a user change the type of relationship, new relatinoships that are created
-    // will be of the cached type.
-    const cachedConnections = value<RelationshipCache>({});
-
-    const simulationStudies = value<SimulationStudy[]>([]);
+    const studies = value<Study[]>([]);
 
     // Whether to show the help information
     const showHelp = value(false);
@@ -293,15 +286,18 @@ export default createComponent({
     // Whether to show the help information
     const showEditTools = value(false);
 
-    // The pan of the visualization
+    // The current pan of the visualization
     const pan = value({ x: 0, y: 0 });
 
+    // The current zoom of the visualization
+    const zoom = value(1);
+
     const exportNodes = () => {
+      // TODO export definition
       interface ExportRow {
         id: string;
         label: string;
-        type: ProvenanceNodeType;
-        studyId?: number;
+        studyId?: string;
         informationFields: Array<{ key: string, value: string }>;
         dependencies: Array<{ target: string, type: DependencyType }>;
       }
@@ -329,10 +325,10 @@ export default createComponent({
         });
 
 
+        const definition = getDefinition(node);
         return {
           id: node.id,
-          label: getLabel(node, simulationStudyLookup.value, modelVersionLookup.value),
-          type: node.type,
+          label: getLabel(node, definition, studyLookup.value, modelVersionLookup.value),
           studyId: node.studyId,
           dependencies: nodeDependencies,
           informationFields: nodeInformationFields,
@@ -377,11 +373,15 @@ export default createComponent({
     ];
 
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
-    const selectedStudy = value<SimulationStudy | null>(null);
+    const selectedStudy = value<Study | null>(null);
 
     const debouncedRenderGraph = debounce(renderGraph, 500);
     const debouncedUpdateOrCreateNode = debounce((node: ProvenanceNode) => {
       return makeRequest(() => backend.updateOrCreateNode(node));
+    }, 500);
+
+    const debouncedUpdateOrCreateStudy = debounce((study: Study) => {
+      return makeRequest(() => backend.updateOrCreateStudy(study));
     }, 500);
 
     const debouncedUpdateOrCreateInformationNode = debounce((field: InformationField) => {
@@ -440,17 +440,15 @@ export default createComponent({
           if (!target) {
             context.root.$notification.open({
               duration: 10000,
-              message: `Connection target not found: ${n.type}(${sourceId}) => ${targetId}`,
+              message: `Connection target not found: ${sourceId} -> ${targetId}`,
               position: 'is-top-right',
               type: 'is-warning',
             });
             return;
           }
 
-          const d3Connection: Connection = {
-            relationship: connection.properties.type,
-            properties: connection.properties,
-            original: connection,
+          const d3Connection: HighLevelRelationship = {
+            relationship: connection.properties,
             color: relationshipColors[connection.properties.type].color,
             source,
             target,
@@ -468,8 +466,8 @@ export default createComponent({
       return makeLookup(highLevelNodes.value);
     });
 
-    const simulationStudyLookup = computed(() => {
-      return makeLookupBy(simulationStudies.value, (study) => study.studyId);
+    const studyLookup = computed(() => {
+      return makeLookupBy(studies.value, (study) => study.id);
     });
 
     const dependenciesLookup = computed(() => {
@@ -486,7 +484,7 @@ export default createComponent({
 
     // lookup by studyId
     const sortedHighLevelNodes = computed(() => {
-      const allNodes: { [studyId: number]: HighLevelNode[] } = {};
+      const allNodes: { [studyId: string]: HighLevelNode[] } = {};
       highLevelNodes.value.forEach((highLevelNode) => {
         const studyId = highLevelNode.node.studyId;
         if (studyId === undefined) {
@@ -570,7 +568,7 @@ export default createComponent({
       renderGraph();
     }
 
-    function cancelSelectedStudy() {
+    function closeStudyCard() {
       selectedStudy.value = null;
     }
 
@@ -580,11 +578,7 @@ export default createComponent({
       }
 
       const study = selectedStudy.value;
-      const result = await makeRequest(() => backend.updateOrCreateStudy(study));
-      if (result.result === 'success') {
-        selectedStudy.value = null;
-        simulationStudies.value.push(study);
-      }
+      debouncedUpdateOrCreateStudy(study);
     }
 
     async function deleteSelectedStudy() {
@@ -596,18 +590,19 @@ export default createComponent({
       const result = await makeRequest(() => backend.deleteStudy(study.id));
       if (result.result === 'success') {
         selectedStudy.value = null;
-        const i = simulationStudies.value.indexOf(study);
-        simulationStudies.value.splice(i, 1);
+        const i = studies.value.indexOf(study);
+        studies.value.splice(i, 1);
       }
     }
 
     function expandStudy(result: SearchItem) {
-      if (result.studyId !== undefined) {
-        expanded.value[result.studyId] = true;
+      const studyId = result.study ? result.study.id : undefined;
+      if (studyId !== undefined) {
+        expanded.value[studyId] = true;
       }
 
       highLevelNodes.value.forEach(({ node, id }) => {
-        if (node.studyId === result.studyId) {
+        if (node.studyId === studyId) {
           nodesToShow.value[id] = true;
         }
       });
@@ -620,30 +615,22 @@ export default createComponent({
         const fields = getInformationNodesFromProvenance(n.node);
         const values = fields.filter(isDefined).map((field) => field.value);
 
+        const study = n.node.studyId ? studyLookup.value[n.node.studyId] : undefined;
         return {
           id: n.id,
-          title: getLabel(n.node, simulationStudyLookup.value, modelVersionLookup.value),
-          type: n.node.type,
-          studyId: n.node.studyId,
-          studyText: n.node.studyId !== undefined ? `Study ${n.node.studyId}` : undefined,
+          title: getLabel(n.node, getDefinition(n.node), studyLookup.value, modelVersionLookup.value),
+          study,
           extra: values,
         };
       });
     });
 
     async function createStudy() {
-      const result = await makeRequest(() => backend.getMaxStudyId());
-      if (result.result !== 'success') {
-        return;
-      }
-
       selectedStudy.value = {
         id: uniqueId(),
-        // Once we have the max, we just add 1 to creat the new study ID
-        // If we have concurrent users creating studies, this might cause issues
-        // But this solution works for now
-        studyId: result.item + 1,
       };
+
+      studies.value.push(selectedStudy.value);
     }
 
     function nodeRightClick(e: MouseEvent, node: SingleNode) {
@@ -652,8 +639,8 @@ export default createComponent({
       e.stopImmediatePropagation();
       const setCenter = () => {
         lineStart.value = {
-          x: pan.value.x + node.x + node.width / 2,
-          y: pan.value.y + node.y + node.height / 2,
+          x: pan.value.x + (node.x + node.width / 2) * zoom.value,
+          y: pan.value.y + (node.y + node.height / 2) * zoom.value,
         };
       };
 
@@ -664,24 +651,22 @@ export default createComponent({
         return nodes.value
           .filter(isSingleNode) // we can't make connections to group nodes
           .filter((n) => {
-            const ul = { x: n.x + pan.value.x, y: n.y + pan.value.y }; // upper left corner
-            const lr = { x: ul.x + n.width, y: ul.y + n.height }; // lower right corner
+            // TODO fix with zoom
+            const ul = {
+              x: n.x * zoom.value + pan.value.x,
+              y: n.y * zoom.value + pan.value.y,
+            }; // upper left corner
+
+            const lr = {
+              x: ul.x + n.width,
+              y: ul.y + n.height,
+            }; // lower right corner
             return n !== node && point.x > ul.x && point.y > ul.y && lr.x > point.x && lr.y > point.y;
           });
       };
 
       const getRelationship = (a: ProvenanceNode, b: ProvenanceNode) => {
-        let defaultRelationshipMap = cachedConnections.value[a.type];
-        if (!defaultRelationshipMap) {
-          defaultRelationshipMap = cachedConnections.value[a.type] = {};
-        }
-
-        let relationship =  defaultRelationshipMap[b.type];
-        if (!relationship) {
-          relationship = defaultRelationshipMap[b.type] = getDefaultRelationshipType(a.type, b.type);
-        }
-
-        return relationship;
+        return getDefaultRelationshipType(a, b);
       };
 
 
@@ -762,16 +747,15 @@ export default createComponent({
         return !nodesToShow.value[connection.target.id];
       });
 
-      const text = getLabel(n, simulationStudyLookup.value, modelVersionLookup.value);
+      const text = getLabel(n, getDefinition(n), studyLookup.value, modelVersionLookup.value);
       const { x, y } = nodeLookup.value[sourceId] ? nodeLookup.value[sourceId] : pointToPlaceNode.value;
       const node: SingleNode = {
         isGroup: false,
         id: sourceId,
         text,
         actionText: moreLeftToShow ? 'See more' : undefined,
-        type: n.type,
         studyId: n.studyId,
-        hullGroup: n.studyId,
+        hullId: n.studyId,
         stroke: NODE_OUTLINE,
         x,
         y,
@@ -779,7 +763,7 @@ export default createComponent({
         vy: 0,
         index: 0,
         provenanceNode: n,
-        rx: getClassification(n.type) === 'entity' ? 10 : 0,
+        rx: getClassification(n) === 'entity' ? 10 : 0,
         // width and height are essential
         // TODO add requirement to type file
         // they are used in the other js files
@@ -834,9 +818,14 @@ export default createComponent({
     }
 
     function renderGraph() {
+      // We need to label the collapsed studies somehow
+      // So, we keep a counter and label studies `S1`, `S2` and so on
+      const labelLookup: Lookup<string> = {};
+      let groupCount = 1;
+
       const newLinks: Link[] = [];
       const newNodes: Node[] = [];
-      const collapsedNodes: { [studyId: number]: GroupNode } = {};
+      const collapsedNodes: { [studyId: string]: GroupNode } = {};
 
       // We don't care about any nodes that don't need to be shown.
       const filtered = provenanceNodes.value.filter((n) => nodesToShow.value[n.id]);
@@ -847,26 +836,31 @@ export default createComponent({
       // Remove studies that are expanded
       studyIds = studyIds.filter((studyId) => !expanded.value[studyId]);
 
-      // First, create all of the simulation study nodes.
-      // These are the collapsed nodes. We only need to create one per simulation study.
+      // First, create all of the study nodes.
+      // These are the collapsed nodes. We only need to create one per study.
       studyIds.forEach((studyId) => {
+        if (!labelLookup.hasOwnProperty(studyId)) {
+          labelLookup[studyId] = `S${groupCount++}`;
+        }
+
         // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed
         // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
         // us to easily lookup the location of the collapsed node when re-rendering.
         const id = '' + studyId;
         const point = nodeLookup.value[id] ? nodeLookup.value[id] : pointToPlaceNode.value;
         const node: GroupNode = {
-          ...point,
+          x: point.x,
+          y: point.y,
           isGroup: true,
           studyId,
           id,
           index: 0,
           vx: 0,
           vy: 0,
-          stroke: SIMULATION_STUDY_STROKE,
+          stroke: STUDY_STROKE,
           rx: 0,
-          text: `M${studyId}`,
-          width: SIMULATION_STUDY_WIDTH,
+          text: labelLookup[studyId],
+          width: STUDY_WIDTH,
           height: NODE_HEIGHT,
           onDidDblclick: () => {
             expanded.value[studyId] = true;
@@ -890,7 +884,7 @@ export default createComponent({
             return;
           }
 
-          const determineLinkId = (id: string, studyId: number | undefined) => {
+          const determineLinkId = (id: string, studyId: string | undefined) => {
             if (studyId === undefined || expanded.value[studyId]) {
               return id;
             }
@@ -910,35 +904,21 @@ export default createComponent({
             source,
             target,
             color: c.color,
-            onDidClick: () => {
+            onDidMousedown: (e: MouseEvent) => {
+              e.stopImmediatePropagation();
+            },
+            onDidClick: (e) => {
               if (selectedConnection.value === c) {
                 cancelRelationshipSelection();
                 return;
               }
 
               selectedConnection.value = c;
+              currentRelationship.value = c.relationship.type;
 
               const a = c.source.node;
               const b = c.target.node;
-
-              const aRules = relationshipRules[a.type];
-              if (!aRules) {
-                return;
-              }
-
-              const rules = aRules[b.type];
-              if (!rules) {
-                return;
-              }
-
-              currentRelationship.value = c.relationship;
-              possibleRelationships.value = rules.map((rule) => {
-                if (typeof rule === 'string') {
-                  return rule;
-                }
-
-                return rule.relationship;
-              });
+              possibleRelationships.value = flat(getApplicableRules(a, b).map((rule) => rule.type));
             },
           };
 
@@ -965,9 +945,18 @@ export default createComponent({
     }
 
     async function addNode() {
+      if (definitions.value.length === 0) {
+        context.root.$notification.open({
+          message: 'No definitions found. Unable to create new node.',
+          position: 'is-top-right',
+          type: 'is-warning',
+        });
+        return;
+      }
+
       const node: ProvenanceNode = {
-        type: 'ModelBuildingActivity',
         id: uniqueId(),
+        definitionId: definitions.value[0].id,
       };
 
       const result = await makeRequest(() => backend.updateOrCreateNode(node));
@@ -993,36 +982,30 @@ export default createComponent({
         return;
       }
 
-      const originalConnection = selectedConnection.value.original;
+      const connection = selectedConnection.value;
+      const originalConnection = connection.relationship;
 
       const a = selectedConnection.value.source.node;
       const b = selectedConnection.value.target.node;
 
-      const cached = cachedConnections.value[a.type] = cachedConnections.value[a.type] || {};
-      cached[b.type] = relationship;
-
-      const newProperties = {
-        ...originalConnection.properties,
-        type: relationship,
-      };
+      const copy = { ...originalConnection };
+      copy.type = relationship;
 
       const result = await makeRequest(() => backend.updateOrCreateDependency({
-        source: originalConnection.source,
-        target: originalConnection.target,
-        properties: newProperties,
-      }));
-      if (result.result !== 'success') {
-        return;
-      }
+        source: connection.source.id,
+        target: connection.target.id,
+        properties: copy,
+      }), () => {
+        // This feels a bit messy
+        // Set the relationship
+        // Set the relationship of the actual data
+        // Then render the graph again
+        currentRelationship.value = relationship;
+        originalConnection.type = relationship;
 
-      // This feels a bit messy
-      // Set the relationship
-      // Set the relationship of the actual data
-      // Then render the graph again
-      currentRelationship.value = relationship;
-      originalConnection.properties = newProperties;
-      renderGraph();
-      cancelRelationshipSelection();
+        renderGraph();
+        cancelRelationshipSelection();
+      });
     }
 
     async function deleteRelationship() {
@@ -1031,13 +1014,13 @@ export default createComponent({
       }
 
       const connection = selectedConnection.value;
-      const result = await makeRequest(() => backend.deleteDependency(connection.properties.id));
+      const result = await makeRequest(() => backend.deleteDependency(connection.relationship.id));
       if (result.result !== 'success') {
         return;
       }
 
       dependencies.value = dependencies.value.filter((dependency) => {
-        return dependency.properties.id !== connection.properties.id;
+        return dependency.properties.id !== connection.relationship.id;
       });
 
       renderGraph();
@@ -1092,11 +1075,11 @@ export default createComponent({
       const toRemove = new Set<string>();
 
       [...incoming, ...outgoing].forEach((c) => {
-        if (isValidRelationship(c.source.node, c.target.node, c.relationship)) {
+        if (isValidRelationship(c.source.node, c.target.node, c.relationship.type)) {
           return;
         }
 
-        toRemove.add(c.properties.id);
+        toRemove.add(c.relationship.id);
       });
 
       if (toRemove.size === 0) {
@@ -1164,14 +1147,14 @@ export default createComponent({
       debouncedRenderGraph();
 
       // Only validate the connections if the type of node changed.
-      if (key === 'type') {
+      if (key === 'definitionId') {
         validateConnections(node);
       }
     }
 
     onMounted(() => {
       makeRequest(backend.getStudies, (result) => {
-        simulationStudies.value = result.items;
+        studies.value = result.items;
       });
 
       makeRequest(backend.getNodes, (result) => {
@@ -1192,6 +1175,7 @@ export default createComponent({
     });
 
     return {
+      definitions,
       dependencies,
       version,
       showHelp,
@@ -1204,6 +1188,7 @@ export default createComponent({
       lineStart,
       lineEnd,
       pan,
+      zoom,
       fabActions,
       searchItems,
       expandStudy,
@@ -1212,10 +1197,10 @@ export default createComponent({
       stopEdit: () => {
         showEditTools.value = false;
       },
-      openStudy: (result: SearchItem) => {
-        if (result.studyId === undefined) {
+      hullClick: (d: D3Hull) => {
+        if (studyLookup.value[d.id] === undefined) {
           context.root.$notification.open({
-            message: 'Please assign a study ID first.',
+            message: 'No study exists in the database for this group.',
             position: 'is-top-right',
             type: 'is-warning',
           });
@@ -1223,20 +1208,14 @@ export default createComponent({
           return;
         }
 
-        if (simulationStudyLookup.value[result.studyId] === undefined) {
-          context.root.$notification.open({
-            message: 'No study exists for this node.',
-            position: 'is-top-right',
-            type: 'is-warning',
-          });
-
-          return;
+        if (selectedStudy.value && selectedStudy.value.id === d.id) {
+          selectedStudy.value = null;
+        } else {
+          selectedStudy.value = studyLookup.value[d.id];
         }
-
-        selectedStudy.value = simulationStudyLookup.value[result.studyId];
       },
       hullDblclick: (d: D3Hull) => {
-        expanded.value[d.group] = false;
+        expanded.value[d.id] = false;
 
         const point = { x: 0, y: 0 };
         d.nodes.forEach((n) => {
@@ -1256,7 +1235,7 @@ export default createComponent({
       createStudy,
       addNode,
       selectedStudy,
-      cancelSelectedStudy,
+      closeStudyCard,
       deleteSelectedStudy,
       saveSelectedStudy,
       selectedNode,
@@ -1271,7 +1250,7 @@ export default createComponent({
       possibleRelationships,
       cancelRelationshipSelection,
       deleteRelationship,
-      simulationStudies,
+      studies,
     };
   },
 });

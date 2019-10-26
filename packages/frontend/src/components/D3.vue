@@ -35,10 +35,11 @@ export default createComponent({
     defaultStrokeColor: { type: String, default: '#000' },
     arrows: { type: Boolean, default: false },
     force: { type: Boolean, default: false },
-    drag: { type: Boolean, default: false },
-    zoom: { type: Boolean, default: false },
+    draggable: { type: Boolean, default: false },
+    zoomable: { type: Boolean, default: false },
     hulls: { type: Boolean, default: false },
     pan: { type: Object as () => { x: number, y: number } | undefined },
+    zoom: { type: Number, default: 1 },
     height: { type: Number, default: 100 },
     width: { type: Number, default: 100 },
     arrowSize: { type: Number, default: 6 },
@@ -94,17 +95,17 @@ export default createComponent({
       return makeLookup(allNodes.value);
     });
 
-    function fill(d: { group: number }) {
-      if (!colorLookup[d.group]) {
+    function fill(d: { id: string }) {
+      if (!colorLookup[d.id]) {
         if (colorIndex < colors.length) {
-          colorLookup[d.group] = colors[colorIndex];
+          colorLookup[d.id] = colors[colorIndex];
           colorIndex++;
         } else {
-          colorLookup[d.group] = getRandomColor();
+          colorLookup[d.id] = getRandomColor();
         }
       }
 
-      return colorLookup[d.group];
+      return colorLookup[d.id];
     }
 
     function addLink(link: D3Link) {
@@ -123,12 +124,12 @@ export default createComponent({
       const offset = props.hullOffset;
       // create point sets
       allNodes.value.forEach((n) => {
-        if (n.hullGroup === undefined) {
+        if (n.hullId === undefined) {
           // Skip allNodes that aren't in a group
           return;
         }
 
-        const i = n.hullGroup;
+        const i = n.hullId;
         const l = hulls[i] || (hulls[i] = { points: [], nodes: [] });
 
         interface Point {
@@ -155,7 +156,7 @@ export default createComponent({
         }
 
         hullset.push({
-          group: Number.parseInt(i, 10),
+          id: i,
           nodes: hulls[i].nodes,
           path,
         });
@@ -260,6 +261,11 @@ export default createComponent({
           if (d.onDidClick) {
             d.onDidClick(d3.event);
           }
+        })
+        .on('mousedown', (d) => {
+          if (d.onDidMousedown) {
+            d.onDidMousedown(d3.event);
+          }
         });
 
       const link = svg.append('g')
@@ -320,7 +326,7 @@ export default createComponent({
       g.on('mousedown', checkAndCallV2('onDidMousedown'));
       g.on('contextmenu', checkAndCallV2('onDidRightClick'));
 
-      if (props.drag) {
+      if (props.draggable) {
         // I can't get the types to work out for some reason, this definitely works though
         // you can see that I cast as `any` at the end
         const drag = d3.drag<any, d3.SimulationNodeDatum>()
@@ -469,11 +475,10 @@ export default createComponent({
         });
       }
 
-
-      if (props.zoom) {
+      if (props.zoomable) {
         context.root.$nextTick(() => {
           let pan = { x: 0, y: 0 };
-          let zoom = 1;
+          let zoom = props.zoom;
 
           if (svgPanZoomInstance) {
             pan = svgPanZoomInstance.getPan();
@@ -487,12 +492,16 @@ export default createComponent({
           }
 
 
-          svgPanZoomInstance = svgPanZoom(refs.svg, {
+          const instance = svgPanZoomInstance = svgPanZoom(refs.svg, {
             fit: false,
             center: false,
             dblClickZoomEnabled: false,
             onPan: (newPan) => {
               update(props, context, 'pan', newPan);
+            },
+            onZoom(newZoom) {
+              update(props, context, 'pan', instance.getPan());
+              update(props, context, 'zoom', newZoom);
             },
           });
 
