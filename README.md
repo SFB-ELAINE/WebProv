@@ -3,6 +3,7 @@ The goal of this project is the create a web platform to automatically visualize
 
 [Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
 > The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
+> If the Demo does not work, check out our old version [here](https://sfb-elaine.github.io/WebProv/)
 
 ## Environment Setup
 ### Node
