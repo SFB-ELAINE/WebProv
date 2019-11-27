@@ -40,7 +40,7 @@ export function getLabel(
   node: ProvenanceNode,
   definition: NodeDefinition | undefined,
   lookup: StudyLookup,
-  modelVersionLookup: Lookup<number | undefined>,
+  modelVersionLookup: Lookup<number | undefined | string>,
 ): string {
   if (node.label) {
     return node.label;
