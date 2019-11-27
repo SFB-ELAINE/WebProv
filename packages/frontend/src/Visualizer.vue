@@ -548,9 +548,22 @@ export default createComponent({
     });
 
     const modelVersionLookup = computed(() => {
-      const lookups = sortedHighLevelNodes.value.map(createModelVersionLookup);
-      // Since the IDs are used as keys, there will be no clashing when we merge objects
-      return merge(lookups);
+      const result = createModelVersionLookup(highLevelNodes.value);
+
+      // If there is a circular dependency we just create a ID -> "<?>" lookup
+      // We could handle this better
+      if (result.circular) {
+        notifier.danger('Circular dependency detected. Please find and remove this dependency.');
+
+        const lookup: Lookup<string> = {};
+        highLevelNodes.value.forEach((node) => {
+          lookup[node.id] = '<?>';
+        });
+
+        return lookup;
+      }
+
+      return result.lookup;
     });
 
     function getConnections(id: string) {
@@ -584,7 +597,12 @@ export default createComponent({
     }
 
     function showProvenanceGraph(r: SearchItem) {
+      const seen = new Set<string>();
       const showNode = (id: string) => {
+        // Detects circular dependency
+        if (seen.has(id)) { return; }
+        seen.add(id);
+
         if (highLevelNodeLookup.value[id] === undefined) {
           return;
         }

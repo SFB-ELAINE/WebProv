@@ -22,6 +22,10 @@ interface Cant {
   can: false;
 }
 
+interface Circular { circular: true; }
+interface NonCircular { circular: false; lookup: Lookup<number>; }
+type ModelVersionLookupResult = NonCircular | Circular;
+
 export const useRules = () => {
   const rules = ref<RelationshipRule[]>([]);
 
@@ -148,27 +152,37 @@ export const useDefinitions = () => {
    *
    * @param highLevelNodes
    */
-  const createModelVersionLookup = (highLevelNodes: HighLevelNode[]): Lookup<number> => {
+  const createModelVersionLookup = (highLevelNodes: HighLevelNode[]): ModelVersionLookupResult => {
     // lookup from node id -> node name (ie. `Model`, `ModelExplorationActivity`) -> count
     // this is kinda a dumb name but oh well
     const fullCountsLookup: Lookup<Lookup<number>> = {};
     const seen = new Set<string>();
 
-    const traverse = (node: HighLevelNode): Lookup<number> => {
+    const traverse = (node: HighLevelNode): ModelVersionLookupResult => {
       if (fullCountsLookup[node.id] !== undefined) {
-        return fullCountsLookup[node.id];
+        return {
+          circular: false,
+          lookup: fullCountsLookup[node.id],
+        };
       }
 
       // This detects cyclic dependencies
       if (seen.has(node.id)) {
-        throw Error('Cyclic dependency detected in graph');
+        return {
+          circular: true,
+        };
       }
 
       seen.add(node.id);
 
       const count: Lookup<number> = {};
       for (const outgoing of node.outgoing) {
-        addBToA(count, traverse(outgoing.target));
+        const result = traverse(outgoing.target);
+        if (result.circular) {
+          return result;
+        }
+
+        addBToA(count, result.lookup);
 
         const definition = getDefinition(outgoing.target.node);
         if (!definition) {
@@ -183,12 +197,18 @@ export const useDefinitions = () => {
       }
 
       fullCountsLookup[node.id] = count;
-      return count;
+      return {
+        circular: false,
+        lookup: count,
+      };
     };
 
-    highLevelNodes.forEach((node) => {
-      traverse(node);
-    });
+    for (const node of highLevelNodes) {
+      const { circular } = traverse(node);
+      if (circular) {
+        return { circular };
+      }
+    }
 
     const counts: Lookup<number> = {};
     highLevelNodes.forEach((node) => {
@@ -219,7 +239,10 @@ export const useDefinitions = () => {
       lookup[node.id] = indices[definition.id];
     });
 
-    return lookup;
+    return {
+      circular: false,
+      lookup,
+    };
   };
 
   onMounted(() => {
