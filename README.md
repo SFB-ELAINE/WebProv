@@ -15,15 +15,15 @@ Next, if not already installed, `Neo4j` should be installed:
 1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
 1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
 1. Start the server using the `neo4j start` command.
-> `Docker` can also be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
+> [`Docker` can also](https://neo4j.com/developer/docker-run-neo4j/) be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
 
-Also, create a `.env` file if you don't already have one:
+Also, create a `.env` in `packages/backend` file if you don't already have one:
 ```
 GRAPHENEDB_BOLT_URL=bolt://localhost:7687
 GRAPHENEDB_BOLT_USER=neo4j
 GRAPHENEDB_BOLT_PASSWORD=PASSWORD_THAT_YOU_CREATED
 ```
-> Make sure to place this `.env` file in `packages/backend`.
+> Make sure that the configuration is correct for your environment.
 
 ### Lerna
 This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is:
@@ -34,6 +34,7 @@ npm install # or `npm i`
 ## Development
 A `Makefile` file is present within both the frontend and backend packages. To start a development server with hot-reload within each package, just run the following command:
 ```
+# make sure to cd into `packages/frontend` or `packages/backend`
 make dev
 ```
 > Ensure that you start the backend server before starting the frontend server.
