@@ -15,7 +15,7 @@ import {
 } from 'common';
 
 import * as dotenv from 'dotenv';
-import neo4j from 'neo4j-driver';
+import * as neo4j from 'neo4j-driver';
 dotenv.config();
 
 // All of these are prepended with GRAPHENEDB because we are currently deploying using the Graphene Neo4j add-on for Heroku
@@ -148,7 +148,7 @@ interface Record<T extends any[]> extends neo4j.Record {
   get<I extends number>(key: I): T[I];
 }
 
-interface StatementResult<T extends any[]> extends neo4j.StatementResult {
+interface StatementResult<T extends any[]> extends neo4j.QueryResult {
   records: Record<T>[];
 }
 

@@ -2,7 +2,8 @@
   <vue-fab 
     :actions="actionsWithTooltip" 
     v-on="on"
-    class="fab"
+    class="fab is-primary"
+    bg-color="#7957d5"
   ></vue-fab>
 </template>
 
