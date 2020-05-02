@@ -6,22 +6,24 @@ on: [push]
   #     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  build_backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.0.4
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "web-prov-backend"
-          heroku_email: "jacob.smith@unb.ca"
+  # build_backend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: akhileshns/heroku-deploy@v3.0.4
+  #       with:
+  #         heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+  #         heroku_app_name: "web-prov-backend"
+  #         heroku_email: "jacob.smith@unb.ca"
   build_frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: jsmrcaga/action-netlify-deploy@master
-        with:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Publish
+        uses: netlify/actions/build@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_DEPLOY_MESSAGE: "Prod deploy ${{ github.ref }}"
-          NETLIFY_DEPLOY_TO_PROD: true
+          NETLIFY_BASE: site
+          NETLIFY_CMD: npm run build-frontend
+          NETLIFY_DIR: _site
