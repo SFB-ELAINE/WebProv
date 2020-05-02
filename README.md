@@ -50,7 +50,29 @@ npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Deployment
-The frontend and backend are automatically deployed when PRs or new commits are merged/pushed to the `master` branch. The following sections describe how this deployment process was set up.
+The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
+
+## Steps
+### 1. Set the new version
+Use the [npm-version](https://docs.npmjs.com/cli/version) command to bump the version in your `package.json`, make a commit with the new version number and a new tag (again with the same version number). Make sure to use the appropriate version type:
+```
+npm version patch
+
+# or this command
+npm version minor
+
+# or this command
+npm version major
+```
+
+### 2. Push your commits and tags
+Then, push the commits and tags:
+```
+git push
+git push --tags
+```
+
+That's it!
 
 ### Backend
 The backend is currently using `Heroku` for automatic deployments. The following commands were used to set up the Heroku backend:
