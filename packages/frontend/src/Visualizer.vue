@@ -39,12 +39,19 @@
 
     <div class="overlay">
       
-      <search-card
-        class="search overlay-child" 
-        :items="searchItems"
-        @open="expandStudy"
-        @dependency="showProvenanceGraph"
-      ></search-card>
+      <div>
+        <query-card
+          class="search overlay-child" 
+          :items="searchItems"
+          @open="showNodes"
+        ></query-card>
+        <search-card
+          class="search overlay-child" 
+          :items="searchItems"
+          @open="expandStudy"
+          @dependency="showProvenanceGraph"
+        ></search-card>
+      </div>
       <div style="flex: 1"></div>
 
       <b-button
@@ -169,6 +176,7 @@ import {
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
+import QueryCard from '@/components/QueryCard.vue';
 import NodeFormCard from '@/components/NodeFormCard.vue';
 import StudyCard from '@/components/StudyCard.vue';
 import SelectCard from '@/components/SelectCard.vue';
@@ -230,6 +238,7 @@ export default createComponent({
     ProvLegendCard,
     D3,
     SearchCard,
+    QueryCard,
     SelectCard,
     NodeFormCard,
     StudyCard,
@@ -594,6 +603,18 @@ export default createComponent({
       return relationships
         .map((relationship) => getInformationNode(relationship.target))
         .filter(isDefined);
+    }
+
+    function showNodes(ids: string[]) {
+      ids.forEach((id) => {
+        nodesToShow.value[id] = true;
+        const info = highLevelNodeLookup.value[id];
+        if (info.node.studyId !== undefined) {
+          expanded.value[info.node.studyId] = true;
+        }
+      })
+
+      renderGraph();
     }
 
     function showProvenanceGraph(r: SearchItem) {
@@ -1262,6 +1283,7 @@ export default createComponent({
       expandStudy,
       legendProps,
       showProvenanceGraph,
+      showNodes,
       stopEdit: () => {
         showEditTools.value = false;
       },

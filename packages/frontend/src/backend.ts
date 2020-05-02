@@ -11,6 +11,7 @@ import {
   BackendSuccess,
   uniqueId,
   Schema,
+  BackendItems,
 } from 'common';
 import { getLogger, ExportInterface } from '@/utils';
 
@@ -109,6 +110,10 @@ export const getNodeDependencies = async () => {
 
 export const getNodeInformation = async () => {
   return (await api.get('/nodes/information')).data;
+};
+
+export const executeQuery = async (query: string): Promise<BackendItems<unknown[]> | BackendError> => {
+  return (await api.get('/execute-query', { params: { query } })).data;
 };
 
 export const upload = async (data: ExportInterface): Promise<BackendError | BackendSuccess> => {

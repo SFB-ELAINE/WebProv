@@ -146,4 +146,11 @@ export interface ProvenanceAPI {
       response: BackendSuccess | BackendError;
     },
   };
+
+  '/execute-query': {
+    GET: {
+      query: { query: string };
+      response: BackendItems<unknown[]> | BackendError;
+    }
+  }
 }

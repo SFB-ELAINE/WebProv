@@ -146,6 +146,7 @@ interface Neo4jRelationship<R extends Schema> extends neo4j.Relationship {
 
 interface Record<T extends any[]> extends neo4j.Record {
   get<I extends number>(key: I): T[I];
+  map<V>(visitor: (value: any, key: string, record: this) => V): V[];
 }
 
 interface StatementResult<T extends any[]> extends neo4j.QueryResult {
@@ -312,6 +313,19 @@ export const updateOrCreateConnection = async <A extends Schema, B extends Schem
     return {
       result: 'success',
     };
+  });
+}
+
+export const executeQuery = async (query: string) => {
+  return await withHandling(async (): Promise<BackendItems<unknown[]> | BackendError> => {
+    const session = driver.session();
+    const result = await session.run(query);
+    session.close();
+
+    return {
+      result: "success",
+      items: result.records.map(record => record.map((item) => item.properties)),
+    }
   });
 }
 
