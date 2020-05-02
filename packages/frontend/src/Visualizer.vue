@@ -1024,6 +1024,7 @@ export default createComponent({
       const node: ProvenanceNode = {
         id: uniqueId(),
         definitionId: definitions.value[0].id,
+        studyId: selectedStudy.value ? selectedStudy.value.id : undefined,
       };
 
       const result = await makeRequest(() => backend.updateOrCreateNode(node));
