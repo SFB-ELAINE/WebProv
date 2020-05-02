@@ -19,11 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: npm install
+      - run: npm run build-frontend
       - name: Publish
-        uses: netlify/actions/build@master
+        uses: netlify/actions/cli@master
+          with:
+            args: deploy --dir=_site --prod
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_BASE: site
-          NETLIFY_CMD: npm run build-frontend
-          NETLIFY_DIR: _site
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
