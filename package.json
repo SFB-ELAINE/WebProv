@@ -9,6 +9,6 @@
     "backend": "lerna run --scope backend prod"
   },
   "dependencies": {
-    "lerna": "^3.11.1"
+    "lerna": "^3.22.1"
   }
 }

@@ -39,10 +39,9 @@
 
     <div class="overlay">
       
-      <div>
+      <div style="flex: 1; display: flex" class="space-x-0 lg:space-x-4 flex-col lg:flex-row">
         <query-card
           class="search overlay-child" 
-          :items="searchItems"
           @open="showNodes"
         ></query-card>
         <search-card
@@ -52,7 +51,7 @@
           @dependency="showProvenanceGraph"
         ></search-card>
       </div>
-      <div style="flex: 1"></div>
+      <!-- <div style="flex: 1"></div> -->
 
       <b-button
         v-if="showEditTools"
@@ -612,7 +611,7 @@ export default createComponent({
         if (info.node.studyId !== undefined) {
           expanded.value[info.node.studyId] = true;
         }
-      })
+      });
 
       renderGraph();
     }
@@ -1397,5 +1396,23 @@ export default createComponent({
   left: 25px;
   bottom: 15px;
   color: rgba(0, 0, 0, 0.5);
+}
+
+.flex-col {
+  flex-direction: column;  
+}
+
+.space-x-0 > * + * {
+  margin-left: 0rem;
+}
+
+@media (min-width: 1300px) {
+  .lg\:flex-row {
+    flex-direction: row;
+  }
+
+  .lg\:space-x-4 > * + * {
+    margin-left: 1rem;
+  }
 }
 </style>

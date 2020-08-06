@@ -2,6 +2,14 @@
   <b-modal :active="value" @update:active="input" :width="640" scroll="keep">
     <div class="card">
       <div class="card-content">
+        <h1>Searching Nodes</h1>
+        <p>All nodes are loaded into the browser during startup. Once complete, you can use the "Search" tool to perform a fuzze search of the available nodes.</p>
+
+        <h1>Cypher Query</h1>
+        <p>You can use the builtin Cypher tool to perform any kind of query you would like. If you return nodes, we will display them in the graph tool. See below for an example query that searches for a specific node.</p>
+        <div style="margin-top: 0.5rem"></div>
+        <code style="margin-top: 1rem">MATCH (n:ProvenanceNode) WHERE n.id = "A366615769" RETURN n</code>
+
         <h1>
           Creating Links
         </h1>

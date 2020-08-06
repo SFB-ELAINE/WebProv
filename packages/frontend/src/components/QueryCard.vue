@@ -1,5 +1,5 @@
 <template>
-  <card ref="card">
+  <card ref="card" style="height: fit-content">
     <template v-slot:header>
       <b-field style="margin: 1.5rem 1.5rem 0">
         <b-input
@@ -79,10 +79,7 @@ export default createComponent({
       return strings.join(' • ');
     },
   },
-  props: {
-    items: { type: Array as () => SearchItem[], required: true },
-  },
-  setup(props, context) {
+  setup(_, context) {
     const cardRef = ref<Vue>(null);
     const inputRef = ref<Vue & { focus: () => void }>(null);
 
@@ -127,12 +124,12 @@ export default createComponent({
         const maybeNodes: unknown[] = [];
         for (const items of result.items) {
           if (items.length > 1) {
-            notifier.danger("Your query was successfull but should only return 1 item from your query.");
+            notifier.danger('Your query was successfull but should only return 1 item from your query.');
             return;
           }
 
           if (items.length === 0) {
-            notifier.info("Your query was successfull but returned nothing.")
+            notifier.info('Your query was successfull but returned nothing.');
           }
 
           maybeNodes.push(items[0]);
@@ -140,15 +137,19 @@ export default createComponent({
 
         const decodeResult = nodesType.decode(maybeNodes);
         if (isLeft(decodeResult)) {
-          notifier.danger('Query result is not in expected format\n\n' + PathReporter.report(decodeResult).join('\n\n'));
+          notifier.danger(
+            'Query result is not in expected format\n\n' +
+            PathReporter.report(decodeResult).join('\n\n'),
+          );
+
           return;
         }
 
         const nodes = decodeResult.right;
 
-        console.log("Showing " + nodes.length)
+        // console.log("Showing " + nodes.length)
         context.emit('open', nodes.map((node) => node.id));
-      })
+      });
     }
 
     function clear() {

@@ -13,9 +13,9 @@ The first step to setting up your environment involves installing `Node.js` and 
 
 ### Neo4j
 Next, if not already installed, `Neo4j` should be installed:
-1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
-1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
+1. Install [Neo4j Desktop](https://neo4j.com/docs/operations-manual/current/installation/) (tested with Neo4j version 4.1.1).
 1. Start the server using the `neo4j start` command.
+1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
 > [`Docker` can also](https://neo4j.com/developer/docker-run-neo4j/) be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
 
 Also, create a `.env` in `packages/backend` file if you don't already have one:
