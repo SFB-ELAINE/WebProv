@@ -12,66 +12,77 @@ export {
 const researchQuestion: NodeDefinition = {
   id: 'Research Question',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "RQ${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "RQ${version}",
 }
 
 const assumption: NodeDefinition = {
   id: 'Assumption',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "A${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "A${version}",
 }
 
 const requirement: NodeDefinition = {
   id: 'Requirement',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "R${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "R${version}",
 }
 
 const experiment: NodeDefinition = {
   id: 'Experiment',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "E${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "E${version}",
 }
 
 const data: NodeDefinition = {
   id: 'Data',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "D${version}",
 }
 
 const qualitativeModel: NodeDefinition = {
   id: 'Qualitative Model',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "QM${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "QM${version}",
 }
 
 const simulationModel: NodeDefinition = {
   id: 'Simulation Model',
   classification: 'entity',
-  labelFormatString: "M${version}${study ? ' (' + study.source  + ')' : ''}",
+  //labelFormatString: "SM${version}${study ? ' (' + study.source  + ')' : ''}",
+  labelFormatString: "SM${version}",
 }
 
 const buildingActivity: NodeDefinition = {
   id: 'Building Simulation Model',
-  label: 'BSM',
+  //label: 'BSM',
+  labelFormatString: "BSM${version}",
   classification: 'activity',
 }
 
 const calibratingActivity: NodeDefinition = {
   id: 'Calibrating Simulation Model',
-  label: 'CSM',
+  //label: 'CSM',
+  labelFormatString: "CSM${version}",
   classification: 'activity',
 }
 
 const validatingActivity: NodeDefinition = {
   id: 'Validating Simulation Model',
-  label: 'VSM',
+  //label: 'VSM',
+  labelFormatString: "VSM${version}",
   classification: 'activity',
 }
 
 const analyzingActivity: NodeDefinition = {
   id: 'Analyzing Simulation Model',
-  label: 'ASM',
+  //label: 'ASM',
+  labelFormatString: "ASM${version}",
   classification: 'activity',
 }
 
