@@ -38,7 +38,7 @@ export const relationshipColors: RelationshipColors = {
     color: 'yellow',
     source: 'activity',
     target: 'entity',
-  }
+  },
 };
 
 export const NODE_OUTLINE = 'rgb(22, 89, 136)';
