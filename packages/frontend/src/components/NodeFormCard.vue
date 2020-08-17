@@ -34,7 +34,7 @@
     </b-field>
 
 
-    <b-field label="InformationField" style="flex-direction: column; align-items: flex-start;">
+    <b-field label="Further Information" style="flex-direction: column; align-items: flex-start;">
       <div v-for="(field, j) in fields" :key="j" style="display: flex">
         <b-field>
           <b-input placeholder="Key" :value="field.key" @input="updateKey(j, $event)"></b-input>
