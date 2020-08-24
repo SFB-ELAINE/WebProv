@@ -344,7 +344,11 @@ export const initialize = async () => {
     for (const fieldName of keys(fields)) {
       const fieldInformation = fields[fieldName];
       if (fieldInformation.unique || fieldInformation.primary) {
-        await session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
+        try {
+          await session.run(`CREATE CONSTRAINT ON (n:${schema.name}) ASSERT n.${fieldName} IS UNIQUE`);
+        } catch {
+          // Ignore if already exists
+        }
       }
     };
   };
