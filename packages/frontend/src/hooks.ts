@@ -113,7 +113,7 @@ export const useRules = () => {
 export const useDefinitions = () => {
   const definitions = ref<NodeDefinition[]>([]);
   const definitionLookup = computed(() => makeLookup(definitions.value));
-  const getDefinition = (node: ProvenanceNode) => {
+  const getDefinition = (node: ProvenanceNode): NodeDefinition | undefined => {
     if (!definitionLookup.value.hasOwnProperty(node.definitionId)) {
       return undefined;
     }
@@ -223,20 +223,20 @@ export const useDefinitions = () => {
     const lookup: Lookup<number> = {}; // the version lookup (node id -> version)
     sorted.forEach((node) => {
       const definition = getDefinition(node.node);
-      if (!definition) {
-        lookup[node.id] = 0;
-        return;
-      }
 
-      if (!indices.hasOwnProperty(definition.id)) {
-        indices[definition.id] = 0;
+      // The ID is a concatenation of the definition and study
+      // This makes it so version numbers are only unique within a study
+      const id = "" + (definition ? definition.id : "") + node.node.studyId;
+
+      if (!indices.hasOwnProperty(id)) {
+        indices[id] = 0;
       }
 
       // add one before so that the number starts at 1
-      indices[definition.id]++;
+      indices[id]++;
 
       // start the number at 1, not 0
-      lookup[node.id] = indices[definition.id];
+      lookup[node.id] = indices[id];
     });
 
     return {
