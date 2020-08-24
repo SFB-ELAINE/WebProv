@@ -110,6 +110,7 @@
           :node="selectedNode"
           :fields="selectedNodeInformation"
           :studies="studies"
+          :definition="selectedNodeDefinition"
           :definitions="definitions"
           @close="deselectNode"
           @delete="deleteNode"
@@ -468,6 +469,14 @@ export default createComponent({
       return relationships.map((relationship) => getInformationNode(relationship.target)).filter(isDefined);
     });
 
+    const selectedNodeDefinition = computed((): NodeDefinition | undefined => {
+      if (!selectedNode.value) {
+        return;
+      }
+
+      return getDefinition(selectedNode.value);
+    });
+
     const highLevelNodes = computed((): HighLevelNode[] => {
       const lookup: Lookup<HighLevelNode> = {};
       provenanceNodes.value.forEach((node) => {
@@ -701,7 +710,7 @@ export default createComponent({
     const searchItems = computed(() => {
       return highLevelNodes.value.map((n): SearchItem => {
         const fields = getInformationNodesFromProvenance(n.node);
-        const values = fields.filter(isDefined).map((field) => field.value);
+        const values = fields.filter(isDefined).map((field) => field.value).filter((value) => value !== '');
 
         const study = n.node.studyId ? studyLookup.value[n.node.studyId] : undefined;
         return {
@@ -1328,6 +1337,7 @@ export default createComponent({
       deleteSelectedStudy,
       saveSelectedStudy,
       selectedNode,
+      selectedNodeDefinition,
       selectedNodeInformation,
       deselectNode,
       deleteNode,

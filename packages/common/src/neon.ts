@@ -30,7 +30,7 @@ export type Primitive =
   t.BooleanC |
   t.StringC |
   t.NumberC |
-  t.UnionC<[t.LiteralC<any>, t.LiteralC<any>, ...Array<t.LiteralC<any>>]>;
+  t.UnionC<any>;
 
 export type PrimitiveArray =
   t.ArrayC<t.UnionC<any>> |

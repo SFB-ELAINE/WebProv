@@ -14,6 +14,7 @@ const researchQuestion: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "RQ${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "RQ${version}",
+  informationFields: []
 }
 
 const assumption: NodeDefinition = {
@@ -55,7 +56,7 @@ const simulationModel: NodeDefinition = {
   id: 'Simulation Model',
   classification: 'entity',
   //labelFormatString: "SM${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "SM${version}",
+  labelFormatString: "SM${version}"
 }
 
 const buildingActivity: NodeDefinition = {

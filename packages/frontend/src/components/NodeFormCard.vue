@@ -33,13 +33,13 @@
       </b-select>
     </b-field>
 
+    <b-field v-for="key in definedFields" :key="key" :label="key">
+      <b-input :value="fieldsLookup[key] ? fieldsLookup[key].value : ''" @input="updateDefinedKey(key, $event)"></b-input>
+    </b-field>
 
-<<<<<<< HEAD
+
     <b-field label="Further Information" style="flex-direction: column; align-items: flex-start;">
-=======
-    <b-field label="Information Fields" style="flex-direction: column; align-items: flex-start;">
->>>>>>> origin/master
-      <div v-for="(field, j) in fields" :key="j" style="display: flex">
+      <div v-for="(field, j) in extraFields" :key="j" style="display: flex">
         <b-field>
           <b-input placeholder="Key" :value="field.key" @input="updateKey(j, $event)"></b-input>
         </b-field>
@@ -74,18 +74,38 @@ import {
   Study,
   NodeDefinition,
 } from 'common';
-import { createComponent } from '@vue/composition-api';
+import { createComponent, computed, watch } from '@vue/composition-api';
+
+const sentRequests: Record<string, boolean> = {};
 
 export default createComponent({
   name: 'NodeFormCard',
   components: { Card },
   props: {
     node: { type: Object as () => ProvenanceNode, required: true },
+    definition: { type: Object as () => NodeDefinition | undefined, required: false },
     fields: { type: Array as () => InformationField[], required: true },
     studies: { type: Array as () => Study[], required: true },
     definitions: { type: Array as () => NodeDefinition[], required: true },
   },
   setup(props, context) {
+    const fieldsLookup = computed((): Record<string, InformationField> => {
+      const lookup: Record<string, InformationField> = {};
+      props.fields.forEach((field) => lookup[field.key] = field);
+      return lookup;
+    });
+
+    const definedFields = computed((): string[] => (
+      props.definition ?
+        props.definition.informationFields ?
+          props.definition.informationFields : [] :
+          []
+    ));
+
+    const extraFields = computed((): InformationField[] => props.fields.filter((field) => (
+      !definedFields.value.includes(field.key)
+    )));
+
     function updateKey(index: number, newValue: string) {
       updateInformationNode(props.fields[index], 'key', newValue);
     }
@@ -130,6 +150,36 @@ export default createComponent({
       context.emit('update:information', information, key, value);
     }
 
+    // This is a bit of a hacky solution.
+    // Basically, we are lazily creating the information field nodes and the relationship
+    // when this node card is created
+    // We ensure we don't send > 1 request to create a new information node using a lookup
+    watch(() => {
+      definedFields.value.forEach((field) => {
+        const sentId = props.node.id + '///' + field;
+        if (!fieldsLookup.value[field] && !sentRequests[sentId]) {
+          sentRequests[sentId] = true;
+          const information = {
+            id: uniqueId(),
+            key: field,
+            value: '',
+          };
+
+          context.emit('update:information:add', information);
+        }
+      });
+    });
+
+    function updateDefinedKey(key: string, newValue: string) {
+      // If the field isn't defined yet (ie. not in the DB)
+      if (!fieldsLookup.value[key]) {
+        return;
+      }
+
+      const field = fieldsLookup.value[key];
+      updateInformationNode(field, 'value', newValue);
+    }
+
     return {
       deleteField,
       labelChange,
@@ -139,6 +189,10 @@ export default createComponent({
       addField,
       updateValue,
       updateKey,
+      definedFields,
+      extraFields,
+      fieldsLookup,
+      updateDefinedKey,
     };
   },
 });

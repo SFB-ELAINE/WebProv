@@ -88,6 +88,13 @@ export const NodeDefinitionSchema = n.schema({
     labelFormatString: {
       type: n.string,
     },
+
+     /**
+     * Defined information fields to display in the node card.
+     */
+    informationFields: {
+      type: n.array(n.string),
+    }
   },
 });
 
