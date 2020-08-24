@@ -14,7 +14,7 @@ const researchQuestion: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "RQ${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "RQ${version}",
-  informationFields: []
+  informationFields: ["Description"]
 }
 
 const assumption: NodeDefinition = {
@@ -22,6 +22,7 @@ const assumption: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "A${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "A${version}",
+  informationFields: ["Description"]
 }
 
 const requirement: NodeDefinition = {
@@ -29,6 +30,7 @@ const requirement: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "R${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "R${version}",
+  informationFields: ["Description"]
 }
 
 const experiment: NodeDefinition = {
@@ -36,6 +38,7 @@ const experiment: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "E${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "E${version}",
+  informationFields: ["Description"]
 }
 
 const data: NodeDefinition = {
@@ -43,6 +46,7 @@ const data: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "D${version}",
+  informationFields: ["Description"]
 }
 
 const qualitativeModel: NodeDefinition = {
@@ -50,13 +54,15 @@ const qualitativeModel: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "QM${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "QM${version}",
+  informationFields: ["Description", "Species"]
 }
 
 const simulationModel: NodeDefinition = {
   id: 'Simulation Model',
   classification: 'entity',
   //labelFormatString: "SM${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "SM${version}"
+  labelFormatString: "SM${version}",
+  informationFields: ["Description"]
 }
 
 const buildingActivity: NodeDefinition = {
@@ -64,6 +70,7 @@ const buildingActivity: NodeDefinition = {
   //label: 'BSM',
   labelFormatString: "BSM${version}",
   classification: 'activity',
+  informationFields: ["Description"]
 }
 
 const calibratingActivity: NodeDefinition = {
@@ -71,6 +78,7 @@ const calibratingActivity: NodeDefinition = {
   //label: 'CSM',
   labelFormatString: "CSM${version}",
   classification: 'activity',
+  informationFields: ["Description"]
 }
 
 const validatingActivity: NodeDefinition = {
@@ -78,6 +86,7 @@ const validatingActivity: NodeDefinition = {
   //label: 'VSM',
   labelFormatString: "VSM${version}",
   classification: 'activity',
+  informationFields: ["Description"]
 }
 
 const analyzingActivity: NodeDefinition = {
@@ -85,6 +94,7 @@ const analyzingActivity: NodeDefinition = {
   //label: 'ASM',
   labelFormatString: "ASM${version}",
   classification: 'activity',
+  informationFields: ["Description"]
 }
 
 export const rules: RelationshipRule[] = [
