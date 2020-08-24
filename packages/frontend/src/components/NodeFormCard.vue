@@ -34,7 +34,7 @@
     </b-field>
 
     <b-field v-for="key in definedFields" :key="key" :label="key">
-      <b-input :value="fieldsLookup[key] ? fieldsLookup[key].value : ''" @input="updateDefinedKey(key, $event)"></b-input>
+      <b-input :value="fieldsLookup[key] ? fieldsLookup[key].value : ''" @input="updateDefinedKey(key, $event)" type="textarea" class="defined-input"></b-input>
     </b-field>
 
 
@@ -197,3 +197,14 @@ export default createComponent({
   },
 });
 </script>
+
+<style>
+.defined-input .textarea, .defined-input {
+  /* height: 100px!important; */
+  min-height: 60px!important;
+}
+
+.defined-input .textarea {
+  padding: 0.5em!important;
+}
+</style>
