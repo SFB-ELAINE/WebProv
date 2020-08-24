@@ -39,13 +39,19 @@
 
     <div class="overlay">
       
-      <search-card
-        class="search overlay-child" 
-        :items="searchItems"
-        @open="expandStudy"
-        @dependency="showProvenanceGraph"
-      ></search-card>
-      <div style="flex: 1"></div>
+      <div style="flex: 1; display: flex" class="space-x-0 lg:space-x-4 flex-col lg:flex-row">
+        <query-card
+          class="search overlay-child" 
+          @open="showNodes"
+        ></query-card>
+        <search-card
+          class="search overlay-child" 
+          :items="searchItems"
+          @open="expandStudy"
+          @dependency="showProvenanceGraph"
+        ></search-card>
+      </div>
+      <!-- <div style="flex: 1"></div> -->
 
       <b-button
         v-if="showEditTools"
@@ -169,6 +175,7 @@ import {
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
+import QueryCard from '@/components/QueryCard.vue';
 import NodeFormCard from '@/components/NodeFormCard.vue';
 import StudyCard from '@/components/StudyCard.vue';
 import SelectCard from '@/components/SelectCard.vue';
@@ -230,6 +237,7 @@ export default createComponent({
     ProvLegendCard,
     D3,
     SearchCard,
+    QueryCard,
     SelectCard,
     NodeFormCard,
     StudyCard,
@@ -594,6 +602,18 @@ export default createComponent({
       return relationships
         .map((relationship) => getInformationNode(relationship.target))
         .filter(isDefined);
+    }
+
+    function showNodes(ids: string[]) {
+      ids.forEach((id) => {
+        nodesToShow.value[id] = true;
+        const info = highLevelNodeLookup.value[id];
+        if (info.node.studyId !== undefined) {
+          expanded.value[info.node.studyId] = true;
+        }
+      });
+
+      renderGraph();
     }
 
     function showProvenanceGraph(r: SearchItem) {
@@ -1024,6 +1044,7 @@ export default createComponent({
       const node: ProvenanceNode = {
         id: uniqueId(),
         definitionId: definitions.value[0].id,
+        studyId: selectedStudy.value ? selectedStudy.value.id : undefined,
       };
 
       const result = await makeRequest(() => backend.updateOrCreateNode(node));
@@ -1261,6 +1282,7 @@ export default createComponent({
       expandStudy,
       legendProps,
       showProvenanceGraph,
+      showNodes,
       stopEdit: () => {
         showEditTools.value = false;
       },
@@ -1374,5 +1396,23 @@ export default createComponent({
   left: 25px;
   bottom: 15px;
   color: rgba(0, 0, 0, 0.5);
+}
+
+.flex-col {
+  flex-direction: column;  
+}
+
+.space-x-0 > * + * {
+  margin-left: 0rem;
+}
+
+@media (min-width: 1300px) {
+  .lg\:flex-row {
+    flex-direction: row;
+  }
+
+  .lg\:space-x-4 > * + * {
+    margin-left: 1rem;
+  }
 }
 </style>

@@ -13,9 +13,9 @@ The first step to setting up your environment involves installing `Node.js` and 
 
 ### Neo4j
 Next, if not already installed, `Neo4j` should be installed:
-1. Install [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/)
-1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
+1. Install [Neo4j Desktop](https://neo4j.com/docs/operations-manual/current/installation/) (tested with Neo4j version 4.1.1).
 1. Start the server using the `neo4j start` command.
+1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
 > [`Docker` can also](https://neo4j.com/developer/docker-run-neo4j/) be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
 
 Also, create a `.env` in `packages/backend` file if you don't already have one:
@@ -50,7 +50,29 @@ npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Deployment
-The frontend and backend are automatically deployed when PRs or new commits are merged/pushed to the `master` branch. The following sections describe how this deployment process was set up.
+The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
+
+## Steps
+### 1. Set the new version
+Use the [npm-version](https://docs.npmjs.com/cli/version) command to bump the version in your `package.json`, make a commit with the new version number and a new tag (again with the same version number). Make sure to use the appropriate version type:
+```
+npm version patch
+
+# or this command
+npm version minor
+
+# or this command
+npm version major
+```
+
+### 2. Push your commits and tags
+Then, push the commits and tags:
+```
+git push
+git push --tags
+```
+
+That's it!
 
 ### Backend
 The backend is currently using `Heroku` for automatic deployments. The following commands were used to set up the Heroku backend:

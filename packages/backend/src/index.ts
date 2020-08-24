@@ -8,6 +8,7 @@ import {
   deleteItem, 
   updateOrCreate, 
   clearDatabase,
+  executeQuery,
   updateOrCreateConnection,
   getRelationships,
   deleteRelationship,
@@ -203,6 +204,10 @@ const create = async () => {
 
   router.post('/information-relationships', async (req) => {
     return await updateOrCreateConnection(InformationRelationshipSchema, req.body);
+  })
+
+  router.get("/execute-query", async (req) => {
+    return executeQuery(req.query.query);
   })
 
   // Heroku sets the port and we must use this port
