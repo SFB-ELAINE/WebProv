@@ -929,16 +929,22 @@ export default createComponent({
       let studyIds = filtered.map((n) => n.studyId).filter(isDefined);
       studyIds = Array.from(new Set(studyIds)); // get all unique study IDs
 
+      // Create the study ID labels first
+      // This ensures that when collapsing/uncollapsing studies
+      // That each study retains the same ID
+      // Studies IDs could change if nodes are added/removed though which is OK
+      studyIds.forEach((studyId) => {
+        if (!labelLookup.hasOwnProperty(studyId)) {
+          labelLookup[studyId] = `S${groupCount++}`;
+        }
+      });
+
       // Remove studies that are expanded
       studyIds = studyIds.filter((studyId) => !expanded.value[studyId]);
 
       // First, create all of the study nodes.
       // These are the collapsed nodes. We only need to create one per study.
       studyIds.forEach((studyId) => {
-        if (!labelLookup.hasOwnProperty(studyId)) {
-          labelLookup[studyId] = `S${groupCount++}`;
-        }
-
         // So every node needs a unique ID. The nodes stored in the database all have a unique ID but collapsed
         // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
         // us to easily lookup the location of the collapsed node when re-rendering.
