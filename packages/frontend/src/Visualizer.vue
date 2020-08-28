@@ -430,7 +430,7 @@ export default createComponent({
     // The selected study. This is set automatically when a new study is created or it can be opened from the search.
     const selectedStudy = ref<Study | null>(null);
 
-    const debouncedRenderGraph = debounce(renderGraph, 500);
+    const debouncedRenderGraph = debounce(renderGraph, 1000);
     const debouncedUpdateOrCreateNode = debounce((node: ProvenanceNode) => {
       return makeRequest(() => backend.updateOrCreateNode(node));
     }, 500);
@@ -1241,7 +1241,7 @@ export default createComponent({
     ) {
       node[key] = newValue;
       debouncedUpdateOrCreateInformationNode(node);
-      debouncedRenderGraph();
+      // debouncedRenderGraph();
     }
 
     function editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, newValue: ProvenanceNode[K]) {
