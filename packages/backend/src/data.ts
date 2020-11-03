@@ -77,7 +77,7 @@ const buildingActivity: NodeDefinition = {
   id: 'Building Simulation Model',
   //label: 'BSM',
   labelFormatString: "BSM${version}",
-  classification: 'entity',
+  classification: 'activity',
   informationFields: ["Description"]
 }
 
