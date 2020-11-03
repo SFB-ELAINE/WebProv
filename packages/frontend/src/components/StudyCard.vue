@@ -1,7 +1,7 @@
 <template>
   <card title="Study">
     <div>
-      <b-field class="field" label="Reference">
+      <b-field class="field" label="Reference (ID)">
         <b-input 
           :value="study.source"
           @input="setSource"
