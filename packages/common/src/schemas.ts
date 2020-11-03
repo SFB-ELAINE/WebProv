@@ -5,6 +5,7 @@ import * as n from './neon';
  * Rules restrict the actual relationships that can be formed.
  */
 export const RelationshipTypeUnion = n.union([
+  n.literal('Related to'),
   n.literal('Used'),
   n.literal('Used for validation'),
   n.literal('Used for calibration'),

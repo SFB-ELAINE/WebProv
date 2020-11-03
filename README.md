@@ -32,6 +32,16 @@ This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All pac
 npm install # or `npm i`
 ```
 
+## Integrating Provenance Information into WebProv
+
+*(This section describes the usage of WebProv as used by Budde et al. (2020).)*
+
+Once all provenance information of a simulation study has been collected (or while doing so), this information can be included in WebProv. A user needs to do create a study, which needs a reference (last name of first author and year of publication) as well as the name of the signaling pathway the study is based on. If more than one signaling pathway is being considered, than all pathways should be in a set (e.g., {pathway1, pathway2}).
+
+Next, one may add nodes and connect these nodes (right click to draw a connection). The nodes can be entities or activities. Each node requires meta-information as requested by our ontology. A label is automatically assigned to a node. They are consecutively numbered within one study.
+
+Besides creating provenance graphs and entering provenance information one can also download or upload entire graphs as JSON. The export function only exports the visible graph and not everything that is stored in the Neo4J database.
+
 ## Development
 A `Makefile` file is present within both the frontend and backend packages. To start a development server with hot-reload within each package, just run the following command:
 ```
