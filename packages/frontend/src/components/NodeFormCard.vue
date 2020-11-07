@@ -150,34 +150,38 @@ export default createComponent({
       context.emit('update:information', information, key, value);
     }
 
-    // This is a bit of a hacky solution.
-    // Basically, we are lazily creating the information field nodes and the relationship
-    // when this node card is created
-    // We ensure we don't send > 1 request to create a new information node using a lookup
-    watch(() => {
-      definedFields.value.forEach((field) => {
-        const sentId = props.node.id + '///' + field;
-        if (!fieldsLookup.value[field] && !sentRequests[sentId]) {
-          sentRequests[sentId] = true;
-          const information = {
-            id: uniqueId(),
-            key: field,
-            value: '',
-          };
 
-          context.emit('update:information:add', information);
-        }
-      });
-    });
 
+    // Updated a defined "informationField"
+    // Initially, this information field won't actually exist in the backend
+    // But as you can see, we are lazily creating the node using a simple conditional
     function updateDefinedKey(key: string, newValue: string) {
       // If the field isn't defined yet (ie. not in the DB)
-      if (!fieldsLookup.value[key]) {
-        return;
+      let informationNode = fieldsLookup.value[key];
+
+      // Ok so a bit of a hack but this ensures that we only send *one* request for this node
+      // We assume that this node will be created quite quickly
+      // As the user continues to edit the value, the node will be updated instead
+      // Since we have debouncing, things *should* be ok
+      // There is a small chance that an edit request somehow finishes *before* the create request
+      // Note that the handler of "update:information:add" also adds the the information node array
+      // Sooo "informationNode" should be defined within milliseconds
+      // From testing, it seems like this logic works well enough
+      const id = props.node.id + '///' + key;
+      if (!informationNode && !sentRequests[id]) {
+        sentRequests[id] = true;
+        informationNode = {
+          id: uniqueId(),
+          key,
+          value: newValue,
+        };
+
+        context.emit('update:information:add', informationNode);
+      } else {
+        updateInformationNode(informationNode, 'value', newValue);
       }
 
-      const field = fieldsLookup.value[key];
-      updateInformationNode(field, 'value', newValue);
+
     }
 
     return {
