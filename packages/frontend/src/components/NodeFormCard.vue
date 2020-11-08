@@ -13,11 +13,9 @@
       </b-select>
     </b-field>
 
-<!--
     <b-field label="Label">
       <b-input type="string" :value="node.label" @input="labelChange"></b-input>
     </b-field>
--->
 
     <b-field label="Study ID">
       <b-select :value="node.studyId" @input="studyIdChange" expanded>
