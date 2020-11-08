@@ -485,6 +485,8 @@ export default createComponent({
             pan = svgPanZoomInstance.getPan();
             zoom = svgPanZoomInstance.getZoom();
 
+            // console.log("PAN IS ", pan)
+
             try {
               svgPanZoomInstance.destroy();
             } catch (e) {

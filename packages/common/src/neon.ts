@@ -3,6 +3,7 @@ export {
   string, 
   number, 
   union, 
+  intersection,
   literal, 
   array, 
   type,

@@ -1,5 +1,5 @@
 <template>
-  <card title="Node">
+  <card :title="`Node (${getLabel(node)})`">
 
     <b-field label="Type">
       <b-select :value="node.definitionId" @input="definitionChange" expanded>
@@ -33,8 +33,37 @@
       </b-select>
     </b-field>
 
+    <b-field label="Related To" style="display: flex; flex-direction: column">
+      <div v-if="relatedToLabel" style="margin-top: -0.3em; display: flex; align-items: center; justify-content: space-between">
+        <div>
+          Related to "{{ relatedToLabel }}"
+        </div>
+        <button class="here" style="text-transform: uppercase" @click="clearRelatedTo">Clear</button>
+      </div>
+      <div v-else-if="nodeToRelate" style="margin-top: -0.3em; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center">
+        <div>
+          Click another node...
+        </div>
+        <button class="here" style="text-transform: uppercase" @click="$emit('relate', undefined)">Cancel</button>
+
+      </div>
+      <div v-else style="margin-top: -0.3em; font-size: 0.85rem">
+        This node is not currently related to any other node. To relate this node, click <button class="here" @click="$emit('relate', node)">here</button> and then immediately select another node.
+      </div>
+    </b-field>
+
     <b-field v-for="key in definedFields" :key="key" :label="key">
-      <b-input :value="fieldsLookup[key] ? fieldsLookup[key].value : ''" @input="updateDefinedKey(key, $event)" type="textarea" class="defined-input"></b-input>
+      <b-input v-if="!definedFieldsOptions[key]" :value="fieldsLookup[key] ? fieldsLookup[key].value : ''" @input="updateDefinedKey(key, $event)" type="textarea" class="defined-input"></b-input>
+      <b-select v-else :value="fieldsLookup[key] ? fieldsLookup[key].value : ''" @input="updateDefinedKey(key, $event)" expanded>
+        <option :value="undefined">None</option>
+        <option 
+          v-for="option in definedFieldsOptions[key]" 
+          :key="option" 
+          :value="option"
+        >
+          {{ option }}
+        </option>
+      </b-select>
     </b-field>
 
 
@@ -73,8 +102,10 @@ import {
   uniqueId,
   Study,
   NodeDefinition,
+  makeLookup,
 } from 'common';
 import { createComponent, computed, watch } from '@vue/composition-api';
+import { getLabel } from '../utils';
 
 const sentRequests: Record<string, boolean> = {};
 
@@ -87,6 +118,9 @@ export default createComponent({
     fields: { type: Array as () => InformationField[], required: true },
     studies: { type: Array as () => Study[], required: true },
     definitions: { type: Array as () => NodeDefinition[], required: true },
+    nodes: { type: Array as () => ProvenanceNode[], required: true },
+    getLabel: { type: Function as unknown as () => ((node: ProvenanceNode) => string), required: true },
+    nodeToRelate: { type: Object as () => ProvenanceNode, required: false },
   },
   setup(props, context) {
     const fieldsLookup = computed((): Record<string, InformationField> => {
@@ -98,9 +132,24 @@ export default createComponent({
     const definedFields = computed((): string[] => (
       props.definition ?
         props.definition.informationFields ?
-          props.definition.informationFields : [] :
+          props.definition.informationFields.map((field) => field.split(",")[0]) : [] :
           []
     ));
+
+    // See schemas.ts for more informatio about "informationFields"
+    // Basically, these fileds are defined and can either be a text field
+    // or an dropdown with options
+    const definedFieldsOptions = computed(() => {
+      if (!props.definition || !props.definition.informationFields) return {};
+      const lookup: Record<string, string[] | undefined> = {};
+      props.definition.informationFields.forEach((field) => {
+        const [fieldName, ...options] = field.split(",");
+        if (options.length === 0) return;
+        lookup[fieldName] = options;
+      })
+
+      return lookup;
+    })
 
     const extraFields = computed((): InformationField[] => props.fields.filter((field) => (
       !definedFields.value.includes(field.key)
@@ -132,6 +181,10 @@ export default createComponent({
       updateNode('label', value);
     }
 
+    function clearRelatedTo() {
+      updateNode('relatedTo', '')
+    }
+
     function definitionChange(definitionId: string) {
       updateNode('definitionId', definitionId);
     }
@@ -149,8 +202,6 @@ export default createComponent({
     ) {
       context.emit('update:information', information, key, value);
     }
-
-
 
     // Updated a defined "informationField"
     // Initially, this information field won't actually exist in the backend
@@ -170,6 +221,13 @@ export default createComponent({
       const id = props.node.id + '///' + key;
       if (!informationNode && !sentRequests[id]) {
         sentRequests[id] = true;
+
+        // After 10000 seconds, set to false again
+        // Things *should* have returned by then
+        setTimeout(() => {
+          sentRequests[id] = false;
+        }, 5000)
+
         informationNode = {
           id: uniqueId(),
           key,
@@ -180,9 +238,13 @@ export default createComponent({
       } else {
         updateInformationNode(informationNode, 'value', newValue);
       }
-
-
     }
+
+    const relatedToLabel =  computed(() => {
+      // console.log(`Related to label: ${props.node.id} -> ${props.node.relatedTo}`)
+      const n = props.node.relatedTo ? props.nodes.find((node) => node.id === props.node.relatedTo) : undefined
+      return n ? props.getLabel(n) : undefined;
+    });
 
     return {
       deleteField,
@@ -197,6 +259,9 @@ export default createComponent({
       extraFields,
       fieldsLookup,
       updateDefinedKey,
+      definedFieldsOptions,
+      relatedToLabel,
+      clearRelatedTo,
     };
   },
 });
@@ -210,5 +275,21 @@ export default createComponent({
 
 .defined-input .textarea {
   padding: 0.5em!important;
+}
+
+/* Making button look like link */
+.here {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  /*optional*/
+  font-family: arial, sans-serif;
+  /*input has OS specific font-family*/
+  color: #4299E1;
+  cursor: pointer;
+}
+
+.here:hover {
+  text-decoration: underline;
 }
 </style>

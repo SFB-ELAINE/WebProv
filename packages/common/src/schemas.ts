@@ -90,7 +90,19 @@ export const NodeDefinitionSchema = n.schema({
     },
 
      /**
-     * Defined information fields to display in the node card.
+     * Defined information fields to display in the node card. To support fields with a set of 
+     * options rather than an text field, each field can be defined as follows. If options are 
+     * given, the frontend will show a dropdown rather than a text field. You might wonder why
+     * this is defined by an array of strings and not an array of objects and that's because
+     * Neo4j doesn't support this property types (only arrays of primitive values).
+     * 
+     * @example "Description"
+     * This is the simplest form where "Description" will show up as a text field on the frontend.
+     * 
+     * @example "Type,optimization,sensitivity analysis,perturbation,parameter scan,steady-state analysis,time course analysis,other"
+     * This field, called "Type", will present a dropdown menu with the the values located *after* "Type". The first item should 
+     * always be the name of the field and, if present, the options should be comma separated with no spaces between the command 
+     * and the values.
      */
     informationFields: {
       type: n.array(n.string),
@@ -204,12 +216,28 @@ export const ProvenanceNodeSchema = n.schema({
     studyId: {
       type: n.string,
     },
+
+    /**
+     * The optional label.
+     */
     label: {
-      /**
-       * The optional label.
-       */
       type: n.string,
     },
+
+    /**
+     * The ID of the other node that it is related to.
+     * 
+     * This was from the following request:
+     * We would like to connect simulation data with simulation experiments and requirements with 
+     * wet-lab data without actually showing a line. Therefore, I have added "Related to" to the 
+     * "informationFields". (A user could just write the label of the corresponding node into this 
+     * field, but the label might change and the user might forget to adapt it. We would like to 
+     * avoid this.) The value of this field should be the label of the corresponding 
+     * sim-experiment/wet-lab data.
+     */
+    relatedTo: {
+      type: n.string,
+    }
   },
 });
 

@@ -54,7 +54,7 @@ const qualitativeModel: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "QM${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "QM${version}",
-  informationFields: ["Description", "Species"]
+  informationFields: ["Description", "Species,dog,cat,armadillo,tiger"]
 }
 
 const simulationModel: NodeDefinition = {

@@ -112,6 +112,10 @@
           :studies="studies"
           :definition="selectedNodeDefinition"
           :definitions="definitions"
+          :nodes="provenanceNodes"
+          :getLabel="getLabelWrapper"
+          :nodeToRelate="nodeToRelate"
+          @relate="(node) => nodeToRelate = node"
           @close="deselectNode"
           @delete="deleteNode"
           @update:information:delete="deleteInformationNode"
@@ -173,6 +177,7 @@ import {
   importData,
   notifier,
   readFile,
+  setVue,
 } from '@/utils';
 import { D3Hull, D3Node, D3Link, D3NodeColorCombo } from '@/d3';
 import SearchCard from '@/components/SearchCard.vue';
@@ -259,6 +264,12 @@ export default createComponent({
     const dependencies = ref<Array<RelationshipInformation<DependencyRelationship>>>([]);
     const informationRelations = ref<Array<RelationshipInformation<InformationRelationship>>>([]);
 
+    // If we are setting the "Related To" property, the user first clicks within the
+    // node editor card. When they click, an event is emitted and the node is stored here
+    // The next time that a node is clikced, we will use this node to store the 
+    // "Related To" relationship
+    const nodeToRelate = ref<ProvenanceNode>();
+
     // which studies are currently expanded
     const expanded = ref<Lookup<boolean>>({});
 
@@ -310,6 +321,8 @@ export default createComponent({
     interface HTMLInputEvent extends Event {
       target: HTMLInputElement & EventTarget;
     }
+
+    const getLabelWrapper = (node: ProvenanceNode) => getLabel(node, getDefinition(node), studyLookup.value, modelVersionLookup.value)
 
     const importNodes = async (e: HTMLInputEvent) => {
       const files = e.target.files;
@@ -715,7 +728,7 @@ export default createComponent({
         const study = n.node.studyId ? studyLookup.value[n.node.studyId] : undefined;
         return {
           id: n.id,
-          title: getLabel(n.node, getDefinition(n.node), studyLookup.value, modelVersionLookup.value),
+          title: getLabelWrapper(n.node),
           study,
           extra: values,
         };
@@ -843,7 +856,7 @@ export default createComponent({
         return !nodesToShow.value[connection.target.id];
       });
 
-      const text = getLabel(n, getDefinition(n), studyLookup.value, modelVersionLookup.value);
+      const text = getLabelWrapper(n);
       const { x, y } = nodeLookup.value[sourceId] ? nodeLookup.value[sourceId] : pointToPlaceNode.value;
       const node: SingleNode = {
         isGroup: false,
@@ -874,6 +887,12 @@ export default createComponent({
           e.stopPropagation();
         },
         onDidClick: (e: MouseEvent) => {
+          if (nodeToRelate.value) {
+            editNode(nodeToRelate.value, "relatedTo", n.id)
+            nodeToRelate.value = undefined;
+            return;
+          }
+
           colorChanges.value.push({ node, color: SELECTED_NODE_OUTLINE });
 
           if (selectedNode.value) {
@@ -1132,6 +1151,7 @@ export default createComponent({
 
     function deselectNode() {
       selectedNode.value = null;
+      nodeToRelate.value = undefined;
     }
 
     async function deleteNode() {
@@ -1225,7 +1245,7 @@ export default createComponent({
         },
       };
 
-      logger.info('Creating new information node and relationship: ' + node.id);
+      logger.info('Creating new information node and relationship: ' + node.id, node);
       const result = await makeRequest(() => backend.addInformationEntry(relationship, node));
       if (result.result !== 'success') {
         return;
@@ -1245,7 +1265,9 @@ export default createComponent({
     }
 
     function editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, newValue: ProvenanceNode[K]) {
-      node[key] = newValue;
+      // console.log(`Setting Node(${node.id})[${key}] = "${newValue}"`)
+      // Make sure to use Vue.set or things might not update properly
+      setVue(node, key, newValue);
       debouncedUpdateOrCreateNode(node);
       debouncedRenderGraph();
 
@@ -1358,6 +1380,9 @@ export default createComponent({
       studies,
       importNodes,
       uploader: uploaderRef,
+      provenanceNodes,
+      getLabelWrapper,
+      nodeToRelate,
     };
   },
 });

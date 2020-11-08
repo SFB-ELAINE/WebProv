@@ -82,6 +82,7 @@ export const initializeData = async () => {
   console.log('Creating ' + data.dependencyRelationships.length + ' dependencies')
   for (const dependency of data.dependencyRelationships) {
     const result = await updateOrCreateConnection(DependencyRelationshipSchema, {
+      // We can ignore these errors. They're just because the JSON array is empty.
       source: dependency.source,
       target: dependency.target,
       properties: {
