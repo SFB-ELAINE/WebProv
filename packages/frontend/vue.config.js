@@ -1,5 +1,5 @@
 module.exports = {
-    outputDir: '../../_site',
+    outputDir: 'dist',
     chainWebpack: (config) => {
         config.resolve.symlinks(false)
     }

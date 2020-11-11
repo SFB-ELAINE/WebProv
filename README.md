@@ -59,7 +59,41 @@ npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--
 ## Contributing
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
-## Deployment
+## Local Deployment
+Deployment of the frontend and backend on a server should be fairly straightforward if everything else has smoothly.
+
+### Backend
+In the `packages/backend` folder, run the following command.
+```
+npm run prod
+```
+
+This will build and start a background process for the backend. To manage this process, you can run `pm2` as follows:
+```
+npx pm2 <COMMAND> <ARGUMENTS>
+```
+
+For example, to list the running processes, use the `list` command.
+```
+npx pm2 list
+```
+
+There are also commands to start, restart and delete processes. See the full documentation [here](https://www.npmjs.com/package/pm2).
+
+### Frontend
+The frontend is also pretty simple to deploy. First, you might need to change the value of `VUE_APP_BACKEND_URL` in `packages/frontend/.env.production` to point the the backend server. If you are running the backend and frontend on the same machine, the environment variable is already set to the correct value (`http://localhost:3000`).
+
+Next, you will need to run the `build` command in `packages/frontend`.
+```
+npm run build
+```
+
+Finally, similar to backend, we will use `pm2` to run the frontend in the background. Make sure to also run this command in `packages/frontend`.
+```
+npm run prod
+```
+
+## Heroku & Netlify Deployment
 The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
 
 ## Steps
