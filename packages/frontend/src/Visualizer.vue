@@ -266,7 +266,7 @@ export default createComponent({
 
     // If we are setting the "Related To" property, the user first clicks within the
     // node editor card. When they click, an event is emitted and the node is stored here
-    // The next time that a node is clikced, we will use this node to store the 
+    // The next time that a node is clikced, we will use this node to store the
     // "Related To" relationship
     const nodeToRelate = ref<ProvenanceNode>();
 
@@ -322,7 +322,10 @@ export default createComponent({
       target: HTMLInputElement & EventTarget;
     }
 
-    const getLabelWrapper = (node: ProvenanceNode) => getLabel(node, getDefinition(node), studyLookup.value, modelVersionLookup.value)
+    const getLabelWrapper = (node: ProvenanceNode) => getLabel(
+      node,
+      getDefinition(node), studyLookup.value, modelVersionLookup.value,
+    );
 
     const importNodes = async (e: HTMLInputEvent) => {
       const files = e.target.files;
@@ -888,7 +891,7 @@ export default createComponent({
         },
         onDidClick: (e: MouseEvent) => {
           if (nodeToRelate.value) {
-            editNode(nodeToRelate.value, "relatedTo", n.id)
+            editNode(nodeToRelate.value, 'relatedTo', n.id);
             nodeToRelate.value = undefined;
             return;
           }

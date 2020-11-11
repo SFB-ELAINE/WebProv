@@ -31,7 +31,7 @@
       </b-select>
     </b-field>
 
-    <b-field label="Related To" style="display: flex; flex-direction: column">
+    <b-field v-if="definition.showRelatedTo" label="Related To" style="display: flex; flex-direction: column">
       <div v-if="relatedToLabel" style="margin-top: -0.3em; display: flex; align-items: center; justify-content: space-between">
         <div>
           Related to "{{ relatedToLabel }}"
@@ -130,7 +130,7 @@ export default createComponent({
     const definedFields = computed((): string[] => (
       props.definition ?
         props.definition.informationFields ?
-          props.definition.informationFields.map((field) => field.split(",")[0]) : [] :
+          props.definition.informationFields.map((field) => field.split(',')[0]) : [] :
           []
     ));
 
@@ -138,16 +138,16 @@ export default createComponent({
     // Basically, these fileds are defined and can either be a text field
     // or an dropdown with options
     const definedFieldsOptions = computed(() => {
-      if (!props.definition || !props.definition.informationFields) return {};
+      if (!props.definition || !props.definition.informationFields) { return {}; }
       const lookup: Record<string, string[] | undefined> = {};
       props.definition.informationFields.forEach((field) => {
-        const [fieldName, ...options] = field.split(",");
-        if (options.length === 0) return;
+        const [fieldName, ...options] = field.split(',');
+        if (options.length === 0) { return; }
         lookup[fieldName] = options;
-      })
+      });
 
       return lookup;
-    })
+    });
 
     const extraFields = computed((): InformationField[] => props.fields.filter((field) => (
       !definedFields.value.includes(field.key)
@@ -180,7 +180,7 @@ export default createComponent({
     }
 
     function clearRelatedTo() {
-      updateNode('relatedTo', '')
+      updateNode('relatedTo', '');
     }
 
     function definitionChange(definitionId: string) {
@@ -224,7 +224,7 @@ export default createComponent({
         // Things *should* have returned by then
         setTimeout(() => {
           sentRequests[id] = false;
-        }, 5000)
+        }, 5000);
 
         informationNode = {
           id: uniqueId(),
@@ -240,7 +240,7 @@ export default createComponent({
 
     const relatedToLabel =  computed(() => {
       // console.log(`Related to label: ${props.node.id} -> ${props.node.relatedTo}`)
-      const n = props.node.relatedTo ? props.nodes.find((node) => node.id === props.node.relatedTo) : undefined
+      const n = props.node.relatedTo ? props.nodes.find((node) => node.id === props.node.relatedTo) : undefined;
       return n ? props.getLabel(n) : undefined;
     });
 

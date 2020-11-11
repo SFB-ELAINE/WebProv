@@ -1,4 +1,4 @@
-import { uniqueId, NodeDefinition, RelationshipRule } from 'common';
+import { NodeDefinition, RelationshipRule } from 'common';
 
 export {
   provenanceNodes,
@@ -30,7 +30,8 @@ const requirement: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "R${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "R${version}",
-  informationFields: ["Description", "Related to", "Main species", "Type, qualitative, quantitative"]
+  informationFields: ["Description", "Related to", "Main species", "Type, qualitative, quantitative"],
+  showRelatedTo: true,
 }
 
 const qualitativeModel: NodeDefinition = {
@@ -62,7 +63,8 @@ const simulationData: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "SD${version}",
-  informationFields: ["Description", "Reference", "Related to"]
+  informationFields: ["Description", "Reference", "Related to"],
+  showRelatedTo: true,
 }
 
 const wetlabData: NodeDefinition = {

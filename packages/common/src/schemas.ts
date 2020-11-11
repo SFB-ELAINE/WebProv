@@ -106,7 +106,15 @@ export const NodeDefinitionSchema = n.schema({
      */
     informationFields: {
       type: n.array(n.string),
-    }
+    },
+
+    /**
+     * Whether to show the "Related To" field in the node editor in the frontend. If set to true, this type of node
+     * will able to be related to other nodes.
+     */
+    showRelatedTo: {
+      type: n.boolean,
+    },
   },
 });
 
