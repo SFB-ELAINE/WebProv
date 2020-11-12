@@ -30,7 +30,7 @@ const requirement: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "R${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "R${version}",
-  informationFields: ["Description", "Related to", "Main species", "Type, qualitative, quantitative"],
+  informationFields: ["Description", "Main species", "Type, qualitative, quantitative"],
   showRelatedTo: true,
 }
 
@@ -63,7 +63,7 @@ const simulationData: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "SD${version}",
-  informationFields: ["Description", "Reference", "Related to"],
+  informationFields: ["Description", "Reference"],
   showRelatedTo: true,
 }
 

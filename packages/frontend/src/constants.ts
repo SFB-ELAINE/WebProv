@@ -29,18 +29,13 @@ export const relationshipColors: RelationshipColors = {
     source: 'activity',
     target: 'entity',
   },
-  'Used for comparison': {
-    color: 'yellow',
-    source: 'activity',
-    target: 'entity',
-  },
-  'Related to': {
-    // We may want to remove this if this relationship isn't used
-    // Also we may want to customize these values
-    color: 'yellow',
-    source: 'activity',
-    target: 'entity',
-  },
+//    'Related to': {
+//    // We may want to remove this if this relationship isn't used
+//    // Also we may want to customize these values
+//    color: 'yellow',
+//    source: 'entity',
+//    target: 'entity',
+//  },
 };
 
 export const NODE_OUTLINE = 'rgb(22, 89, 136)';

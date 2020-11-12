@@ -17,7 +17,7 @@
       <b-input type="string" :value="node.label" @input="labelChange"></b-input>
     </b-field>
 
-    <b-field label="Study ID">
+    <b-field label="Study (Reference)">
       <b-select :value="node.studyId" @input="studyIdChange" expanded>
         <!-- Undefined is a valid value -->
         <option :value="undefined"></option>
@@ -34,7 +34,7 @@
     <b-field v-if="definition.showRelatedTo" label="Related To" style="display: flex; flex-direction: column">
       <div v-if="relatedToLabel" style="margin-top: -0.3em; display: flex; align-items: center; justify-content: space-between">
         <div>
-          Related to "{{ relatedToLabel }}"
+          {{ relatedToLabel }}
         </div>
         <button class="here" style="text-transform: uppercase" @click="clearRelatedTo">Clear</button>
       </div>

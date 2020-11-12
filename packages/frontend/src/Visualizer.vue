@@ -266,7 +266,7 @@ export default createComponent({
 
     // If we are setting the "Related To" property, the user first clicks within the
     // node editor card. When they click, an event is emitted and the node is stored here
-    // The next time that a node is clikced, we will use this node to store the
+    // The next time that a node is clicked, we will use this node to store the
     // "Related To" relationship
     const nodeToRelate = ref<ProvenanceNode>();
 
