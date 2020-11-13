@@ -324,20 +324,6 @@ export const rules: RelationshipRule[] = [
     cardinality: 'one-to-many',
     source: validatingActivity.id,
     target: wetlabData.id,
-  },
-  {
-    id: 'validating-activity-used-simulation-data-for-comparison',
-    type: ['Used for comparison'],
-    cardinality: 'one-to-many',
-    source: validatingActivity.id,
-    target: simulationData.id,
-  },
-  {
-    id: 'validating-activity-used-wet-lab-data-for-comparison',
-    type: ['Used for comparison'],
-    cardinality: 'one-to-many',
-    source: validatingActivity.id,
-    target: wetlabData.id,
   }
 ]
 
