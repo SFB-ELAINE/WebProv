@@ -174,6 +174,14 @@ export const StudySchema = n.schema({
     signalingPathway: {
       type: n.string,
     },
+
+    /**
+     * The study label. If none is provided, a label is automatically generated.
+     */
+    label: {
+      type: n.string,
+    },
+
     /**
      * The information regarding the source of the model. For example, `Haack et al., PLoS comp. bio. 2015`.
      */

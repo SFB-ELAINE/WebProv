@@ -688,6 +688,7 @@ export default createComponent({
 
       const study = selectedStudy.value;
       debouncedUpdateOrCreateStudy(study);
+      debouncedRenderGraph();
     }
 
     async function deleteSelectedStudy() {
@@ -957,7 +958,7 @@ export default createComponent({
       // Studies IDs could change if nodes are added/removed though which is OK
       studyIds.forEach((studyId) => {
         if (!labelLookup.hasOwnProperty(studyId)) {
-          labelLookup[studyId] = `S${groupCount++}`;
+          labelLookup[studyId] = `S${studyLookup.value[studyId].label ? studyLookup.value[studyId].label : groupCount++}`;
         }
       });
 
@@ -984,7 +985,8 @@ export default createComponent({
           stroke: STUDY_STROKE,
           rx: 0,
           text: labelLookup[studyId],
-          width: STUDY_WIDTH,
+          // +26 is for padding and 7.2 was determined with trial and error
+          width: Math.max(STUDY_WIDTH, 7.2 * labelLookup[studyId].length + 26),
           height: NODE_HEIGHT,
           onDidDblclick: () => {
             expanded.value[studyId] = true;

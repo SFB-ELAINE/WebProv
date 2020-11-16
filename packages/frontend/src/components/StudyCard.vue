@@ -1,6 +1,12 @@
 <template>
   <card title="Study">
     <div>
+      <b-field class="field" label="Label">
+        <b-input 
+          :value="study.label"
+          @input="setLabel"
+        ></b-input>
+      </b-field>
       <b-field class="field" label="Reference">
         <b-input 
           :value="study.source"
@@ -48,6 +54,11 @@ export default createComponent({
       context.emit('delete');
     };
 
+    const setLabel = (label: string) => {
+      setVue(props.study, 'label', label);
+      context.emit('update');
+    };
+
     const setSource = (source: string) => {
       setVue(props.study, 'source', source);
       context.emit('update');
@@ -63,6 +74,7 @@ export default createComponent({
       setSignalingPathway,
       searchModel,
       setSource,
+      setLabel,
       close,
     };
   },
