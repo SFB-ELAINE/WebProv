@@ -124,12 +124,12 @@ export default createComponent({
         const maybeNodes: unknown[] = [];
         for (const items of result.items) {
           if (items.length > 1) {
-            notifier.danger('Your query was successfull but should only return 1 item from your query.');
+            notifier.danger('Your query was successful but should only return 1 item from your query.');
             return;
           }
 
           if (items.length === 0) {
-            notifier.info('Your query was successfull but returned nothing.');
+            notifier.info('Your query was successful but returned nothing.');
           }
 
           maybeNodes.push(items[0]);
