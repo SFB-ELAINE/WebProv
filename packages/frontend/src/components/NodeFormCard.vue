@@ -31,7 +31,7 @@
       </b-select>
     </b-field>
 
-    <b-field v-if="definition.showRelatedTo" label="Related To" style="display: flex; flex-direction: column">
+    <b-field v-if="definition && definition.showRelatedTo" label="Related To" style="display: flex; flex-direction: column">
       <div v-if="relatedToLabel" style="margin-top: -0.3em; display: flex; align-items: center; justify-content: space-between">
         <div>
           {{ relatedToLabel }}
