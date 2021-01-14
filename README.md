@@ -1,9 +1,23 @@
-# Web Provenance
-The goal of this project is the create a web platform to automatically visualize a provenance model. The data required to create these visualizations should be stored in a graph database. The web platform will also feature an editor to allow users to manually create provenance models that can be stored within the database.
+# WebProv
+The goal of this project is the create a web platform (WebProv) to automatically visualize a provenance model. The data required to create these visualizations are stored in a graph database. The web platform also features an editor to allow users to manually create provenance models that can be stored within the database.
 
 [Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
 > The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
 > If the Demo does not work, check out our old version [here](https://sfb-elaine.github.io/WebProv/)
+
+
+## Integrating Provenance Information into WebProv
+
+*(This section describes the usage of WebProv as used by Budde et al. (2021).)*
+
+Once all provenance information of a simulation study has been collected (or while doing so), this information can be included in WebProv. A user needs to do create a study, which needs a reference (last name of first author and year of publication) as well as the name of the signaling pathway the study is based on. If more than one signaling pathway is being considered, than all pathways should be in a set (e.g., {pathway1, pathway2}).
+
+Next, one may add nodes and connect these nodes (right click to draw a connection). The nodes can be entities or activities. Each node requires meta-information as requested by our ontology. A label is automatically assigned to a node. They are consecutively numbered within one study.
+
+Besides creating provenance graphs and entering provenance information one can also download or upload entire graphs as JSON. The export function only exports the visible graph and not everything that is stored in the Neo4J database.
+
+More information is available when clickling on the "+" in the lower right corner and then on the "i" ("show help").
+
 
 ## Environment Setup
 ### Node
@@ -31,16 +45,6 @@ This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All pac
 ```
 npm install # or `npm i`
 ```
-
-## Integrating Provenance Information into WebProv
-
-*(This section describes the usage of WebProv as used by Budde et al. (2020).)*
-
-Once all provenance information of a simulation study has been collected (or while doing so), this information can be included in WebProv. A user needs to do create a study, which needs a reference (last name of first author and year of publication) as well as the name of the signaling pathway the study is based on. If more than one signaling pathway is being considered, than all pathways should be in a set (e.g., {pathway1, pathway2}).
-
-Next, one may add nodes and connect these nodes (right click to draw a connection). The nodes can be entities or activities. Each node requires meta-information as requested by our ontology. A label is automatically assigned to a node. They are consecutively numbered within one study.
-
-Besides creating provenance graphs and entering provenance information one can also download or upload entire graphs as JSON. The export function only exports the visible graph and not everything that is stored in the Neo4J database.
 
 ## Development
 A `Makefile` file is present within both the frontend and backend packages. To start a development server with hot-reload within each package, just run the following command:

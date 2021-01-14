@@ -18,7 +18,7 @@ export const relationshipColors: RelationshipColors = {
     color: 'black',
     source: 'activity',
     target: 'entity',
-  }
+  },
 //    'Related to': {
 //    // We may want to remove this if this relationship isn't used
 //    // Also we may want to customize these values
