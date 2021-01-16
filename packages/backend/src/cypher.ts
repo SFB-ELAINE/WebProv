@@ -24,15 +24,15 @@ const uri = process.env.GRAPHENEDB_BOLT_URL;
 const user = process.env.GRAPHENEDB_BOLT_USER;
 const password = process.env.GRAPHENEDB_BOLT_PASSWORD;
 
-if (!uri) {
+if (uri === undefined) {
   throw Error('GRAPHENEDB_BOLT_URL is required.');
 }
 
-if (!user) {
+if (user === undefined) {
   throw Error('GRAPHENEDB_BOLT_USER is required.');
 }
 
-if (!password) {
+if (password === undefined) {
   throw Error('GRAPHENEDB_BOLT_PASSWORD is required.');
 }
 

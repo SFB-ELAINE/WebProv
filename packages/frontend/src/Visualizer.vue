@@ -958,7 +958,7 @@ export default createComponent({
       // Studies IDs could change if nodes are added/removed though which is OK
       studyIds.forEach((studyId) => {
         if (!labelLookup.hasOwnProperty(studyId)) {
-          labelLookup[studyId] = studyLookup.value[studyId].label ? studyLookup.value[studyId].label : `S${groupCount++}`;
+          labelLookup[studyId] = studyLookup.value[studyId].label ? studyLookup.value[studyId].label! : `S${groupCount++}`;
         }
       });
 
