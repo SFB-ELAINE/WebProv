@@ -526,9 +526,13 @@ export default createComponent({
             return;
           }
 
+          if (!relationshipColors[connection.properties.type]) {
+            console.warn(`Unknown connection type: "${connection.properties.type}"`)
+          }
+
           const d3Connection: HighLevelRelationship = {
             relationship: connection.properties,
-            color: relationshipColors[connection.properties.type].color,
+            color: relationshipColors[connection.properties.type] ? relationshipColors[connection.properties.type].color : 'gray',
             source,
             target,
           };
