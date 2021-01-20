@@ -527,7 +527,7 @@ export default createComponent({
           }
 
           if (!relationshipColors[connection.properties.type]) {
-            console.warn(`Unknown connection type: "${connection.properties.type}"`)
+            console.warn(`Unknown connection type: "${connection.properties.type}"`);
           }
 
           const d3Connection: HighLevelRelationship = {

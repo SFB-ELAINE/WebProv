@@ -228,6 +228,13 @@ export const rules: RelationshipRule[] = [
     target: simulationModel.id,
   },
   {
+    id: 'calibrating-activity-used-assumption',
+    type: ['Used'],
+    cardinality: 'one-to-many',
+    source: calibratingActivity.id,
+    target: assumption.id,
+  },
+  {
     id: 'calibrating-activity-used-requirement',
     type: ['Used'],
     cardinality: 'one-to-many',
@@ -256,6 +263,13 @@ export const rules: RelationshipRule[] = [
     target: simulationModel.id,
   },
   {
+    id: 'validating-activity-used-assumption',
+    type: ['Used'],
+    cardinality: 'one-to-many',
+    source: validatingActivity.id,
+    target: assumption.id,
+  },
+  {
     id: 'validating-activity-used-requirement',
     type: ['Used'],
     cardinality: 'one-to-many',
@@ -282,6 +296,13 @@ export const rules: RelationshipRule[] = [
     cardinality: 'one-to-many',
     source: analyzingActivity.id,
     target: simulationModel.id,
+  },
+  {
+    id: 'analyzing-activity-used-assumption',
+    type: ['Used'],
+    cardinality: 'one-to-many',
+    source: analyzingActivity.id,
+    target: assumption.id,
   },
   {
     id: 'analyzing-activity-used-simulation-data',
