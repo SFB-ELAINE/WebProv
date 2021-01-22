@@ -30,7 +30,7 @@ const requirement: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "R${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "R${version}",
-  informationFields: ["Description", "Main species", "Type,qualitative,quantitative"],
+  informationFields: ["Description", "Main species", "Type,Qualitative,Quantitative"],
   showRelatedTo: true,
 }
 
@@ -55,7 +55,7 @@ const simulationExperiment: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "E${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "SE${version}",
-  informationFields: ["Description", "Reference", "Category,optimization,sensitivity analysis,perturbation,parameter scan,steady-state analysis,time course analysis,other"]
+  informationFields: ["Description", "Reference", "Category,Optimization,Sensitivity analysis,Perturbation,Parameter scan,Steady-state analysis,Time course analysis,Other"]
 }
 
 const simulationData: NodeDefinition = {
@@ -72,7 +72,7 @@ const wetlabData: NodeDefinition = {
   classification: 'entity',
   //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
   labelFormatString: "WD${version}",
-  informationFields: ["Description", "Reference", "Type of experiment,in vitro,in vivo", "Organism", "Organ/Tissue/Cell line"]
+  informationFields: ["Description", "Reference", "Type of experiment,In vitro,In vivo", "Organism", "Organ/Tissue/Cell line"]
 }
 
 const buildingActivity: NodeDefinition = {
