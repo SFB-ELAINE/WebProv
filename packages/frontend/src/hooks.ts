@@ -226,7 +226,7 @@ export const useDefinitions = () => {
 
       // The ID is a concatenation of the definition and study
       // This makes it so version numbers are only unique within a study
-      const id = "" + (definition ? definition.id : "") + node.node.studyId;
+      const id = '' + (definition ? definition.id : '') + node.node.studyId;
 
       if (!indices.hasOwnProperty(id)) {
         indices[id] = 0;

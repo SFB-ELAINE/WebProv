@@ -122,17 +122,18 @@ export default createComponent({
         const nodesType = array(type);
 
         const maybeNodes: unknown[] = [];
+
+        // The query returns a arrays of arrays
+        // Each element of the array should be the same length
+        // e.g. the below query returns an array of arrays of length 2
+        // MATCH (n:ProvenanceNode) <-[:DEPENDS*]- (p:ProvenanceNode) WHERE n.definitionId = "Model" RETURN n,p;
         for (const items of result.items) {
-          if (items.length > 1) {
-            notifier.danger('Your query was successfull but should only return 1 item from your query.');
+          if (items.length === 0) {
+            notifier.info('Your query was successfull but returned nothing.');
             return;
           }
 
-          if (items.length === 0) {
-            notifier.info('Your query was successfull but returned nothing.');
-          }
-
-          maybeNodes.push(items[0]);
+          maybeNodes.push(...items);
         }
 
         const decodeResult = nodesType.decode(maybeNodes);

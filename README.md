@@ -1,9 +1,25 @@
-# Web Provenance
-The goal of this project is the create a web platform to automatically visualize a provenance model. The data required to create these visualizations should be stored in a graph database. The web platform will also feature an editor to allow users to manually create provenance models that can be stored within the database.
+# WebProv
+The goal of this project is the create a web platform (WebProv) to automatically visualize a provenance model. The data required to create these visualizations are stored in a graph database. The web platform also features an editor to allow users to manually create provenance models that can be stored within the database.
 
+<!---
+[Link to video tutorial](https://youtube.com/)
 [Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
 > The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
 > If the Demo does not work, check out our old version [here](https://sfb-elaine.github.io/WebProv/)
+--->
+
+## Integrating Provenance Information into WebProv
+
+*(This section describes the usage of WebProv as used by Budde et al. (2021).)*
+
+Once all provenance information of a simulation study has been collected (or while doing so), this information can be included in WebProv. A user needs to do create a study, which needs a reference (last name of first author and year of publication) as well as the name of the signaling pathway the study is based on. If more than one signaling pathway is being considered, than all pathways should be in a set (e.g., {pathway1, pathway2}).
+
+Next, one may add nodes and connect these nodes (right click to draw a connection). The nodes can be entities or activities. Each node requires meta-information as requested by our ontology. A label is automatically assigned to a node. They are consecutively numbered within one study.
+
+Besides creating provenance graphs and entering provenance information one can also download or upload entire graphs as JSON. The export function only exports the visible graph and not everything that is stored in the Neo4J database.
+
+More information is available when clickling on the "+" in the lower right corner and then on the "i" ("show help").
+
 
 ## Environment Setup
 ### Node
@@ -59,7 +75,41 @@ npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--
 ## Contributing
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
-## Deployment
+## Local Deployment
+Deployment of the frontend and backend on a server should be fairly straightforward if everything else has smoothly.
+
+### Backend
+In the `packages/backend` folder, run the following command.
+```
+npm run prod
+```
+
+This will build and start a background process for the backend. To manage this process, you can run `pm2` as follows:
+```
+npx pm2 <COMMAND> <ARGUMENTS>
+```
+
+For example, to list the running processes, use the `list` command.
+```
+npx pm2 list
+```
+
+There are also commands to start, restart and delete processes. See the full documentation [here](https://www.npmjs.com/package/pm2).
+
+### Frontend
+The frontend is also pretty simple to deploy. First, you might need to change the value of `VUE_APP_BACKEND_URL` in `packages/frontend/.env.production` to point the the backend server. If you are running the backend and frontend on the same machine, the environment variable is already set to the correct value (`http://localhost:3000`).
+
+Next, you will need to run the `build` command in `packages/frontend`.
+```
+npm run build
+```
+
+Finally, similar to backend, we will use `pm2` to run the frontend in the background. Make sure to also run this command in `packages/frontend`.
+```
+npm run prod
+```
+
+## Heroku & Netlify Deployment
 The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
 
 ## Steps

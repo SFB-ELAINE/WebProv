@@ -82,10 +82,15 @@ export const initializeData = async () => {
   console.log('Creating ' + data.dependencyRelationships.length + ' dependencies')
   for (const dependency of data.dependencyRelationships) {
     const result = await updateOrCreateConnection(DependencyRelationshipSchema, {
+      // We can ignore these errors. They're just because the JSON array is empty.
+      // @ts-ignore
       source: dependency.source,
+      // @ts-ignore
       target: dependency.target,
       properties: {
+        // @ts-ignore
         id: dependency.properties.id,
+        // @ts-ignore
         type: dependency.properties.type as DependencyType,
       },
     });
