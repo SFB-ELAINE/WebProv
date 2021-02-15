@@ -8,7 +8,7 @@ export interface SearchItem {
   extra: string[];
 }
 
-const keys: Array<keyof SearchItem> = ['extra', 'title', 'id'];
+const keys = ['extra', 'title', 'id', 'study.label', 'study.source'];
 
 export const search = (items: SearchItem[], pattern: string) => {
   if (pattern.trim() === '') {

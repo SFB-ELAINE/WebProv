@@ -26,7 +26,7 @@
           :key="study.id" 
           :value="study.id"
         >
-          {{ study.source }}
+          {{ study.label }} ({{ study.source }})
         </option>
       </b-select>
     </b-field>
