@@ -1,10 +1,12 @@
 # WebProv
 The goal of this project is the create a web platform (WebProv) to automatically visualize a provenance model. The data required to create these visualizations are stored in a graph database. The web platform also features an editor to allow users to manually create provenance models that can be stored within the database.
 
+<!---
+[Link to video tutorial](https://youtube.com/)
 [Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
 > The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
 > If the Demo does not work, check out our old version [here](https://sfb-elaine.github.io/WebProv/)
-
+--->
 
 ## Integrating Provenance Information into WebProv
 
