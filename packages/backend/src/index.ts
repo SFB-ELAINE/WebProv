@@ -122,7 +122,9 @@ export const initializeData = async () => {
 const create = async () => {
   // SETUP FOR EXPRESS //
   const app = express();
-  app.use(bodyParser.json());
+  app.use(bodyParser.json({
+    limit: '50mb',
+  }));
 
   app.use(cors());
 
