@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "bootstrap": "npx lerna bootstrap",
-    "build-libraries": "lerna run --scope common build",
-    "postinstall": "npm run bootstrap && npm run build-libraries",
+    "build": "lerna run --scope common --scope backend build",
+    "postinstall": "npm run bootstrap && npm run build",
     "build-frontend": "lerna run --scope frontend build",
     "backend": "lerna run --scope backend prod"
   },
