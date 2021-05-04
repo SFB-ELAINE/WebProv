@@ -1,3 +1,5 @@
+// This code was taken from an online source
+
 function constant(x) {
   return function() {
     return x;

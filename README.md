@@ -1,12 +1,21 @@
+<!--
+TODO
+Usage / additional information
+Local development (quickest way to see the app working)
+Local deployment
+Structure of the software
+Heroku & Netlify Deployment
+ -->
+
 # WebProv
 
 The goal of this project is the create a web platform (WebProv) to automatically visualize a provenance model. The data required to create these visualizations are stored in a graph database. The web platform also features an editor to allow users to manually create provenance models that can be stored within the database.
 
+[Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
+
 <!---
 [Link to video tutorial](https://youtube.com/)
-[Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
 > The backend sometimes take a while (> 2 minutes) to start as we are using the `Heroku` free servers which sleep after 30 minutes of inactivity.
-> If the Demo does not work, check out our old version [here](https://sfb-elaine.github.io/WebProv/)
 --->
 
 ## Integrating Provenance Information into WebProv
@@ -25,58 +34,56 @@ More information is available when clickling on the "+" in the lower right corne
 
 ### Node
 
-The first step to setting up your environment involves installing `Node.js` and `npm` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
+The first step to setting up your environment involves installing `Node.js` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
 
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
 1. Install `Node.js` and `npm` using nvm: `nvm install node`
 
-### Neo4j
+### Docker
 
-Next, if not already installed, `Neo4j` should be installed:
+Next, install `Docker` so that you can start the `Neo4j` development database. The installation instructions can be found [here](https://docs.docker.com/get-docker).
 
-1. Install [Neo4j Desktop](https://neo4j.com/docs/operations-manual/current/installation/) (tested with Neo4j version 4.1.1).
-1. Start the server using the `neo4j start` command.
-1. Go to the [Neo4j browser](http://localhost:7474/browser/), input the default username (`neo4j`) and password (`neo4j`) and change the password to whatever you plan to use for development (ex. `password`).
-   > [`Docker` can also](https://neo4j.com/developer/docker-run-neo4j/) be used to create a `Neo4j` database. If using `Docker`, the above instructions can be ignored.
+#### Environment File
 
-Also, create a `.env` in `packages/backend` file if you don't already have one:
+In `packages/backend`, create a `.env` file if you don't already have one:
 
 ```
 GRAPHENEDB_BOLT_URL=bolt://localhost:7687
 GRAPHENEDB_BOLT_USER=neo4j
-GRAPHENEDB_BOLT_PASSWORD=PASSWORD_THAT_YOU_CREATED
+GRAPHENEDB_BOLT_PASSWORD=<PASSWORD>
 ```
 
-> Make sure that the configuration is correct for your environment.
+> Replace `<PASSWORD>` with the password that you want to use for development and save it for later.
 
-### Lerna
+### NPM Dependencies
 
-This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is:
+This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is to install and symlink everything is:
 
 ```
-npm install # or `npm i`
+npm install
 ```
-
-## Integrating Provenance Information into WebProv
-
-_(This section describes the usage of WebProv as used by Budde et al. (2020).)_
-
-Once all provenance information of a simulation study has been collected (or while doing so), this information can be included in WebProv. A user needs to do create a study, which needs a reference (last name of first author and year of publication) as well as the name of the signaling pathway the study is based on. If more than one signaling pathway is being considered, than all pathways should be in a set (e.g., {pathway1, pathway2}).
-
-Next, one may add nodes and connect these nodes (right click to draw a connection). The nodes can be entities or activities. Each node requires meta-information as requested by our ontology.
-
-Besides creating provenance graphs and entering provenance information one can also download or upload entire graphs as JSON. The export function only exports the visible graph and not everything that is stored in the Neo4J database.
 
 ## Development
 
-A `Makefile` file is present within both the frontend and backend packages. To start a development server with hot-reload within each package, just run the following command:
+Before you can start developing, make sure that the database is running:
+
+```
+# Optionally add -d to run in the background
+docker run -p7474:7474 -p7687:7687 -e NEO4J_AUTH=neo4j/<PASSWORD> neo4j:latest
+```
+
+> Be sure to replace `<PASSWORD>` with your development password that you set above.
+
+Next, to start the hot-reload development servers, create two terminals and run the `dev` command within the `frontend` and `backend` packages:
 
 ```
 # make sure to cd into `packages/frontend` or `packages/backend`
 make dev
 ```
 
-> Ensure that you start the backend server before starting the frontend server.
+Now you should be able to see the app running at [`http://localhost:8080`](http://localhost:8080).
+
+> Make sure that you have the backend server running before opening the app.
 
 ## Installing Dependencies
 
@@ -85,10 +92,6 @@ If you want to install a package, avoid using `npm` as `npm` will remove symlink
 ```
 npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
 ```
-
-## Contributing
-
-See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Local Deployment
 
@@ -114,7 +117,39 @@ npm run build
 
 Finally, you will need to deploy the HTML, JS and CSS files to some kind of webserver. To run a test server locally, running `npx servor dist` in `packages/frontend` should work.
 
-## Heroku & Netlify Deployment
+## Structure
+
+As mentioned above, the software uses `lerna` to manage the monorepo. All code is written in `TypeScript` and is located in three packages (`frontend`, `backend` and `common`).
+
+### common
+
+`common` contains the shared code between the `frontend` and `backend` packages. This includes utility functions and shared `TypeScript` type definitions. Whenever changes are made to `common`, the package needs to be rebuilt so that changes are picked up by the frontend and backend.
+
+- **index.ts**: Exports things from the other files.
+- **backend.ts**: Contains the `TypeScript` type definition for the backend API.
+- **neon.ts**: Contains `TypeScript` type helpers.
+- **schemas.ts**: Contains `TypeScript` schemas for `Neo4j` built using `neon.ts`. Although `Neo4j` is schemaless, I built a type system to try to validate my code during compilation.
+- **utils.ts**: Just utilities.
+
+### backend
+
+The backend is a fairly basic [`express`](https://expressjs.com) app with CRUD endpoints for several node types and relationships. There is no authentication for this app which makes things a lot simpler!
+
+- **index.ts**: Contains the `express` app initialization and all of the route definitions.
+- **data.ts**: Contains the definitions for all of the nodes and relationships. These are created upon initialization if they haven't been created yet.
+- **cypher.ts**: Contains [`Cypher`](https://neo4j.com/developer/cypher) utility functions that play nicely with my express app.
+
+### frontend
+
+Finally, the frontend is a [`Vue`](https://vuejs.org) application split across numerous files. Below, I will outline the most important files.
+
+- **hooks.ts**: A collection of Vue.js hooks using in `Visualizer.vue`.
+- **d3.ts**: A collection of types for `D3.vue`.
+- **backend.ts**: The interface to the backend. Based on `axios`.
+- **components/D3.vue**: A wrapper around `d3` built for `Vue`. It manages all of the visualization & animation aspects of the application.
+- **Visualizer.vue**: The file where everything comes together. It's responsibilities include kicking off the initial requests to the backend, managing state and managing actions.
+
+## Deployment
 
 The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
 
@@ -145,38 +180,9 @@ git push --tags
 
 That's it!
 
-### Backend
+## Contributing
 
-The backend is currently using `Heroku` for automatic deployments. The following commands were used to set up the Heroku backend:
-
-```
-export app=web-prov-backend
-heroku apps:create $app
-
-# add free hosting database
-heroku addons:create graphenedb:dev-free --app $app
-```
-
-Then, using the online dashboard, this repository was connected to GitHub for automatic deployments by clicking the `Enable Automatic Deploys` button. This connection triggers a new deployment of the backend on every merge into `master`.
-
-> This requires admin access to the repository.
-
-The last step is determining the domain of the deployed backend and inserting that url into the frontend so that the deployed frontend is pointing at the correct location. This URL can be found within the `Heroku` project that you created. Then, within `Netlify`, go to `Settings` > `Build & deploy` > `Environment` > `Environment variables` and then set `VUE_APP_BACKEND_URL` to whatever url the backend is deployed at (ex. `https://web-prov-backend.herokuapp.com/`).
-
-### Frontend
-
-The frontend is currently being deployed using `Netlify`. The following instructions were used to create the `Netlify` application:
-
-1. Create a `New site from Git`.
-1. Click `Continuous Deployment` > `GitHub`.
-1. Find the repository.
-1. Set the build command to `npm run build-frontend`.
-1. Set the publish directory to `_site` (must match folder in `packages/frontend/vue.config.js`).
-1. Leave all other settings at their default values and click `Deploy site`.
-
-Whenever new commits are merged into `master`, the frontend will be built and deployed.
-
-> Ensure that you set the `VUE_APP_BACKEND_URL` environmental variable or else `localhost` will be used.
+See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
 
 ## Dependencies/Acknowledgements
 
@@ -195,8 +201,6 @@ Whenever new commits are merged into `master`, the frontend will be built and de
 - [@vue/cli-plugin-typescript](https://www.npmjs.com/package/@vue/cli-plugin-typescript) (MIT)
 - [@vue/cli-service](https://www.npmjs.com/package/@vue/cli-service) (MIT)
 - [babel-core](https://www.npmjs.com/package/babel-core) (MIT)
-- [sass](https://www.npmjs.com/package/sass) (MIT)
-- [sass-loader](https://www.npmjs.com/package/sass-loader) (MIT)
 - [svg-pan-zoom](https://www.npmjs.com/package/svg-pan-zoom) (BSD-2-Clause)
 - [typescript](https://www.npmjs.com/package/typescript) (Apache-2.0)
 - [vue-template-compiler](https://www.npmjs.com/package/vue-template-compiler) (MIT)

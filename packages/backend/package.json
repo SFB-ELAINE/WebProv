@@ -4,7 +4,7 @@
   "description": "The backend for the web provenance web platform.",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
     "build": "tsc",
     "prod": "node ./dist/index.js"
   },
@@ -22,6 +22,6 @@
     "typescript": "^3.5.2"
   },
   "devDependencies": {
-    "ts-node-dev": "^1.0.0-pre.32"
+    "ts-node-dev": "^1.1.6"
   }
 }

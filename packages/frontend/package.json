@@ -30,8 +30,6 @@
     "@vue/cli-service": "^3.8.0",
     "babel-core": "7.0.0-bridge.0",
     "express": "^4.17.1",
-    "sass": "^1.18.0",
-    "sass-loader": "^7.1.0",
     "serve": "^11.3.2",
     "typescript": "^3.5.2",
     "vue-template-compiler": "^2.6.10"

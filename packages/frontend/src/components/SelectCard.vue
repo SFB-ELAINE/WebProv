@@ -2,7 +2,9 @@
   <card :title="title" closeable @close="$emit('close')">
     <b-field>
       <b-select :value="value" @input="$emit('input', $event)" expanded>
-        <option v-for="option in options" :key="option" :value="option">{{ option }}</option>
+        <option v-for="option in options" :key="option" :value="option">{{
+          option
+        }}</option>
       </b-select>
     </b-field>
     <template v-slot:footer>
@@ -26,7 +28,3 @@ export default createComponent({
   },
 });
 </script>
-
-<style lang="sass" scoped>
-
-</style>
