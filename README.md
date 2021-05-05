@@ -121,7 +121,7 @@ Finally, you will need to deploy the HTML, JS and CSS files to some kind of webs
 
 As mentioned above, the software uses `lerna` to manage the monorepo. All code is written in `TypeScript` and is located in three packages (`frontend`, `backend` and `common`).
 
-### common
+### Common
 
 `common` contains the shared code between the `frontend` and `backend` packages. This includes utility functions and shared `TypeScript` type definitions. Whenever changes are made to `common`, the package needs to be rebuilt so that changes are picked up by the frontend and backend.
 
@@ -131,7 +131,7 @@ As mentioned above, the software uses `lerna` to manage the monorepo. All code i
 - **schemas.ts**: Contains `TypeScript` schemas for `Neo4j` built using `neon.ts`. Although `Neo4j` is schemaless, I built a type system to try to validate my code during compilation.
 - **utils.ts**: Just utilities.
 
-### backend
+### Backend
 
 The backend is a fairly basic [`express`](https://expressjs.com) app with CRUD endpoints for several node types and relationships. There is no authentication for this app which makes things a lot simpler!
 
@@ -139,7 +139,7 @@ The backend is a fairly basic [`express`](https://expressjs.com) app with CRUD e
 - **data.ts**: Contains the definitions for all of the nodes and relationships. These are created upon initialization if they haven't been created yet.
 - **cypher.ts**: Contains [`Cypher`](https://neo4j.com/developer/cypher) utility functions that play nicely with my express app.
 
-### frontend
+### Frontend
 
 Finally, the frontend is a [`Vue`](https://vuejs.org) application split across numerous files. Below, I will outline the most important files.
 
