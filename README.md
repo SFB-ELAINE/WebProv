@@ -32,18 +32,18 @@ More information is available when clickling on the "+" in the lower right corne
 
 ## Environment Setup
 
-1. ### Node
+### 1. Node
 
 The first step to setting up your environment involves installing `Node.js` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
 
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
 1. Install `Node.js` and `npm` using nvm: `nvm install node`
 
-1. ### Docker
+### 2. Docker
 
 Next, install `Docker` so that you can start the `Neo4j` development database. The installation instructions can be found [here](https://docs.docker.com/get-docker).
 
-3. #### Environment File
+#### 3. Environment File
 
 In `packages/backend`, create a `.env` file if you don't already have one:
 
@@ -55,7 +55,7 @@ GRAPHENEDB_BOLT_PASSWORD=<PASSWORD>
 
 > Replace `<PASSWORD>` with the password that you want to use for development and save it for later.
 
-4. ### NPM Dependencies
+### 4. NPM Dependencies
 
 This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is to install and symlink everything is:
 
