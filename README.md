@@ -85,30 +85,6 @@ Now you should be able to see the app running at [`http://localhost:8080`](http:
 
 > Make sure that you have the backend server running before opening the app.
 
-## Local Deployment
-
-Deployment of the frontend and backend on a server should be fairly straightforward if everything else has smoothly.
-
-### Backend
-
-In the `packages/backend` folder, run the following command.
-
-```
-npm run prod
-```
-
-### Frontend
-
-The frontend is also pretty simple to deploy. First, you might need to change the value of `VUE_APP_BACKEND_URL` in `packages/frontend/.env.production` to point the the backend server. If you are running the backend and frontend on the same machine, the environment variable is already set to the correct value (`http://localhost:3000`).
-
-Next, you will need to run the `build` command in `packages/frontend`.
-
-```
-npm run build
-```
-
-Finally, you will need to deploy the HTML, JS and CSS files to some kind of webserver. To run a test server locally, running `npx servor dist` in `packages/frontend` should work.
-
 ## Structure
 
 As mentioned above, the software uses `lerna` to manage the monorepo. All code is written in `TypeScript` and is located in three packages (`frontend`, `backend` and `common`).
