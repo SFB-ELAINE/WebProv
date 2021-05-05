@@ -119,7 +119,7 @@ Finally, the frontend is a [`Vue`](https://vuejs.org) application split across n
 
 ## Deployment
 
-The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
+The frontend and backend are automatically deployed when `tags` are pushed to the repo using [GitHub Actions](https://github.com/features/actions). The following sections describe how to push a new `tag` since the CI handles the rest! If you want to learn more about the deployment process, you can check out the CI files in `.github/workflows/`.
 
 ### 1. Set the new version
 
