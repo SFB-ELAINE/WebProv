@@ -43,7 +43,7 @@ The first step to setting up your environment involves installing `Node.js` (if 
 
 Next, install `Docker` so that you can start the `Neo4j` development database. The installation instructions can be found [here](https://docs.docker.com/get-docker).
 
-#### 3. Environment File
+### 3. Environment File
 
 In `packages/backend`, create a `.env` file if you don't already have one:
 
