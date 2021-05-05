@@ -53,7 +53,7 @@ GRAPHENEDB_BOLT_USER=neo4j
 GRAPHENEDB_BOLT_PASSWORD=<PASSWORD>
 ```
 
-> Replace `<PASSWORD>` with the password that you want to use for development and save it for later.
+Replace `<PASSWORD>` with the password that you want to use for development and save it for later.
 
 ### 4. NPM Dependencies
 
@@ -84,14 +84,6 @@ make dev
 Now you should be able to see the app running at [`http://localhost:8080`](http://localhost:8080).
 
 > Make sure that you have the backend server running before opening the app.
-
-## Installing Dependencies
-
-If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, use the `lerna add` command. For example:
-
-```
-npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
-```
 
 ## Local Deployment
 
@@ -183,6 +175,12 @@ That's it!
 ## Contributing
 
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
+
+If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, use the `lerna add` command. For example:
+
+```
+npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
+```
 
 ## Dependencies/Acknowledgements
 
