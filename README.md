@@ -121,8 +121,6 @@ Finally, the frontend is a [`Vue`](https://vuejs.org) application split across n
 
 The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
 
-## Steps
-
 ### 1. Set the new version
 
 Use the [npm-version](https://docs.npmjs.com/cli/version) command to bump the version in your `package.json`, make a commit with the new version number and a new tag (again with the same version number). Make sure to use the appropriate version type:
