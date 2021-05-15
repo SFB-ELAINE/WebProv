@@ -1,0 +1,356 @@
+\documentclass{article}
+\bibliographystyle{plos2015}
+\usepackage[utf8]{inputenc}
+\usepackage{textgreek}
+\usepackage[
+  left=3cm,
+  right=2cm,
+  top=2.5cm,
+  bottom=2cm,
+]{geometry}
+\usepackage{csquotes}
+\usepackage{hyperref}
+\usepackage[framemethod=TikZ]{mdframed}
+\mdfsetup{
+        frametitle={
+        \tikz[baseline=(current bounding box.east),outer sep=0pt]%
+        \node[anchor=east, rectangle, fill=gray!40]
+        {\strut `` ''};},
+        innertopmargin=0pt,
+        linecolor=gray!40,
+        linewidth=2pt,topline=true,
+        frametitleaboveskip=\dimexpr-\ht\strutbox\relax
+    }
+
+\newcommand{\webprov}{\textit{WebProv}}
+\newcommand{\bcat}{\textbeta-catenin}
+\newcommand{\wnt}{Wnt}
+\newcommand{\provnode}{Provenance Node}
+\newcommand{\provnodes}{Provenance Nodes}
+\newcommand{\lee}{Lee et al. (2003)}
+\newcommand{\RQ}{Research Question}
+\newcommand{\A}{Assumption}
+\newcommand{\As}{Assumptions}
+\newcommand{\R}{Requirement}
+\newcommand{\Rs}{Requirements}
+\newcommand{\QM}{Qualitative Model}
+\newcommand{\QMs}{Qualitative Models}
+\newcommand{\SM}{Simulation Model}
+\newcommand{\SMs}{Simulation Models}
+\newcommand{\SE}{Simulation Experiment}
+\newcommand{\SEs}{Simulation Experiments}
+\newcommand{\SD}{Simulation Data}
+\newcommand{\WD}{Wet-lab Data}
+\newcommand{\WE}{Wet-lab Experiment}
+\newcommand{\BSM}{Building Simulation Model}
+\newcommand{\CSM}{Calibrating Simulation Model}
+\newcommand{\VSM}{Validating Simulation Model}
+\newcommand{\ASM}{Analyzing Simulation Model}
+
+
+
+
+
+
+
+
+\title{Review response: \enquote{Relating simulation studies by provenance---Developing a family of Wnt signaling models}}
+\author{Kai Budde, Jacob Smith, Pia Wilsdorf, Fiete Haack, Adelinde M. Uhrmacher}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\noindent Dear Prof. Pedro Mendes,\\
+Dear Prof. Jason Haugh,\\
+Dear Prof. Chris J. Myers,\\
+Dear anonymous reviewer,\\
+Dear Dr. David P. Nickerson,\\
+
+\noindent we would like to thank all of you for your thorough and constructive feedback!
+
+
+\section*{1\textsuperscript{st} Reviewer}
+
+\begin{mdframed}
+Much has been made recently of the importance of reproducibility of scientific research.
+In biological simulation studies, such as this paper considers, this means providing the models and the analysis instructions in standard machine readable forms.
+This paper takes this a step further to look at the issue of provenance for these models.
+Namely, how are models related to previous models and experimental studies.
+In particular, the authors looks at a family of 19 models of the Wnt signaling pathway, which that manually link together using the PROV-DM ontology.
+To construct these relationships, they have developed a web tool, WebProv, to link studies with PROV-DM types and relations.
+As the authors point out, extracting these relationships from published studies is a highly laborious process that requires many assumptions along the way.
+Ideally, in the future, these provenance networks should be developed at the time of model construction during the simulation study.
+
+This paper is an important demonstration of both the process of creating and utility of provenance networks for simulation studies.
+The prototype software tool presented should help facilitate future such activities.
+This proof-of-concept presented in this paper should become a tutorial for others that would undertaken this task for their models and simulation studies.
+The key issue remaining is how to motivate and facilitate others to create this information.
+This is not a problem that the authors can solve, but rather one that the community and the journal publishers should devote time and energy to in order to further improve the reproducibility of science.
+\end{mdframed}
+
+Thank you, Prof. Myers. We agree with you and appreciate your kind feedback on the importance of our work.
+
+\section*{2\textsuperscript{nd} Reviewer}
+\begin{mdframed}
+This is an interesting paper that looks in detail at 19 Wnt related modeling papers.
+As a practicing modeler myself the most interesting pages started on page 14 (Provenance of individual Wnt simulation models) which discusses the various issues encountered, problems with the current ontolgies etc.
+I think this is the most important part of the paper from the point of view of the plos comp bio readership, such analyses have not been done as exhaustively as this one.
+
+Some of the material, particular the descriptions of the provenance entries (which seems to dominate the paper) could be summarized in a table and the textual component moved to an appendix. This would allow the reader to get straight to the most interesting papers of the paper. \ldots
+\end{mdframed}
+
+Thank you, dear reviewer, for finding our work interesting!
+We agree with you that some readers might find the second part of the \textit{Results and discussion} section more interesting than the first part.
+The first part of the section, entitled \enquote{Further steps towards a PROV-DM ontology for cellular biochemical simulation models}, contains our definitions and examples of every entity and activity type used in our provenance data model.
+It belongs to the knowledge engineering part of our contribution, which is a prerequisite for the detailed provenance information of the Wnt models.
+We have extended the introductory paragraph of the \textit{Results and discussion} section.
+This should make it clearer to the reader that the first part may be skipped by those who wish to jump directly to the Wnt model family.
+The changes are in lines 172--176(???).
+%TODO check line numbers
+
+\begin{mdframed}
+\ldots\,Caption: The captions to some of the figures could be improved.
+
+Fig 2: This caption starts with the word ‘additionally’ which doesn’t sit well.
+Also the caption is too short, given that this is probably one of the more important figures.
+It took me a while to realize what the terms ASM, CSM etc meant (They were in Table 2).
+I would spell out these abbreviations (ASM, CSM, VSM, BSM) in the caption (Table 2 can remain unchanged), this will save the reader for having to search for their meaning.
+The caption would also add one sentence on how to read the figure.
+I know that earlier on the authors explain what an arrow means but that was some pages away and since plos comp bio are generally no computer scientists I would add that explanation of the arrow to the caption as well.
+
+Fig 3: In general, notation used in UML diagrams is not familiar to most modelers but in this case the diagram looks simple enough that its seems fairly self-explanatory. No action required. \ldots
+\end{mdframed}
+
+We have adapted and extended the caption of Fig 2 and added the abbreviations (BSM, QM, \dots) to the legend of the figure (instead of the caption).
+We hope that this makes the content of the figure clearer to the reader.
+
+
+\begin{mdframed}
+\ldots\,Minor: Typo in caption first sentence : ‘prociding’, I’m not sure what that word means, probably a typo but not sure what word should be there instead? \ldots
+\end{mdframed}
+
+Thanks for pointing out the typo.
+We have fixed it.
+
+\begin{mdframed}
+\ldots\,Software: As it stands it is likely that very few people will use WebProv, the reason is that it requires far too much work to install, plus does it also require a backend sever?
+
+The tool looks useful so why make it difficult to get hold of?
+
+What I would recommend is move everything if possible to the client (including the database which doesn’t seem large) and host it as a github web page project so that when a user clicks on the url the application will show up, no installation necessary (which I think is one of the main attractions of web software) – see https://pages.github.com/. I strongly recommend something like this otherwise your work will not have the impact it should. \ldots
+\end{mdframed}
+
+\textbf{TODO: Please add some sentences, Jacob. Thanks!}
+Why GitHub Pages are not working anymore.
+We are currently deploying WebProv on commercial servers which should make it easier for the readers of the publication to get an impression of the tool and the provenance information of the Wnt models.
+It can be accessed here...
+Due to funding restriction, we plan to shutdown this service by the end of the year.
+It should still be relatively feasible to locally install the use the app by following the ReadMe (see next paragraph).
+
+
+\begin{mdframed}
+\ldots\,Documentation: There is no easily accessible documentation for the software. It looks like users are expected to download the github repo then select the indexl.html file in Docs. It would be better to host a proper (eg readthedocs) documentation on the github account itself. The only documentation link in the readme take a user to process manger 2 page. \ldots
+\end{mdframed}
+
+
+The documentation (usage and deployment) is available in the \href{https://github.com/SFB-ELAINE/WebProv#readme}{Readme on GitHub}.
+We have adopted it to make is more comprehensible.
+The \texttt{docs/} folder and \texttt{docs/index.html} file are removed.
+It was used for the initial version of the application that could be deployed using GitHub Pages.
+
+\begin{mdframed}
+\ldots\,Minor:
+1. Introduction, second paragraph, first sentence, ‘conduction’, is that the right word? \ldots
+\end{mdframed}
+
+We have changed the wording.
+
+\begin{mdframed}
+\ldots\, 2. There is no reference to the youtube video on page 4 (footnote 2), also put the github ural there as well since the github repository is mentioned.
+\end{mdframed}
+
+For most URLs, we have used hyperlinks.
+Thus, clicking on \href{https://youtu.be/UzwHtptkYOU}{YouTube} in the former footnote 2 should have led you to the website \url{https://youtu.be/UzwHtptkYOU}.
+We will make this video publicly available as it is if and only if the manuscript has been accepted for publication in PLOS Computation Biology.
+
+Furthermore, we have also removed all footnotes and moved the information into the main text as required by PLOS Computational Biology.
+
+
+\section*{3\textsuperscript{rd} Reviewer}
+
+\begin{mdframed}
+In this manuscript, the authors present a continuation of previous work to make use of the PROV-DM to represent provenance of biosimulation studies.
+The authors then use this data model to encode the provenance of a number of Wnt signalling models from the literature, and use the encoded provenance knowledge to examine the relationships between these published studies.
+The authors have also developed an open-source web-based tool providing a graphical user interface for creating, editing, exploring, and searching the provenance knowledge encoded in this manner.
+This seems to be a very useful approach for capturing provenance knowledge of systems biology modelling studies and appears to be extensible to capture richer provenance semantics as the collection/recording methods improve in future and this approach is applied in different domains or different types of models.
+
+The authors should be commended for making all the software and data used in this manuscript freely available and documented in a manner sufficient to enable others to repeat the analysis presented here. \ldots
+\end{mdframed}
+
+Thank you, Dr. Nickerson!
+We are striving to publish all material related to our research and the publication.
+
+\begin{mdframed}
+\ldots\, I suggest the entire manuscript is thoroughly proof-read as some of the grammar and word choices are a bit unusual. "cell biological systems" in the abstract is one example that could be tidied up. \ldots
+\end{mdframed}
+
+We have proofread the manuscript and corrected all mistakes.
+We hope all language problems have been eliminated.
+%TODO Let Jacob re-read everything before submitting it.
+
+\begin{mdframed}
+\ldots\, As the authors state, the knowledge they have extracted from the literature and encoded in the example provenance graph used in this work makes a useful contribution to the community of potential users of these Wnt signally models.
+I wonder if the authors have any plans or thoughts on the integration of this knowledge into a community repository, perhaps in a way that others could contribute to?
+For the subset of models that are available in the Biomodels database, for example, could the provenance knowledge be contributed back to the database? \ldots
+\end{mdframed}
+
+As we have stated in our conclusion, we think that accessible provenance information would be a valuable extension of the BioModels (or any other simulation model) repository.
+Right now, comparing the entries of BioModels to our approach, the database contains provenance (meta-)information of type Simulation Model and may, additionally, contain information of type Simulation Experiment and Simulation Data.
+The latter two usually comprise an experiment specification file, for instance a SED-ML file, as well as a figure showing the simulated data.
+In our case, the following BioModels entries contain information about the simulation experiments: the entry for Lee et al. (2003)~\cite{Lee2003} contains both a SED-ML (and COPASI) file to reproduce parts of Fig 6 of that publication (corresponding to our SD6) and the entry for Padala et al. (2017)~\cite{Padala2017}contains the COPASI file to reproduce Fig 2A-C of that publication (corresponding to our SD3).
+The overview of a model entry might also include information about Research Questions and Assumptions.
+The other entities/activities and, more importantly, most relations are not available.
+
+Other researchers have looked at updates of a model in a repository using BiVeS, an \enquote{algorithm to detect and communicate the differences in computational models describing biological systems}~\cite{Scharm2016a} and COMODI, \enquote{an ontology to characterise differences in versions of computational models in biology}~\cite{Scharm2016}.
+Scharm et al. (2018) have also asked the maintainers of model repositories to add the possibility of entering provenance information~\cite{Scharm2018}: \enquote{We want to encourage the maintainers of repositories to provide a system where curators and modellers can transparently track the evolution of a project, e.g. using PROV-O [24] to encode the provenance and COMODI to describe reason, intention, and effects of a change.}
+
+We are planning to contact the BioModels team and would be happy to see (some of) the provenance data acquired added to the repository.
+However, all of this should be a community effort, which needs a broader discussion beforehand.
+
+\begin{mdframed}
+\ldots\, Following that thought, some of the provenance knowledge captured here is similar to that represented in the Biomodels database using the "isDerivedFrom" predicate in the SBML model annotations (see for example the analysis of diabetes models presented in \url{https://dx.doi.org/10.1038\%2Fpsp.2013.30}).
+Have the authors compared this knowledge for the subset of Wnt models available in the Biomodels database to see if similar (although less semantically rich) patterns of model evolution are present to their analysis presented in this manuscript? \ldots
+\end{mdframed}
+
+Thank you for pointing out the publication by Ajmera et al. (2013).
+A key finding of the review is the following: \enquote{The model relationship map (Figure 3) provides a complete overview of the evolution of most diabetes models available in the literature to-date and highlights the significance of sharing and reuse of models.}
+
+For some models presented in Figure 3, this relationship is also shown in BioModels using the qualifier \href{http://biomodels.net/model-qualifiers/isDerivedFrom}{\textit{isDerivedFrom}}: \enquote{The modelling object represented by the model element is derived from the modelling object represented by the referenced resource (modelling object B).
+This relation may be used, for instance, to express a refinement or adaptation in usage for a previously described modelling component}.
+
+When comparing this qualifier with our approach, we find that whenever we have a connection of the kind `Building Simulation Model (of simulation study \textit{i}) $\longrightarrow$ Simulation Model (of simulation study \textit{j})', we could add `model \textit{i} \textit{isDerivedFrom} model \textit{j}' to BioModels (see Figure~\ref{fig:KimDerived}).
+
+As we have stated in our manuscript, \enquote{we have (...) not included the direct connection between two activities or two entities, such as the possibility to have a model being derived from another model. Thus, we have not included (...)  \texttt{WasDerivedFrom}, which describes a direct transformation (update) of an entity into a new one}.
+
+Out of six Wnt models included in BioModels, two comprise information about model relations.
+First, the model by Kim et al. (2007) has \textit{isDerivedFrom} information: `DOI 10.1007/3-540-36481-1\_11' (Cho et al. 2003) and `PubMed 1455190' (Lee et al. (2003)).
+When comparing it with our provenance information, we have found an \textit{isDerivedFrom}-equivalent connection to Cho et al. (2003) and Cho et al. (2006).
+The latter is missing in BioModels.
+Cho et al. (2006), on the other hand, is connected to Lee et al. (2003).
+(See our \href{https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/tree/main/ProvenanceInformation}{GitHub repository} with additional files.
+This link has also been given in the main text.)
+
+Second, the model by Padala et al. (2017) contains the following \textit{isDerivedFrom} information: `BIOMD0000000623' (Orton et al. (2009)), `BIOMD0000000033' (Brown et al. (2004)), and `BIOMD0000000149' (Kim et al. (2007)).
+All of these connections are also contained in our provenance graph.
+
+We will provide the BioModels team with further \textit{isDerivedFrom}-information that could be added to the annotations of the Wnt models in the repository.
+This information is extracted from our provenance graph by querying for a \BSM{} activity (of simulation study \textit{i}) that \textit{used} a \SM{} entity (of another simulation study \textit{j}).
+
+\begin{figure}[!h]%figure
+\centering
+\includegraphics[width=0.9\textwidth]{Provenance_2007_Kim_derivedFromExample}
+\caption{{\bf Provenance graph of the study by Kim et al. (2007)~\cite{Kim2007}.}
+Additionally, the three entities and their corresponding relations (SM1(Cho2003) $\leftarrow$ BSM1(Kim2007) $\leftarrow$ SM1(Kim2007)) are surrounded by a green triangle showing the possibility to extract \textit{isDerivedFrom} information from provenance graphs.}
+\label{fig:KimDerived}
+\end{figure}
+
+
+%However, it is unclear to us how their relationship map has been generated.
+%We have also checked the status \textit{isDerivedFrom} in BioModels for all models that are present in BioModels and that %are directly connected in Figure 3 of their publication (\enquote{models that are derived from another model, by adopting some mathematical feature(s) or hypothesis}).
+%We have found that all connected models but one that include \textit{isDerivedFrom} information share at least one author.
+%The only exception is the model by Nyman 2011.
+%Some models that are connected to the Nyman 2011 model do not share authors.
+%In Figure 3, instead of Koschorreck 2008, Kiselyov 2009 should be connected to Nyman 2011, as it is stated in \href{https://www.ebi.ac.uk/biomodels/BIOMD0000000356}{BioModels}.
+
+%\begin{itemize}
+%\item Sturis 1991 (BIOMD0000000382) $\rightarrow$ Tolic 2000 (BIOMD0000000372): Tolic 2000 contains the information  \enquote{isDerivedFrom BIOMD0000000382}, but both publications share two authors: E. Mosekilde and J. Sturis.
+%\item Bertram 1995 (BIOMD0000000374) $\rightarrow$ Mears 1997 (BIOMD0000000375) also contains \enquote{isDerivedFrom BIOMD0000000374}, both publications share three authors: D. Mears, R. Bertram, and A. Sherman
+%\item Wanant 2000 (MODEL1201140005 and MODEL1201140006) $\rightarrow$ Sedaghat 2002 (BIOMD0000000137)  \enquote{isDerivedFrom PubMed 1890848, PubMed 1890850, BioModels Database MODEL1201140005, PubMed 8304439, BioModels Database MODEL1201140006}, but both publications share one author: M.J. Quon.
+%\item Quon 1991a (60) $\rightarrow$ Sedaghat 2002 (65) $\rightarrow$ share at least one author
+%\item Koschorreck 2008 (61) $\rightarrow$ Nyman 2011 (68) $\rightarrow$ arrow is mistakenly put from Koschorreck. It should connect Kiselyov 2009 (62) with Nyman 2011 (68) as looking at the models it has been derived from shows \url{https://www.ebi.ac.uk/biomodels/BIOMD0000000356}. $\rightarrow$some models to Nyman 2011 do not share authors.
+%\item Brännmark 2010 (63) $\rightarrow$ Nyman 2011 (68) $\rightarrow$ share at least one author
+%\end{itemize}
+
+%Not in Biomodels (examples):
+%Tiran 1975 (29) -> Sorensen 1985 (22) -> do not share any authors (Sorensen cites Tiran), but mentions that (part of) model has been used
+%Bertram 2007 (S155) -> Chew 2009 (S156) -> do not share any authors, but mentions that (part of) the model has been used
+
+
+
+\begin{mdframed}
+\ldots\, Using the SBO to annotate the assumptions seems an odd choice to me.
+Looking at Table S1, it seems that the SBO terms are giving a very high level annotation as to the type of model entity mentioned in the assumption, but doesn't provide any semantics about what the assumption is.
+Looking at assumptions annotated with SBO:0000009 (kinetic constant), for example, a user can search for assumptions that have something to do with a kinetic constant, but doesn't help to examine if its an assumption based on time scale analysis (e.g., row 3) or perhaps just an assumption that certain behaviour is assumed (e.g., row 13).
+I wonder if something like the Evidence and Conclusion Ontology (https://evidenceontology.org/) might provide a source of more meaningful terms to use in annotating assumptions?
+I may simply be missing something here, so perhaps a bit more explanation about how the SBO annotations are being used to annotate assumptions would help clarify things (or future work to extend the current work with enriched semantics?). \ldots
+\end{mdframed}
+
+You are right.
+Using SBO to annotate the (modeling) assumptions only shows which part of the model is being approximated (e.g., the kinetic constant, interactions of molecules, etc.).
+We have chosen SBO because it is \enquote{tailored specifically for the kinds of problems being faced in Systems Biology}~\cite{SBOidentifiers}.
+%By using SBO, we are trying to answer, which part of the model contains assumptions rather than what was assumed.
+
+We have looked into the \href{https://evidenceontology.org/}{Evidence and Conclusion Ontology (ECO)}.
+It is \enquote{describing the various types of evidence that are generated during the course of a scientific study and which are typically used to support assertions made by researchers}~\cite{Chibucos2017}.
+When collecting the assumptions made by the authors, the evidence for these has not always become clear to us.
+Therefore, we do not feel able to annotate the assumptions using ECO.
+We have added a remark on this in the main text (see lines XXX-XXX).
+%TODO add line numbers
+
+%Assumptions are naturally lacking broader evidence.
+%Therefore, we do not think that this ontology may be more useful for annotating assumptions.
+
+\begin{mdframed}
+\ldots\, The authors define a minimal set of PROV-DM entities and activity types they have found useful for capturing provenance information of simulation studies when extracting provenance knowledge from the published literature.
+This minimal set does seem sufficient for the Wnt signalling demonstration presented here and the authors briefly explore how this set could be expanded in future.
+But I worry that the wet-lab data entity seems under-specified and perhaps less useful than it could be.
+While I understand that often in the literature the source of experimental data is not clearly described, with the recent growth of platforms like \url{https://www.protocols.io/} which enable scientists to provide rich descriptions of their protocols in a reusable manner, I wonder if the authors have considered how to incorporate that type of knowledge into their provenance graphs? \ldots
+\end{mdframed}
+
+As we have stated in our manuscript, \enquote{we have not included an entity \WE{}.
+Our focus is on the result of the \WE{} (i.e., the \WD{}) and its role within the simulation study (e.g., being used in a \BSM{}, \CSM{}, or \VSM{} activity).}
+In the future, one could add an entity of type \WE{} as well as corresponding activities describing its generation.
+%We have thoroughly thought about further specifying the entity of type Wet-lab Data, by, for example, using more information that is required my the  Minimum Information About a Cellular Assay, and the Cellular Assay (MIACA) guideline~\cite{Wiemann_miaca}.
+%We have limited the amount of information we are asking for (i.e., description, reference, type of experiment, organism, organ / tissue / cell line) because we wanted to make it feasible for us to fill out the information for all entities of that type we have found in the Wnt signaling studies.
+%At the same time, we know and have argued that our presented class diagram needs eventually to be extended after it has been applied for some time.
+We know that information about the experiment itself is very important.
+Therefore, we added the possibility to point to the full wet-lab experiment description, for example, by referencing a file on \url{https://www.protocols.io/} or by providing a DOI within the description of a \WD{} entity (see lines xxx--xxx).
+%TODO add the line numbers
+
+\begin{mdframed}
+\ldots\, Minor comments\\
+-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-\\
+It may not be obvious to the reader exactly what PROV is when first mentioned in the abstract. \ldots
+\end{mdframed}
+
+We have changed it and hope that it is clearer now.
+
+\begin{mdframed}
+\ldots\, The assertion in the abstract that this provenance information is all that is required to answer the question of an "appropriate starting point" is perhaps overstating things.
+The provenance information contributes to that answer, but it is not the only knowledge that is required to make an informed decision. \ldots
+\end{mdframed}
+
+We have adapted our claim.
+
+
+\begin{mdframed}
+\ldots\, Figure 3 caption: "prociding" - perhaps meant to be providing? \ldots
+\end{mdframed}
+
+Fixed.
+
+\begin{mdframed}
+\ldots\, I completely agree with the authors that provenance information should be collected during the simulation study, but I wonder if the authors have given any thought to how their WebProv tool could be utilised as part of a typical modelling lifecycle to help encourage modellers to do so?
+\end{mdframed}
+
+In our experience, it is best to capture provenance information (semi-)automatically or manually during the modeling (and simulation) process.
+We have added a few sentences discussing this matter (see lines xxx--xxx).
+
+%TODO add lines.
+
+
+\bibliography{bibliography}
+
+\end{document}

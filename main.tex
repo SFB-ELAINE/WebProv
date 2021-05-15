@@ -1,0 +1,1262 @@
+% Terminology:
+% ------------
+% "Case study": The Wnt family (Don't use the word case study, so that the relevance behind it is seen?)
+% ("provenance example") / "Lee model": Provenance information/graph of Lee et al. 2003
+% simulation study == cellular biochemical simulation study -> überall ersetzen? (use simulation study instead of simulation model when referring to a publication, because one publication may contain more than one model.)
+% Überprüfen, wann „simulation models“ und wann „simulation studies“ angebracht ist!
+% cellular biochemical simulation models ODER cell-biological simulation studies?
+% Check if et al. is not set for those studies: Krüger, Goldbeter
+
+
+% Template for PLoS
+% Version 3.5 March 2018
+%
+% % % % % % % % % % % % % % % % % % % % % % %
+%
+% Once your paper is accepted for publication, 
+% PLEASE REMOVE ALL TRACKED CHANGES in this file 
+% and leave only the final text of your manuscript. 
+% PLOS recommends the use of latexdiff to track changes during review, as this will help to maintain a clean tex file.
+% Visit https://www.ctan.org/pkg/latexdiff?lang=en for info or contact us at latex@plos.org.
+%
+% Please do not include colors or graphics in the text.
+%
+% % % % % % % % % % % % % % % % % % % % % % %
+%
+% -- FIGURES AND TABLES
+%
+% Please include tables/figure captions directly after the paragraph where they are first cited in the text.
+%
+% DO NOT INCLUDE GRAPHICS IN YOUR MANUSCRIPT
+% - Figures should be uploaded separately from your manuscript file. 
+% - Figures generated using LaTeX should be extracted and removed from the PDF before submission. 
+% - Figures containing multiple panels/subfigures must be combined into one image file before submission.
+% For figure citations, please use "Fig" instead of "Figure".
+% See http://journals.plos.org/plosone/s/figures for PLOS figure guidelines.
+%
+% Tables should be cell-based and may not contain:
+% - spacing/line breaks within cells to alter layout or alignment
+% - do not nest tabular environments (no tabular environments within tabular environments)
+% - no graphics or colored text (cell background color/shading OK)
+% See http://journals.plos.org/plosone/s/tables for table guidelines.
+%
+% For tables that exceed the width of the text column, use the adjustwidth environment as illustrated in the example table in text below.
+%
+% % % % % % % % % % % % % % % % % % % % % % % %
+
+
+\documentclass[10pt,letterpaper]{article}
+\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+
+% amsmath and amssymb packages, useful for mathematical formulas and symbols
+\usepackage{amsmath,amssymb}
+
+% Use adjustwidth environment to exceed column width (see example table in text)
+\usepackage{changepage}
+
+% Use Unicode characters when possible
+\usepackage[utf8x]{inputenc}
+
+% textcomp package and marvosym package for additional characters
+\usepackage{textcomp,marvosym}
+
+% cite package, to clean up citations in the main text. Do not remove.
+\usepackage[noadjust]{cite}
+
+% Use nameref to cite supporting information files (see Supporting Information section for more info)
+\usepackage{nameref,hyperref}
+
+% line numbers
+\usepackage[right]{lineno}
+
+% ligatures disabled
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
+
+% color can be used to apply background shading to table cells only
+\usepackage[table]{xcolor}
+
+% array package and thick rules for tables
+\usepackage{array}
+
+% create "+" rule type for thick vertical lines
+\newcolumntype{+}{!{\vrule width 2pt}}
+
+% create \thickcline for thick horizontal lines of variable length
+\newlength\savedwidth
+\newcommand\thickcline[1]{%
+  \noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+  \cline{#1}%
+  \noalign{\vskip\arrayrulewidth}%
+  \noalign{\global\arrayrulewidth\savedwidth}%
+}
+
+% \thickhline command for thick horizontal lines that span the table
+\newcommand\thickhline{\noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+\hline
+\noalign{\global\arrayrulewidth\savedwidth}}
+
+
+% Remove comment for double spacing
+%\usepackage{setspace} 
+%\doublespacing
+
+% Text layout
+\raggedright
+\setlength{\parindent}{0.5cm}
+\textwidth 5.25in 
+\textheight 8.75in
+
+% Bold the 'Figure #' in the caption and separate it from the title/caption with a period
+% Captions will be left justified
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,justification=raggedright,singlelinecheck=off]{caption}
+\renewcommand{\figurename}{Fig}
+
+% Use the PLoS provided BiBTeX style
+\bibliographystyle{plos2015}
+
+% Remove brackets from numbering in List of References
+\makeatletter
+\renewcommand{\@biblabel}[1]{\quad#1.}
+\makeatother
+
+
+% Header and Footer with logo
+\usepackage{lastpage,fancyhdr,graphicx}
+\usepackage{epstopdf}
+%\pagestyle{myheadings}
+\pagestyle{fancy}
+\fancyhf{}
+%\setlength{\headheight}{27.023pt}
+%\lhead{\includegraphics[width=2.0in]{PLOS-submission.eps}}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrule}{\hrule height 2pt \vspace{2mm}}
+\fancyheadoffset[L]{2.25in}
+\fancyfootoffset[L]{2.25in}
+\lfoot{\today}
+
+%% Include all macros below
+
+\newcommand{\lorem}{{\bf LOREM}}
+\newcommand{\ipsum}{{\bf IPSUM}}
+
+%% END MACROS SECTION
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % %
+% Additional packages / definitions
+
+\graphicspath{{figures/}}               %Setting the graphicspath
+
+\usepackage{textgreek}
+
+%Colors for 6 categories (from https://colorbrewer2.org)
+\definecolor{color1}{HTML}{8c510a}
+\definecolor{color2}{HTML}{d8b365}
+\definecolor{color3}{HTML}{f6e8c3}
+\definecolor{color4}{HTML}{c7eae5}
+\definecolor{color5}{HTML}{5ab4ac}
+\definecolor{color6}{HTML}{01665e}
+
+% Hex of X11 color names
+\definecolor{IndianRed}{HTML}{CD5C5C}
+\definecolor{LightSalmon}{HTML}{FFA07A}
+\definecolor{YellowGreen}{HTML}{9ACD32}
+\definecolor{PaleGreen}{HTML}{98FB98}
+\definecolor{MintCream}{HTML}{F5FFFA}
+\definecolor{SteelBlue}{HTML}{4682B4}
+\definecolor{Lavender}{HTML}{E6E6FA}
+\definecolor{MediumPurple}{HTML}{9370DB}
+\definecolor{Orchid}{HTML}{DA70D6}
+
+\usepackage[toc,page]{appendix}
+\usepackage{tabularx}
+\usepackage{csquotes}
+\usepackage{paralist}
+\usepackage{booktabs}
+\usepackage[position=top]{subfig}
+
+\renewcommand{\appendixpagename}{Supporting Information}
+\newcommand{\question}[1]{\textcolor{red}{#1}}
+
+\newcommand{\webprov}{\textit{WebProv}}
+\newcommand{\bcat}{\textbeta-catenin}
+\newcommand{\wnt}{Wnt}
+\newcommand{\provnode}{Provenance Node}
+\newcommand{\provnodes}{Provenance Nodes}
+\newcommand{\lee}{Lee et al. (2003)}
+\newcommand{\RQ}{Research Question}
+\newcommand{\A}{Assumption}
+\newcommand{\As}{Assumptions}
+\newcommand{\R}{Requirement}
+\newcommand{\Rs}{Requirements}
+\newcommand{\QM}{Qualitative Model}
+\newcommand{\QMs}{Qualitative Models}
+\newcommand{\SM}{Simulation Model}
+\newcommand{\SMs}{Simulation Models}
+\newcommand{\SE}{Simulation Experiment}
+\newcommand{\SEs}{Simulation Experiments}
+\newcommand{\SD}{Simulation Data}
+\newcommand{\WD}{Wet-lab Data}
+\newcommand{\WE}{Wet-lab Experiment}
+\newcommand{\BSM}{Building Simulation Model}
+\newcommand{\CSM}{Calibrating Simulation Model}
+\newcommand{\VSM}{Validating Simulation Model}
+\newcommand{\ASM}{Analyzing Simulation Model}
+
+
+\begin{document}
+\vspace*{0.2in}
+
+% Title must be 250 characters or less.
+\begin{flushleft}
+{\Large
+\textbf\newline{Relating simulation studies by provenance\,---\,Developing a family of \wnt{} signaling models}}
+\newline
+% Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
+\\
+Kai Budde\textsuperscript{1*},
+Jacob Smith\textsuperscript{2},
+Pia Wilsdorf\textsuperscript{1},
+Fiete Haack\textsuperscript{1},
+Adelinde M. Uhrmacher\textsuperscript{1}
+\\
+\bigskip
+\textbf{1} Institute for Visual and Analytic Computing, University of Rostock, Rostock, 18051, Germany
+\\
+\textbf{2} Faculty of Computer Science, University of New Brunswick, Fredericton, NB E3B 5A3, Canada
+\\
+\bigskip
+
+% Use the asterisk to denote corresponding authorship and provide email address in note below.
+* kai.budde@uni-rostock.de
+
+\end{flushleft}
+
+
+% ###############################
+% (Deactivate line numbers, count words per page and subtract 4 for the words in the footer.)
+% total word count: 
+% Abstract: 310 / 300
+% Author summary: 198 /200
+% 1 Introduction: 
+% 2 Materials and Methods: 
+% 3 Results and discussion: 
+% 4 Conclusion:
+% Z Number of references: 
+% ###############################
+
+
+% ###########################################################################################################
+% ###########################################################################################################
+
+% What should be part of an abstract: 1) What is the problem being addressed? 2) What is the research question being asked? 3) What is the methodology being used to answer the stated research question? 4) What are the results obtained? 5) What is the meaning and importance of these results? 6) What are the directions for follow-up research? 
+
+% Please keep the abstract below 300 words
+\section*{Abstract} %(301 out of 300 words)
+
+%1) What is the problem being addressed? (27 words)
+For many cell-biological systems, a variety of simulation models exist.
+A new simulation model is rarely developed from scratch, but rather revises and extends an existing one.
+
+%2) What is the research question being asked? (44 words)
+A key challenge, however, is to decide which model might be an appropriate starting point for a particular problem and why.
+To answer this question, we need to identify and look at entities and activities that contributed to the development of a simulation model.
+
+%3) What is the methodology being used to answer the stated research question? (81 words)
+Therefore, we exploit the provenance data model, PROV-DM, of the World Wide Web Consortium and, building on previous work, continue developing a PROV ontology for simulation studies.
+Based on a case study of 19 \wnt{}/\bcat{} signaling models, we identify crucial entities and activities as well as useful metadata to both capture the provenance information of individual simulation studies and relate these forming a family of models.
+The approach is implemented in \href{https://github.com/SFB-ELAINE/WebProv}{\webprov{}}, which allows one to insert and query provenance information.
+
+%4) What are the results obtained? (73 words)
+Our specialization of PROV-DM contains the entities \RQ{}, \A{}, \R{}, \QM{}, \SM{}, \SE{}, \SD{}, and \WD{} as well as activities referring to building, calibrating, validating, and analyzing a simulation model.
+We show that most \wnt{} simulation models are connected to other \wnt{} models by using (parts of) these models.
+However, the overlap, especially regarding the \WD{} used for calibration or validation of the models is small.
+
+%5) What is the meaning and importance of these results? (52 words)
+Making these aspects of developing a model explicit and queryable is an important step for assessing and reusing simulation models more effectively.
+By this, it helps to integrate a new simulation model within a family of existing ones.
+Our approach may lead to the development of more robust and valid simulation models.
+
+%6) What are the directions for follow-up research?  (24 words)
+We hope that it becomes part of a standardization effort and that modelers adopt the benefits of provenance when considering or creating simulation models.
+
+%TODO shorten abstract?!
+
+% ###########################################################################################################
+% ###########################################################################################################
+
+% Please keep the Author Summary between 150 and 200 words
+% Use first person. PLOS ONE authors please skip this step. 
+% Author Summary not valid for PLOS ONE submissions.   
+
+\section*{Author summary}
+
+We revise a provenance ontology for simulation studies of cellular biochemical models.
+Provenance information is useful for understanding the creation of a simulation model, because it does not only contain information about the entities and activities that have led to a simulation model but also the relations of these, which can be visualized.
+It provides additional structure as research questions, assumptions, and requirements are singled out and explicitly related along with data, qualitative models, simulation models, and simulation experiments through a small set of predefined but extensible activities.
+
+We have applied our concept to a family of 19 \wnt{} signaling models and implemented a web-based tool (\webprov{}) to store the provenance information of these studies.
+The resulting provenance graph visualizes the story line within simulation studies and demonstrates the creation and calibration of simulation models, the successive attempts of validation and extension, and shows, beyond an individual simulation study, how the \wnt{} models are related.
+Thereby, the steps and sources that contributed to a simulation model are made explicit.
+
+Our approach complements other approaches aimed at facilitating the reuse and assessment of simulation products in systems biology such as model repositories as well as annotation and documentation guidelines.
+
+
+
+\linenumbers
+
+% ###########################################################################################################
+% ###########################################################################################################
+
+
+% Use "Eq" instead of "Equation" for equation citations.
+\section*{Introduction}
+
+% OUTLINE:
+% Why do we have mechanistic, biochemical models and how is the model building process supported?
+% Why do we have more than one model for a specific system and how can we relate these models?
+% How do models grow larger over time and what happens then?
+% What does provenance mean and tell us? How and where can we store this information?
+% What is our goal of this publication?
+
+% TEXT:
+% Why do we have mechanistic, biochemical models and how is the model building process supported?
+Mechanistic, biochemical models are being implemented and questioned to deepen the understanding of biological systems.
+These models are usually the results of simulation studies that include phases of refinement and extension of simulation models together with the execution of diverse \textit{in silico} (simulation) experiments.
+
+A plethora of work has emerged over the last two decades to support the execution and documentation of simulation studies (e.g., modeling and simulation life cycles~\cite{Balci2012}, workflows~\cite{Ruscheinski2019}, conceptual models~\cite{Wilsdorf2020b}).
+Depending on the application domain, different modeling approaches have their own documentation guidelines~\cite{Monks2018, Erdemir2012, Grimm2010}.
+In the case of systems biology, the \enquote{Minimum Information Requested in the Annotation of Biochemical Models (MIRIAM)}~\cite{LeNovere2005} and the \enquote{Minimum Information About a Simulation Experiment (MIASE)}~\cite{Waltemath2011} are two community standards used for documenting simulation models and corresponding simulation experiments.
+A recent perspective by Porubsky et al. (2020)~\cite{Porubsky2020} looks at all stages of a biochemical simulation study and at tools supporting their reproducibility.
+When looking at an entire simulation study and at the generation process of the included simulation model, these guidelines provide some indication about which information might be useful for documenting a complete simulation study as well as for establishing relationships between different simulation models.
+
+% Why do we have more than one model for a specific system and how can we relate these models?
+This is of particular interest when several simulation models for a system under consideration exist, offering different perspectives on the system, answering different questions, or reflecting the data and information available at the time of generation.
+Model repositories such as BioModels~\cite{BioModels2020, BioModels2018}, JWS Online~\cite{Snoep2004}, or the CellML Model Repository~\cite{Lloyd2008} provide different means to retrieve and use simulation models.
+% BioModels\footnote{\url{https://www.ebi.ac.uk/biomodels/}}, JWS Online\footnote{\url{https://jjj.biochem.sun.ac.za/}}, the CellML Model Repository\footnote{\url{https://models.cellml.org/}}
+For example, querying the BioModels database for biochemical and cellular simulation models that contain proteins such as \wnt{}, Janus kinase (Jak), or mitogen-activated protein kinase (MAPK), which are associated with corresponding signaling pathways, returns for \wnt{} a set of 22 simulation models, for Jak a set of 12 simulation models and for MAPK a set of 139 simulation models (as of January 2021).
+This already shows that MAPK is an intensively studied signaling pathway.
+However, there is no way to easily compare these simulation models or to examine their relationships to each other.
+Tools such as BiVeS~\cite{Scharm2016a} are helpful to compare different versions of one particular simulation model, but comparing different models---even of the same system---will be a difficult task because the syntax of these models (e.g., the names of the species), as well as reactions, might be completely different.
+Instead of analyzing the similarities and differences in the specifications of simulation models to infer possible relationships between these simulation models, we will focus on context information, such as how a simulation model has been generated.
+
+% How do models grow larger over time and what happens then?
+Particularly, larger models are usually not built from scratch~\cite{Cvijovic2014}.
+In general, simulation models are the outcome of extensive as well as interactive model and data generation activities that include, in addition to executing various simulation experiments and successive model refinements, the adaptation of already existing models, for example, by composition or extension~\cite{Peng2017, Peng2016, Cvijovic2014}.
+Therefore, the complexity of a model grows over time as researchers add parts to the model or refine it.
+Keeping track of these generation processes is the subject of provenance.
+
+% What does provenance mean and tell us? How and where can we store this information?
+Provenance provides \enquote{information about entities, activities, and people involved in producing a piece of data or thing, which can be used to form assessments about its quality, reliability or trustworthiness}~\cite{Belhajjame2013}.
+Thus, it can be applied to many fields of science, art, and technology, including biochemical and cellular simulation models.
+By exploiting standardized provenance data models, such as PROV-DM, this information is presented in a structured, queryable, and graphical form~\cite{Ruscheinski2018, Ruscheinski2017}.
+In addition to providing crucial information about the generation of an individual simulation model and, thus, facilitating its reuse, provenance can be applied to reveal and exploit relationships between different simulation models.
+
+% What is our goal of this publication? And what is the Wnt signaling pathway?
+In this publication, we will identify and structure relevant information needed for the provenance of simulation studies and elucidate how a family of simulation models can be established through relating the models to each other.
+As a case study, we will concentrate on 19 simulation studies of the \wnt{}/\bcat{} signaling pathway.
+Among the different \wnt{} signaling pathways, the canonical \wnt{} or \wnt{}/\bcat{} signaling pathway is the most intensively studied one, \textit{in vitro}~\cite{MacDonald2009} as well as \textit{in silico}~\cite{Lloyd-Lewis2013}.
+This pathway is considered to be one of the key pathways in development and regeneration, including cell fate, cell proliferation, cell migration and adult homeostasis~\cite{Steinhart2018, Giles2003}.
+In deregulated forms, it is involved in human cancers and developmental disorders~\cite{Clevers2012, Logan2004}.
+
+Our case study refers to the \wnt{}/\bcat{} signaling pathway only, which we call \wnt{} throughout the text.
+We will present and use our web-based tool \webprov{} to store, present and query provenance information of these simulation studies.
+Different queries and analyses of the family of 19 \wnt{} simulation models will then be used for finding further insights into the family of \wnt{} signaling simulation models.
+
+
+% ###########################################################################################################
+% ###########################################################################################################
+
+\section*{Materials and methods}\label{sec:MaterialsAndMethods}
+
+\subsection*{Provenance of simulation models}
+
+\subsubsection*{Provenance data model}
+
+% Definition of provenance
+We consider the types and relations defined by the PROV data model: PROV-DM~\cite{Belhajjame2013}.
+PROV-DM includes the following types: \texttt{entity}, \texttt{activity}, \texttt{agent} as well as the following relations: \texttt{WasGeneratedBy}, \texttt{Used}, \texttt{WasInformedBy}, \texttt{WasDerivedFrom}, \texttt{WasAttributedTo}, \texttt{WasAssociatedWith}, \texttt{ActedOnBehalfOf}.
+Provenance information is usually depicted as a directed, acyclic graph where the arrowheads show towards the sources or predecessors of an entity, activity, or agent---thus, depicting its origin.
+For our case study, we are only focusing on the types \texttt{entity} and \texttt{activity} as well as on the relations \texttt{WasGeneratedBy} and \texttt{Used}.
+The reasons for our decision will be explained in the \nameref{sec:ResultsAndDiscussion} section.
+
+
+\subsubsection*{Provenance ontology for simulation studies}
+
+% Connection to other provenance papers
+Recently, Ruscheinski et al. (2018)~\cite{Ruscheinski2018} have applied PROV-DM for capturing provenance information of entire simulation studies and initiated a definition of a PROV-DM ontology for these studies.
+Important ingredients of this ontology have been identified to be
+\enquote{\begin{inparaenum}[a)]
+\item specific types of entities (e.g., data, theories, simulation experiments, and simulation models),
+\item specific roles between these entities (e.g., used as input, used for calibration, used for validation, used for adaptation, used for extension, used for composition),
+\item specific refinement of activities (i.e., successive refinement of activities down to a level where simulation experiment specifications define activities and thus are ready to be executed), and
+\item specific inference strategies (e.g., warnings if the same data has been used both by calibration and validation activities, or the option to reuse validation experiments among model descendants to check consistency)\end{inparaenum}}~\cite{Ruscheinski2018}.
+The adaptation and application of this ontology for capturing the essential information of our case study is presented in the \nameref{sec:ResultsAndDiscussion} section.
+
+
+\subsubsection*{Collecting provenance information}
+
+% General procedure of collecting provenance information
+In order to gather all relevant information, the publications as well as the supporting materials---as they often contain model and experiment descriptions---were read thoroughly.
+Referenced publications were checked, as well, whenever they appeared to be important for the development of the simulation model.
+All information that resembled provenance entities were marked.
+While reading a study, a first sketch of a possible provenance graph was being made.
+Afterwards, a revision of all markings helped to finalize the graph and to remove duplicated entities.
+Often, authors described their simulation study chronologically, which made it easy to determine the path of its development, but sometimes, the connections of the entities had to be inferred from the context.
+In general, tracing the provenance of an entire simulation study in retrospective involved some interpretation of the results presented in the publication.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Implementing the PROV-DM ontology: WebProv}
+
+%How ist WebProv implemented?
+We have developed \webprov{}, a web-based tool that can be used to store, access, and display provenance information of simulation studies.
+It allows one to insert and query provenance information based on a web interface as frontend and a graph-based database as backend.
+The frontend uses \href{https://vuejs.org/}{Vue}, a popular JavaScript reactivity system, along with \href{https://d3js.org/}{D3.js}, a JavaScript visualization library, to create the front-end visualizations and power the node/relationship editor.
+As scalability was not a concern when designing the tool, all graph data is sent to the frontend when the website is first opened, allowing the frontend to perform approximate string matching and explore the entire graph without additional queries to the database.
+%Lin: does this mean that the queries are not processed by the graph data base?
+% Answer from Jacob: The current version does process most queries on the frontend. For example, opening an entire study or finding the provenance of a node is done on the frontend. Near the end of my internship, I started to work on a version that did more queries on the backend rather than loading the entire graph during the startup phase (this can be found in the "fuzzy" branch). Doing this introduces many complications which is why my work is still in a branch.
+Although this reduces the responsibilities of the back-end system, the backend still provides an interface for loading different types of nodes, updating data and importing/exporting JSON data from \href{https://neo4j.com/}{Neo4j}.
+Furthermore, the backend allows one to load in a set of nodes and relationships from JSON into Neo4j on startup to initialize the database.
+
+
+The tool can be locally installed for testing and replicability purposes.
+Details about its installation, as well as the code are found on \href{https://github.com/SFB-ELAINE/WebProv}{GitHub}.
+An informative video showing the usage of \webprov{} is found on \href{https://youtu.be/UzwHtptkYOU}{YouTube}.
+
+
+\subsubsection*{Provenance nodes}
+
+% How is the information of the provenance graph saved in the Neo4j database?
+The main concept of \webprov{} is the Neo4j \provnode{} and the dependency graph created from related \provnodes{} using Neo4j relationships.
+A \provnode{} represents an entity or activity and, therefore, must have a classification (e.g., \SM{} or \BSM{}) which defines the types of relationships that can be formed with other nodes depending on our PROV ontology.
+For example, the entity \SM{} can only be created by either the activity \BSM{} or \CSM{} (see the \nameref{sec:ResultsAndDiscussion} section and Table~\ref{tab:entitiesandactivities} for all details).
+These classifications can be easily changed and extended if needed.
+Additionally, \texttt{Study} nodes store information about a particular study (a study reference as well as the name of the signaling pathway it is concerned with) and group a set of \provnodes{} together.
+Finally, \texttt{InformationField} nodes allow us to attach zero or more key--value pairs to a \provnode{} to store further information.
+In our case, we describe which information should be entered depending on the entity type in the \nameref{sec:ResultsAndDiscussion} section.
+
+
+
+\subsubsection*{Queries}
+
+\webprov{} allows two types of queries: text queries and queries in Cypher---Neo4j's query language.
+The text query field will perform a fuzzy search of the data contained within the nodes.
+If successful, a set of nodes are returned that contain the given phrase and the user can choose to add any of these nodes to the graph.
+Alternatively, the Cypher field passes the query as a string to the backend which forwards it to the Neo4j database.
+Since arbitrary queries can be performed, when the results are returned, the frontend attempts to parse the results using \href{https://github.com/gcanti/io-ts}{io-ts} as a \provnode{}.
+If successful, these nodes are automatically shown on the graph.
+This method allows more complex queries, in particular, subgraphs to be extracted.
+Thus, structural information can be accessed.
+%Query examples and results are listed in the~\nameref{S2_Queries}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{\wnt{} signaling models}
+
+A comprehensive list of published simulation studies that deal with or include the \wnt{} signaling pathway is found in Table~\ref{tab:wntmodels}.
+Some of these \wnt{} models have already been discussed in previous reviews~\cite{Kofahl2010, Lloyd-Lewis2013}.
+Out of the 31 simulation studies on \wnt{}, which we have found, we have chosen to collect provenance information from 19 studies, shown in bold in Table~\ref{tab:wntmodels}.
+We have included all \wnt{} simulation studies where simulation models were stored in BioModels (6 studies) as well as all \wnt{} simulation studies published by our group (4 studies).
+The remaining nine studies were selected randomly.
+
+
+\begin{table}[!ht]
+\begin{adjustwidth}{-2.25in}{0in}
+%\centering
+\caption{{\bf \wnt{} simulation models (as of Feb.~1, 2021) with those included in this study printed in bold}.}
+\begin{tabular}{cccccll}
+\toprule
+{\bf Study} & {\bf BioModels} & {\bf MA} & {\bf SA} & {\bf Scale} & {\bf Add. Compartm.} & {\bf Add. Pathways/Models} \\ %& Cytosol & Nucleus & Cell membrane & Extracellular space \\ % & OA \\ Number of citations (Google Scholar, 29.12.2020) \\
+\midrule
+\textbf{\cite{Lee2003}} & \checkmark & ODE & det & SC & $-$ & $-$\\% & \checkmark & & & \\% & \checkmark\\ 725 \\
+\textbf{\cite{Kruger2004}} & $-$ & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & & \\% & \checkmark\\ 64 \\
+\textbf{\cite{Cho2006}} & $-$ & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & & \\% & \checkmark\\ 73 \\
+\textbf{\cite{Sick2006}} & $-$ & PDE & det & TOL & $-$ & $-$ \\% & & & & \\% & \\ 561 \\
+\textbf{\cite{Kim2007}} & \checkmark & ODE & det & SC & Nuc & MAPK/ERK \\% & \checkmark & \checkmark & & \\% & \checkmark\\  168 \\
+\textbf{\cite{Rodriguez2007}} & $-$ & ODE & det & SC & $-$ & Notch \\% & \checkmark & & & \\% & \\ 43 \\
+\textbf{\cite{vanLeeuwen2007}} & \checkmark & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & & \\% & \\ 71 \\
+\textbf{\cite{Wawra2007}} & $-$ & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & & \\% & \checkmark\\ 59 \\
+%\cite{Wawrzak2007} & $-$ & $-$ & \\ -> Does not include a model.
+\textbf{\cite{Goldbeter2008}} & \checkmark & ODE & det & SC & Nuc & Notch, MAPK/ERK\\% & \checkmark & \checkmark & & \\% & \\ 217 \\
+\cite{Ramis2008} & $-$ & PDE & det\&stoch & MC & $-$ & E-cadherin \\% & \checkmark & & & \\% & \checkmark\\ 243 \\
+% Tymchyshyn and Kwiatkowska (2008) Formal Methods in Systems Biology -> They basically formulate the Lee model in pi-calculs. Unfortunately, the model itself is not available anymore (bad url).
+\cite{Goentoro2009} & $-$ & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & & \\% & \checkmark\\ 288 \\
+\textbf{\cite{vanLeeuwen2009}} & $-$ & ODE & det\&stoch & MC & $-$ & Cell cycle, E-cadherin \\% & \checkmark & & & \\% & \checkmark\\ 154 \\
+% Basan et al. (2010) Biophys J -> Wnt not central, but cadherin/catenin
+% \cite{Kofahl2010} & $-$ & $-$ & \\ <- just a review
+\cite{Jensen2010} & $-$ & ODE & det & SC & $-$ & $-$ \\% & & & & \\% & \checkmark\\ 46 \\
+\textbf{\cite{Mirams2010}} & $-$ & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & & \\% & \\ 60 \\
+\cite{Murray2010} & $-$ & PDE & stoch & MC & $-$ & $-$ \\% & \checkmark & & & \\% & \\ 60 \\
+\cite{Shin2010} & $-$ & ODE & det & SC & $-$ & MAPK/ERK \\
+\cite{Buske2011} & $-$ & PDE & det\&stoch & MC & $-$ & Notch \\% & & & & \\% & \checkmark\\ 153 \\
+%\cite{Sivakumar2011} & BIOMD0000000397 & $-$ & \\ -> They just took a Wnt model from PantherDB.org and assigned some values to the reaction rates (It's also OMICS...)
+% Fletcher et al. (2012) J. Theoretical Biology -> only Wnt is used and nothing else from the signaling pathway (so not really cell signaling)
+% Hernández et al. (2012) Science -> not a complete simulation model but just some ODE-flux analysis
+\textbf{\cite{Kogan2012}} & $-$ & ODE & det & SC & $-$ & $-$ \\% & \checkmark & & (\checkmark) & (\checkmark) \\% & \checkmark\\ 36 \\
+% Kai: Anmerkung zu Kogan: Alle Reaktionen finden in einem Reaktionsraum statt. Es werden aber Umrechnungsfaktoren benutzt, um von Konzentration auf Anzahl für die Reaktionen an der Membran zu kommen. Daher die Klammern.
+\textbf{\cite{Mazemondet2012}} & \checkmark & Rule & det\&stoch & SC & Nuc & Cell cycle \\% & \checkmark & \checkmark & & \\% & \checkmark\\ 23 \\
+\cite{Schmitz2013} & $-$ & ODE & det & SC & Nuc & $-$ \\% & & & & \\% & \\ 56 \\
+\textbf{\cite{Wang2013}} & $-$ & ODE & det & SC & Nuc & Notch \\% & \checkmark & \checkmark & & \\% & \checkmark\\ 18 \\
+\textbf{\cite{Chen2014}} & $-$ & ODE & stoch & SC & Nuc, GA & E-cadherin \\% & \checkmark & \checkmark + Golgi & (\checkmark) & \\% & \checkmark\\ 16 \\
+\cite{Tan2014} & $-$ & ODE & det & SC & Nuc & $-$ \\% & & & & \\% & \checkmark\\ 27 \\
+\textbf{\cite{Haack2015}} & $-$ & Rule & stoch & SC & Nuc, Mem, LR & ROS \\% & \checkmark & \checkmark & \checkmark (lipid rafts) & \\% & \checkmark\\ 38 \\
+\cite{MacLean2015} & $-$ & ODE & det & SC & Nuc & $-$ \\% & & & & \\% & \checkmark\\ 43 \\
+% Tortolina et al. (2015) Oncotarget -> journal listed as predatory journal, sim. model without realistic parameter values
+%\cite{Gross2016} & $-$ & $-$ & ODE \\ -> it's very mathematical and just a case study
+\textbf{\cite{Padala2017}} & \checkmark & ODE & det & SC & $-$ & MAPK/ERK, PI3K/Akt \\% & \checkmark & & & \\% & \\ 16 \\
+\cite{Siegle2018} & $-$ & Bool & det & SC & $-$ & PI3K/AKT, MAPK/ERK, Rho/Rac \\% & & & & & \\% & \checkmark\\ 12 \\
+% Kolbe et al. (2019) Cell Reports -> qualitative PDE model with Wnt, AXIN, hedgehog, GLI3 -> does not meet my standard (too many parameters, too few sim. experiments)
+% Azim et al. (2020) IET Systems Biology -> petri net of Wnt+Ca, dummy parameters, what goes into the model is also the result...
+\cite{Cavallo2020} & $-$ & ODE & det & SC & $-$ & $-$ \\
+\textbf{\cite{Haack2020}} & $-$ & Rule & det & SC & Nuc, End, Mem, LR & $-$ \\% & \checkmark & \checkmark + Endosome & \checkmark (lipid rafts) & \\% & \\ 1 \\
+% Rosenbauer et al. (2020) PLOS Comp Bio -> Just a PDE model looking at differences of contact-based and free diffusion of Wnt
+\textbf{\cite{Staehlke2020}} & $-$ & Rule & stoch & SC & Nuc & ROS \\
+\cite{Ward2020} & $-$ & ODE & det\&stoch & MC & $-$ & Cell cycle, Hippo \\
+\bottomrule
+\addlinespace\addlinespace
+\end{tabular}
+\begin{flushleft}
+A list of published simulation studies of the \wnt{} signaling pathway is presented showing the references, the availability of the simulation models in BioModels, the modeling approaches (MA), the simulation approaches (SA), the scale of the models, additional compartments as well as additional pathways or sub-models included.
+The authors of the studies printed in bold are: \cite{Lee2003}:~\lee{}, \cite{Kruger2004}:~Krüger and Heinrich (2004), \cite{Cho2006}:~Cho et al. (2006), \cite{Sick2006}:~Sick et al. (2006), \cite{Kim2007}:~Kim et al. (2007), \cite{Rodriguez2007}:~Rodríguez-González et al. (2007), \cite{vanLeeuwen2007}:~van Leeuwen et al. (2007), \cite{Wawra2007}:~Wawra et al. (2007), \cite{Goldbeter2008}:~Goldbeter and Pourquié (2008), \cite{vanLeeuwen2009}~van Leeuwen et al. (2009), \cite{Mirams2010}:~Mirams et al. (2010), \cite{Kogan2012}:~Kogan et al. (2012), \cite{Mazemondet2012}:~Mazemondet et al. (2012), \cite{Wang2013}:~Wang et al. (2013), \cite{Chen2014}:~Chen et al. (2014), \cite{Haack2015}:~Haack et al. (2015), \cite{Padala2017}:~Padala et al. (2017), \cite{Haack2020}:~Haack et al. (2020), and \cite{Staehlke2020}:~Staehlke et al. (2020).
+The BioModels IDs of the simulation models available in BioModels are: \cite{Lee2003}: BIOMD0000000658, \cite{Kim2007}: BIOMD0000000149, \cite{vanLeeuwen2007}: MODEL2001090001, \cite{Goldbeter2008}: BIOMD0000000201, \cite{Mazemondet2012}: MODEL1303140000, \cite{Padala2017}: BIOMD0000000648.
+The modeling approaches (MA) are: ODE-based (ODE), PDE-based (PDE), rule-based or reaction-based (Rule), and Boolean network model (Bool).
+The simulation approaches (SA) are: det (deterministic), stoch (stochastic).
+The scale may be single cell (SC), multi cell (MC) or at a more abstract tissue/organ level (TOL).
+Every simulation model contains at least one compartment---usually the cytosol.
+We also denote additional compartments where reactions may take place and where some species may shuttle into or out of: Nucleus (Nuc), Membrane (Mem), Endosome (End), Golgi apparatus (GA), Lipid Raft (LR).
+Models without shuttling are considered to have only one compartment even though they describe processes in different places, for example, in the cytosol, nucleus and at the cell membrane.
+%\textsuperscript{1}Delay differential equations. \textsuperscript{2}Regulated by the fibroblast growth factor receptor (FGFR). \textsuperscript{3}Multiscale approach. \textsuperscript{4}Both pathways, PI3K/AKT and MAPK/ERK, are regulated by the insulin-like growth factor 1 receptor (IGFR1).
+\end{flushleft}
+\label{tab:wntmodels}
+\end{adjustwidth}
+\end{table}
+
+
+
+All models include \wnt{} ligands and \wnt{} receptors (implicitly or explicitly) as well as the \wnt{} signal transducer protein \bcat{}.
+There are two exceptions: the simulation model by Sick et al. 2006~\cite{Sick2006} contains only \wnt{} and its antagonist Dkk and the model by Rodríguez-González et al. (2007)~\cite{Rodriguez2007} lacks \bcat{}.
+The number of species without considering compounds or different attributes or states, such as the phosphorylation state,  ranges from 2 (in~\cite{Sick2006}) to 30 (in~\cite{Padala2017}).
+The dimension of a system may be higher if a model contains compounds or different states of the species.
+A schematic representation of the \wnt{} signaling model including relevant species and interactions from all 19 surveyed studies is shown in Fig~\ref{fig:WNTmodel}.
+
+\begin{figure}[!h]
+\begin{adjustwidth}{-2.25in}{0in}
+\centering
+\subfloat[]{\includegraphics[width=1.2\textwidth]{WntModel}}\\
+\subfloat[]{\includegraphics[width=1.2\textwidth]{WntCrosstalk}}
+\caption{{\bf Combined overview of all qualitative \wnt{} (sub-)models found within the 19 \wnt{} simulation studies.}
+Depicted are the components (species, compartments, and reactions) of the central canonical \wnt{} signaling pathway (a) and its crosstalk with other signaling pathways (b).
+Note that the overview is a simplified and condensed representation.
+Interactions are simplified and some components of the submodels that do not directly affect the \wnt{} signaling pathway are omitted.
+Activated/phosphorylated proteins are indicated by (*).
+Inactive/unphosphorylated states of proteins have been omitted when possible.
+Submodels involving membrane-mediated processes, such as receptor/ligand interactions, destruction complex recruitment and endocytosis~\cite{Sick2006, Kogan2012, Haack2015, Haack2020}, or cadherin-mediated cell adhesion \cite{vanLeeuwen2007, vanLeeuwen2009, Chen2014} are incorporated in (a).
+Submodels involving crosstalk with ERK/FGF/PI3K/Akt \cite{Kim2007, Goldbeter2008, Padala2017}, Notch \cite{Rodriguez2007, Goldbeter2008, Wang2013}, and ROS/Dvl-mediated pathways \cite{Haack2015, Staehlke2020} are shown in the lower panels of (b), respectively.
+}\label{fig:WNTmodel}
+\end{adjustwidth}
+\end{figure}
+
+
+% ###########################################################################################################
+% ###########################################################################################################
+
+\section*{Results and discussion}\label{sec:ResultsAndDiscussion}
+
+% Refinement of PROV-DM specialization and application to family of Wnt simulation studies
+In order to provide useful information about a set of simulation models as a kind of family, we need to answer the questions about which information regarding these models and their development processes are needed and how to describe them.
+Based on our earlier work on provenance of simulation models, we refine a specialization of the PROV Data Model (PROV-DM) and, thus, define a PROV ontology that is capable of both relating simulation models and reporting their generation processes.
+We also examine the level of detail, or granularity, that is necessary to capture relevant information of the provenance of simulation studies.
+
+First, we will introduce and discuss our specialization of PROV-DM for cellular biochemical simulation models.
+This part contains descriptions and examples of all entity and activity types used in our provenance data model.
+Fig~\ref{fig:uml} and Table~\ref{tab:entitiesandactivities} provide overviews of these entity and activity types and should be consulted when skipping the first section.
+
+Second, we will discuss our findings applying our specialization of PROV-DM and demonstrate the relationships as well as specific features of the provenance information of the 19 \wnt{} simulation studies covered in this publication.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Further steps towards a PROV-DM ontology for cellular biochemical simulation models}
+
+%Introduction to our specialization of PROV-DM
+The specialization of PROV-DM, which has been introduced by Ruscheinski et al. (2018)~\cite{Ruscheinski2018}, is being revised and refined.
+For capturing provenance information of simulation studies of cellular biochemical simulation models and relating these, we are defining and using
+\begin{inparaenum}[a)]
+\item specific types of entities and activities and
+\item specific relations with their roles and constraints.
+\end{inparaenum}
+We have identified these types and relations as well as information that is useful for describing them in a succinct manner during the process of collecting provenance information of the studies containing cellular biochemical models.
+Our final set of entities, activities, and relations is shown in Table~\ref{tab:entitiesandactivities}.
+Each entity and activity has already been mentioned for provenance, modeling or documentation purposes, or experiment design of simulation studies~\cite{Ruscheinski2017, Balci2012, Yilmaz2016, Monks2018, Bergmann2014, Carusi2012, Erdemir2012, Lorig2017, Ruscheinski2018, Waltemath2011, Wilsdorf2020b}, but they have not been used in this concrete combination.
+
+In the following, we will describe these entities, activities, and relations and discuss the information that should be included in \webprov{}.
+For each provenance entity and activity, we will show examples of our specialization with provenance information obtained from the provenance graph of the simulation study by \lee{}~\cite{Lee2003}, shown in Fig~\ref{fig:ProvLee}.
+
+\begin{table}[!ht]
+%\begin{adjustwidth}{-0.1in}{0in}
+%\centering
+\caption{{\bf Entities, activities and allowed relations in our PROV-DM specialization.}}
+\begin{tabular}{ll}
+\toprule
+\textbf{Entity}  & \textbf{\textit{wasGeneratedBy} (Activity)} \\
+\midrule
+\RQ{} (\texttt{RQ}) & -- \\
+\A{}  (\texttt{A})  & -- \\
+\R{}  (\texttt{R}) & -- \\
+\QM{} (\texttt{QM}) & -- \\
+\SM{} (\texttt{SM}) & \texttt{BSM} $\vert$ \texttt{CSM} \\
+\SE{} (\texttt{SE}) & \texttt{CSM} $\vert$ \texttt{VSM} $\vert$ \texttt{ASM} \\
+\SD{} (\texttt{SD}) & \texttt{CSM} $\vert$ \texttt{VSM} $\vert$ \texttt{ASM} \\
+\WD{} (\texttt{WD}) & -- \\
+\midrule
+\textbf{Activity}  & \textbf{\textit{used} (Entity)} \\
+\midrule
+\BSM{} (\texttt{BSM}) & \texttt{RQ} $\vert$ \texttt{SM}, \{\texttt{RQ} $\vert$ \texttt{A} $\vert$ \texttt{R} $\vert$ \texttt{QM} $\vert$ \texttt{SM} $\vert$ \texttt{SE} $\vert$ \texttt{SD} $\vert$ \texttt{WD}\}\\
+\CSM{} (\texttt{CSM}) & \texttt{SM}, \{\texttt{A} $\vert$ \texttt{R} $\vert$ \texttt{SD} $\vert$ \texttt{WD}\}\\
+\VSM{} (\texttt{VSM}) & \texttt{SM}, \{\texttt{A} $\vert$ \texttt{R} $\vert$ \texttt{SD} $\vert$ \texttt{WD}\}\\
+\ASM{} (\texttt{ASM}) & \texttt{SM}, \{\texttt{A} $\vert$ \texttt{SD} $\vert$ \texttt{WD}\}\\
+\bottomrule
+\addlinespace\addlinespace
+\end{tabular}
+\begin{flushleft}
+Left column: Specified PROV-DM entity and activity types used for capturing provenance information of simulation studies.
+Right column: Relations of PROV-DM used for capturing provenance information of simulation studies as well as allowed connections of entities/activities from the first column.
+The PROV relation \textit{wasGeneratedBy} connects \texttt{entities} with \texttt{activities}; \textit{used} connects \texttt{activities} with \texttt{entities}.
+The entities \RQ{}, \A{}, \R{}, \QM{}, and \WD{} are included in the provenance graph without their origins, thus without an activity generating them.
+The generation of the \SM{}, \SE{}, and \SD{} are explicitly shown in the provenance graphs.
+For example, a \SM{} can be created or updated based on a \BSM{} or \CSM{} activity---the alternative is denoted by \enquote{$\vert$}.
+Regarding the activities, each activity has at least one entity it depends on (\RQ{} or \SM{}).
+Other entity types are optional and several or none of each of them may be used by one particular activity---denoted by \{\ldots\} in the  extended Backus–Naur form (EBNF).
+\end{flushleft}
+\label{tab:entitiesandactivities}
+%\end{adjustwidth}
+\end{table}
+
+
+  
+\begin{figure}[!h]%figure
+\begin{adjustwidth}{-2.25in}{0in}
+\centering
+\includegraphics[width=1.4\textwidth]{ProvLee2003}
+\caption{{\bf Provenance graph of the study by \lee{}~\cite{Lee2003}.}
+Besides the entities and activities that make up the provenance information of the study (see legend), additional entities from three other studies~\cite{Lee2001, Dajani2003, Salic2000}, which were used by \lee{}, are shown.
+The colors of the ellipses show different entity types, the borders of the rectangles visualize different activity types.
+The gray areas separate the individual studies.
+The graph displays, for example, that the \BSM{} activity \texttt{BSM1} used, among others, the entity \texttt{WD1} of type \WD{} from Lee et al.~2001~\cite{Lee2001}.
+This activity then generated the \SM{} \texttt{SM1}.
+}
+\label{fig:ProvLee}
+\end{adjustwidth}
+\end{figure}
+
+
+\subsubsection*{Provenance entities} 
+
+% Information that needs to be entered into WebProv
+
+For every \provnode{} (entity or activity), we require the following details to be provided:
+\begin{inparaenum}[a)]
+\item (PROV-DM) Type,
+\item Study (Reference),
+\item Description.
+\end{inparaenum}
+
+The (PROV-DM) Type declares the type of entity or activity.
+The Study (Reference) contains the name of the study a \provnode{} belongs to.
+The Description contains some textual explanation of the \provnode{}.
+For some entities, we are asking for further information, as seen in Fig~\ref{fig:uml}, which we will elaborate on.
+
+
+\begin{figure}[!h]
+\begin{adjustwidth}{-2.25in}{0in}
+\centering
+\includegraphics[width=1.4\textwidth]{umlClass_drawio}
+\caption{{\bf UML class diagram of provenance entities in \webprov{}.}
+We have identified the following entities to be useful for providing provenance information of simulation studies in the field of systems biology: \RQ{}, \A{}, \R{}, \QM{}, \SM{}, \SE{}, \SD{}, and \WD{}.
+The requested information for each entity type is kept minimal for demonstration purposes and can easily be extended.
+The \textit{Study (Reference)} contains information of the publication, for instance, \enquote{Lee et al. (2003)} and determines which study an entity belongs to.
+The \textit{Description} contains a brief explanation of a particular entity and may be a cited text from the publication.
+Furthermore, entity references should ideally consist of a digital object identifier (DOI) to make the artifact associated with the particular entity unambiguously accessible.
+Additional information can always be entered in the \enquote{Further Information} part of \webprov{}.
+}
+\label{fig:uml}
+\end{adjustwidth}
+\end{figure}
+
+
+
+
+\textbf{\RQ{} [\texttt{RQ}]:}
+
+\noindent The research question (or research objective or problem formulation) determines the goal of the research presented in a publication.
+In the case of simulation studies, it typically forms the starting point in the modeling and simulation life cycle~\cite{Balci2012, Robinson2008} and is central to interpret its products such as simulation data or simulation model.
+
+As for our provenance example shown in Fig~\ref{fig:ProvLee}, \lee{}~\cite{Lee2003} questioned in \texttt{RQ1} the necessity of \enquote{the two scaffold proteins, APC and Axin} (for \wnt{} signaling) and whether \enquote{their roles differ}.
+This research question determines a minimum number of model constituents and guides the modeler towards possible simulation experiments to be executed.
+
+
+\textbf{\A{} [\texttt{A}]:}
+
+\noindent We define assumptions of a simulation model to be all statements that refer to abstractions or specializations of the described model.
+Assumptions typically deal with the input of a model (e.g., \textit{assume the concentration of x to be constant} or \textit{let the initial value of y be \ldots}) and may set the boundaries of the system under consideration or partially explain the thoughts behind a simulation model---always with the research question in mind.
+
+In order to facilitate the analysis of assumptions, we adopted the \href{https://www.ebi.ac.uk/sbo/main/}{Systems Biology Ontology (SBO)}~\cite{Courtot2011} to categorize the assumptions.
+SBO provides \enquote{structured controlled vocabularies, comprised of commonly used modeling terms and concepts}~\cite{Juty2013} and is primarily used to \enquote{describe the entities used in computational modeling (in the domain of systems biology)}~\cite{Courtot2011}.
+
+In the provenance example, three assumptions with three different categories could be identified.
+\texttt{A1}, for instance, reads \enquote{Dsh, TCF, and GSK3\textbeta{} are degraded very slowly, we assume that their concentrations remain constant throughout the timecourse of a Wnt signaling event}~\cite{Lee2003} and was matched to ID 362 (Concentration conservation law) of SBO.
+
+
+\textbf{\R{} [\texttt{R}]:}
+
+\noindent Requirements (for a simulation model) define properties the results of a simulation need to show.
+These may be used for the purpose of calibrating or validating a simulation model.
+They also direct the modeler towards adaptation of a model if the requirements are not met.
+We do not consider other kinds of requirements (e.g., the need of using specific tools or approaches in performing a simulation study).
+
+Typically, simulation data needs to be compared with real-world data---in our case wet-lab data.
+These real-world measurements determine the species of interest which should be part of the entity \R{}.
+Therefore, we record the main species considered by the requirement as well as its type (either qualitative or quantitative) and connect the \R{} to the wet-lab data it relates to.
+The list of main species will make it easier to compare, interrelate and reuse simulation models as they determine the focus of the model.
+
+We were able to identify one requirement \texttt{R1} in the provenance example of \lee{}~\cite{Lee2003}.
+The quantitative requirement that \enquote{Axin stimulates the phosphorylation of \bcat{} by GSK3\textbeta{} at least 24,000-fold} actually refers to the wet-lab data \texttt{WD1} obtained in another study by Dajani et al. (2003)~\cite{Dajani2003}.
+Its main species are Axin, \bcat{}, and GSK3\textbeta.
+
+\textbf{\QM{} [\texttt{QM}]:}
+
+\noindent We define the qualitative model to be a network diagram, such as a reaction scheme (chemical reaction network diagram), which contains the entities of the system (e.g., species) and their interactions.
+This diagram may be presented in a formal (e.g., using the Systems Biology Graphical Notation (SBGN)~\cite{LeNovere2009} or a Boolean network diagram~\cite{Glass1973}) or informal way.
+All textual descriptions of a simulation model that do not include quantitative information (e.g., reaction rate constants, initial values) can also be part of the qualitative model.
+It should be noted that the qualitative model is also called conceptual model~\cite{Torres2015} sometimes, whereas 
+in other publications, the qualitative model forms part of the conceptual model~\cite{Wilsdorf2020b}.
+
+We record a reference to the qualitative model, which, for example, could be a reference to a figure in the publication, or, ideally, a DOI.
+Furthermore, we denote a list of species and compartments used in the model.
+Multiple compartments require a shuttling of species from one compartment to another one and every compartment should, ideally, have an area (for the transfer rate or concentration in two-dimensional compartment) as well as a volume (for a three-dimensional compartment)~\cite{Hofmeyr2020}.
+
+In our provenance example of \lee{}~\cite{Lee2003}, \texttt{QM1} contains a qualitative model in the form of a chemical reaction network diagram which can be directly accessed via a \href{https://doi.org/10.1371/journal.pbio.0000010.g001}{DOI}.
+It represents reactions of the species \wnt, Dsh, GSK3, Axin, APC, \bcat{}, and TCF within a cell extract.
+
+
+\textbf{\SM{} [\texttt{SM}]:}
+
+\noindent The simulation model is the actual mathematical or computational model~\cite{Fisher2007} that can be executed by a suitable tool.
+In most cases of our domain, the simulation model contains equations (for ODE/PDE systems) or, in some cases, reaction rules (for rule-based systems).
+An integral part of these quantitative simulation models are the parameter values as well as the initial condition.
+The simulation model could also be described in another form (e.g., in a quantitative process algebra~\cite{Ciocchetta2009, Boemo2020} or with a combination of multiple formalisms~\cite{Karr2015}.
+Formal approaches to describe a system through qualitative models (e.g., Boolean models~\cite{Wang2012} or Petri nets~\cite{Chaouiya2007}) come with their own means of analysis and are assigned to the entity \SM{}, as they are executable models.
+Usually, a parameter table complements the description of the simulation model and gives information about the parameter values and their origin.
+
+A new \SM{} entity is created whenever the reaction network changes or after a simulation model has been calibrated, which typically means that the set of parameter values and the initial condition have been (re-)defined.
+A validation activity (by itself) does not alter the simulation model, although a failed validation activity is likely to induce a change of the simulation model (see, for instance, \cite{Haack2020}).
+
+Again, we are relying on a reference of the simulation model for accessing it.
+It should be a link to the simulation model in Biomodels or a DOI to the description of the simulation model.
+Ideally, it is presented in a structured and widely accepted format such as SBML~\cite{Hucka2003} or CellML~\cite{Lloyd2004}.
+
+As for the provenance example, the calibrated simulation model of \lee{}~\cite{Lee2003}, \texttt{SM2}, can be found in \href{https://www.ebi.ac.uk/biomodels/BIOMD0000000658}{BioModels}.
+
+
+\textbf{\SE{} [\texttt{SE}]:}
+
+\noindent The simulation experiment is an execution of the simulation model.
+Ideally, it can be linked to a complete experiment specification (e.g., as a SED-ML~\cite{Koehn2008} or SESSL~\cite{Ewald2014} file or simply as the execution code in a general purpose programming language) and to documentation in a standard format that applies reporting guidelines such as MIASE for simulation experiments~\cite{Waltemath2011}.
+Diverse simulation experiments might be applied to serve the analysis, calibration, and validation of a simulation model.
+
+To further structure the set of simulation experiments applied, we distinguish simulation experiments whether they are used for optimization, sensitivity analysis, perturbation, parameter scan, steady-state analysis, or time course analysis.
+This list is neither complete nor are the categories disjoint, and, given a different set of simulation studies, they will likely be subject to renaming, extension, and refinement.
+We have identified optimization experiments to be all experiments where an implicit or explicit objective function is being used.
+This includes parameter estimation as well as manual parameter fitting experiments.
+If these succeed, the \CSM{} activity will produce a new (calibrated) \SM{}.
+In a sensitivity analysis, more than one parameter value is being changed and some kind of sensitivity coefficient is being calculated.
+As perturbations, we have interpreted experiments where the value of one (or more) parameter is being changed to another (just one) value, for example, to mimic a knock-out experiment.
+Parameter scans include the variation of at least one parameter value within a given range.
+A steady-state analysis is aimed at identifying the steady state of a system.
+With time-course analysis, we refer to the analysis of trajectories without varying parameter values.
+
+Eventually, an ontology about the various experiment types and analysis methods and their use in simulation studies will be crucial as simulation experiments play a central role in the provenance of simulation models.
+This would also help to exploit the provenance information effectively, for example, for automatically generating simulation experiments~\cite{Wilsdorf2020a}.
+
+In the case of \lee{}~\cite{Lee2003}, different simulation experiments have been executed.
+For example, \texttt{SE1} contains a parameter scan in order to validate the simulation model.
+However, no further details are given in the paper, therefore, no reference could be included in the entity (the reference is \enquote{not available}).
+
+Note that we have not included an entity \WE{}.
+Our focus is on the result of the \WE{} (i.e., the \WD{}) and its role within the simulation study (e.g., being used in a \BSM{}, \CSM{}, or \VSM{} activity).
+
+
+\textbf{\SD{} [\texttt{SD}] and \WD{} [\texttt{WD}]:}
+
+\noindent Data is the result of an experiment.
+In our case, it can either stem from wet-lab or simulation experiments.
+It includes a reference to a plot or table or, ideally, to a database containing the raw data.
+The simulation data are generated by simulation experiments, therefore a link needs to be established.
+In case of a simulation experiment that serves the role of validation, information about the success of a validation facilitates to interpret the simulation model and further activities based on the simulation model.
+As no independent \WE{} entity is supported, details about the wet-lab experiment can be summarized in the description of the \WD{} or by referencing, for example, a research protocol on \href{https://www.protocols.io/}{Protocols.io}~\cite{Teytelman2016}.
+The type of the wet-lab experiment (\textit{in vitro} or \textit{in vivo}) as well as the used organism and organ/ tissue/ cell line are recorded.
+
+In the provenance example, \lee{}~\cite{Lee2003} have executed \textit{in vitro} wet-lab experiments with an egg extract of Xenopus and have shown in \texttt{WD1} that the \enquote{turnover of GSK3\textbeta, Dsh, and TCF is relatively slow}.
+The data of this wet-lab experiment is not shown in the publication.
+The simulation data \texttt{SD2} contains the results of the successful validation of the simulation model \texttt{SM2}.
+The simulation data is presented in \href{https://doi.org/10.1371/journal.pbio.0000010.g002}{Figure~2} of their publication.
+The way the provenance graph and the metadata of \texttt{SD2} is visualized in \webprov{} can be seen in Fig~\ref{fig:WebProvLee}.
+
+\begin{figure}[!h]%figure
+\begin{adjustwidth}{-2.25in}{0in}
+\centering
+\includegraphics[width=1.4\textwidth]{2003Lee_WebProvExample}
+\caption{{\bf Screenshot of WebProv.}
+This screenshot shows the provenance graph of the study by \lee{}~\cite{Lee2003} with additional entities from three other studies~\cite{Lee2001, Dajani2003, Salic2000}, which are automatically colored differently.
+The node \texttt{SD2} has been clicked on, which opens a box on the right with the stored and editable metadata.}
+\label{fig:WebProvLee}
+\end{adjustwidth}
+\end{figure}
+
+
+\subsubsection*{Provenance activities and relations}
+
+The provenance graph is formed by explicitly relating entities and activities.
+This is done by declaring which entities are being used or which entities are being generated by which activities.
+We currently distinguish four activities: building, calibrating, validating, and analyzing the simulation model.
+
+Products of activities (i.e., entities) are connected to these activities via the relation \textit{wasGeneratedBy}.
+For example, \SEs{} or \SD{} may be the result of all but the \BSM{} activity.
+Activities are connected to entities via the relation \textit{used}.
+For example, the \CSM{} activity may use the \SM{} as the object to be calibrated, some \SD{} or \WD{} for calibration, and \Rs{} to confirm the calibration results.
+All connections that we currently distinguish are shown in Table~\ref{tab:entitiesandactivities}.
+
+It should be noted that provenance activities in simulation studies can be defined at various levels of granularity.
+We have opted for a rather coarse-grained approach identifying only crucial activities of a simulation study without explicitly denoting how an activity has used a specific entity.
+Thus, we aggregate activities as much as possible and leave out intermediate steps, focusing on the entities and not on the activities.
+From the moment provenance information is recorded automatically during the course of a simulation study, a higher level of detail could be achieved and an abstraction-based filter could be applied to zoom out to reach our granularity~\cite{Ruscheinski2019}.
+
+\textbf{\BSM{} [\texttt{BSM}]:}
+
+\noindent The \BSM{} activity, also called model derivation~\cite{Vera2021}, can use all entities types, as any entity described above can contribute to the model building process, but it needs to have at least a link to a \RQ{} or \SM{}.
+The only result of the building simulation activity is an entity \SM{}.
+Not every update of a simulation model within a simulation study will be reflected in the provenance graph---only those changes to the model that are considered essential by the authors.
+
+In our provenance graph of the study of \lee{}~\cite{Lee2003}, two \BSM{} activities are shown.
+\texttt{BSM1} is using wet-lab data, the research question, the qualitative model, a requirement and assumptions to develop a \enquote{provisional reference state model}, which forms the not yet calibrated simulation model in the study.
+The \BSM{} activity \texttt{BSM2} is extending the simulation model \texttt{SM2}.
+
+
+\textbf{\CSM{} [\texttt{CSM}]:}
+
+\noindent The calibration of a simulation model is used to determine parameter values.
+Sometimes, switching parts of a model on or off (e.g., individual rules or model components) or choosing between entire models can also be interpreted as a discrete parameter value to be determined using methods of model selection~\cite{Toni2009}.
+This activity uses a \SM{} and typically needs reference data (\WD{} or \SD{}) for the parameter estimation procedure and produces a specification or documentation of a \SE{} as well as a \SD{} entity.
+% PE-TAB?
+If the calibration is successful, the result of this activity will always be a (calibrated) \SM{}.
+Ideally, it also takes an explicit requirement into account, which, in some cases, if formally defined, can also be used for calibrating the simulation model~\cite{Palaniappan2013, Mitra2019}.
+It may also use an \A{}.
+
+In the case of the activity~\texttt{CSM1} of \lee{}~\cite{Lee2003}, several wet-lab data from their own experiments (\texttt{WD1}--\texttt{WD5}) as well as from Salic et al. (2000)~\cite{Salic2000} (\texttt{WD1}--\texttt{WD3}) are being used during the calibration of the model \texttt{SM1} which produces a \SE{}~\texttt{SE1}, the corresponding \SD{}~\texttt{SD1} as well as the calibrated \SM{}~\texttt{SM2}.
+
+
+\textbf{\VSM{} [\texttt{VSM}]:}
+
+\noindent The validation of a simulation model is used to test its validity (with regard to some requirements).
+Unlike calibration activities, here, the result is typically a binary answer, yes or no, which may be determined based on a specific distance measure and error threshold.
+The activity uses a \SM{} and traditionally relies on reference data (\WD{} or \SD{}) that has not been used for calibration.
+For example, the \SD{} from other studies may be used for the intercomparison of simulation models when performing an equal simulation experiment.
+Additionally, the required behavior can be formally specified in a \R{} (e.g., in a temporal logic) and automatically be checked  \cite{Jha2009, Agha2018}.
+The \VSM{} activity may also use an \A{}.
+It produces at least one entity of type \SE{} as well as the corresponding \SD{} entity.
+The \SD{} entity of validation experiments stores the information whether the validation has been successful or not.
+
+In our provenance example of \lee{}~\cite{Lee2003}, the simulation model \texttt{SM2} is being validated in the activity~\texttt{VSM1} by comparing it with their own \textit{in vitro} measurements shown in \texttt{WD6} and \texttt{WD7}.
+Neither a distance measure nor an explicit requirement are mentioned.
+
+
+\textbf{\ASM{} [\texttt{ASM}]:}
+
+\noindent Similar to validation and calibration experiments, this activity provides insights into the simulation model and thus also into the system under study.
+The activity uses a \SM{} and creates a \SE{} as well as resulting \SD{}.
+The use of \As{}, \SD{}, or \WD{} is optional and might give an indication about the purpose of an analysis.
+The \ASM{} activity aggregates all simulation experiments that are not explicitly aimed at calibration and validation.
+
+\lee{}~\cite{Lee2003} analyze both the calibrated simulation model \texttt{SM2} as well as the extended simulation model \texttt{SM3} by applying parameter scans, perturbations, and sensitivity analyses which results in the \SE{} \texttt{SE3}--\texttt{SE11} and \SD{} \texttt{SD3}--\texttt{SD11}.
+
+
+\subsubsection*{Extensibility and applicability of the approach}
+
+All of these entities, activities and relations show major steps of the development of a simulation model and, as we will see in the following section, help to interrelate different simulation studies.
+Still, PROV-DM would allow even more details.
+We have not yet considered the type \texttt{agent} of PROV-DM in our approach because this information appeared less relevant in the analyzed simulation studies.
+In the future, it could also be part of the provenance information to name the agent an entity is attributed to, the agent an activity is associated with, or to name the agent another agent acted on behave of~\cite{Belhajjame2013}.
+This would particularly be of relevance if models are not only validated but also accredited, which typically involves a different group of people than those who have developed the simulation model~\cite{Balci1997}.
+
+We have also not included the direct connection between two activities or two entities, such as the possibility to have a model being derived from another model.
+Thus, we have not included the following relations: \begin{inparaenum}[a)]
+\item \texttt{WasInformedBy}, which relates an activity to another one and
+\item \texttt{WasDerivedFrom}, which describes a direct transformation (update) of an entity into a new one.
+\end{inparaenum}
+However, these relations can partly be inferred via the existing relations.
+For example, a simulation model that has been generated by a \BSM{} activity that used another simulation model indicates that the former has been derived from the latter.
+Or a validation activity that failed and that is followed by a \BSM{} activity obviously holds some information for the latter.
+
+In our experience, it is best to capture provenance information manually or (semi-)automatically during the modeling (and simulation) process.
+This could be done, for example, within an artifact-based workflow system~\cite{Ruscheinski2019}.
+However, this would...
+%TODO @Pia: please write a sentence or two about (no)workflow, what would be needed for automatic provenance capture.
+\webprov{}, on the contrary, is a standalone tool that works system-independently but needs user input or a valid JSON input file.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Exploring the provenance information of and among the \wnt{} simulation models of 19 simulation studies}
+
+
+% Content of this results' subsection:
+% 1. Insights into isolated Wnt simulation studies
+% 1.1 Observations of the entities
+% 1.2 Explicit calibration and validation of simulation models
+
+% 2. Insights into the provenance information of a family of \wnt{} simulation models
+% 2.1 Connectivity of studies (e.g., which model refers to the most other models?)
+% 2.2 Who calibrates/validates their models explicitely? Who uses requirements?
+% 2.3 Remarks on organisms/cell lines used and what it means for parameter values (we should inlude these value for instance in the form of PE tabs at some point)
+
+
+Based on the identified and also defined entities and activities from above, we have recorded the provenance information of the 19 studies shown in bold in Table~\ref{tab:wntmodels} as well as the provenance information of entities from other publications that were used by the 19 studies.
+The references to the additionally used studies are found in~\nameref{S1_AdditionalReferencesWntStudies}.
+The complete provenance information is presented in~\nameref{S1_Provenanceinforamtion}.
+Screenshots and presentations with the provenance information may also be found on \href{https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family}{GitHub}.
+We will now discuss the observations we have made during the process of capturing the provenance information and later show how the studies and simulation models relate to each other.
+
+
+%\subsubsection*{Observations during the collection of and insights into the provenance information of single \wnt{} simulation studies}
+\subsubsection*{Provenance of individual \wnt{} simulation models}
+
+It is important to remember that we have manually collected all provenance information (entities, activities and relations), as described in the \nameref{sec:MaterialsAndMethods} section.
+Collecting this information based on publications only is a demanding task and requires some interpretation, as natural language descriptions tend to be ambiguous.
+Also, the nonlinearity of the text---it is not a lab protocol after all---makes it hard to identify the relations of the entities and activities as well as the order of their execution.
+This would likely hamper an effective use of text mining or machine learning methods to complement or replace the manual work.
+Therefore, provenance information should be directly collected during the simulation study and ideally without an intervention of the modeler.
+
+% Observations of entities of the 19 studies
+
+The \RQ{} was usually found repetitively within the abstract and throughout the introduction and discussion sections.
+Sometimes, there was more than one research question to be answered.
+In this case, we have combined these into a single entity.
+
+Many \As{} were introduced by the word \enquote{assume} or its derivatives.
+Other expressions such as \enquote{hypothesis}, \enquote{is believed}, \enquote{consider}, \enquote{approximate}, \enquote{simplify}, \enquote{suggest}, \enquote{suppose}, or \enquote{propose} were also used by the authors to mark an assumption.
+However, not every sentence containing one of these words was identified to be an assumption of the simulation model.
+Occasionally, there were also assumptions which did not use one of the key words from above.
+Furthermore, two out of 19 studies did not explicitly state assumptions (\cite{Kruger2004, Padala2017}).
+Generally, identifying assumptions involves many uncertainties.
+On the one hand, the authors might not have stated all assumptions made during the derivation of the simulation model.
+On the other hand, we might have easily missed an assumption and also interpreted statements as assumptions that were not meant as such by the authors.
+As a consequence, the assumptions might look different if the authors had defined them themselves.
+
+In order to further analyze the assumptions, we have categorized these using the Systems Biology Ontology (SBO)~\cite{Courtot2011}.
+However, the assumptions could not always be unambiguously matched to an SBO vocabulary and some assumptions dealing with biological mechanisms are not covered by SBO.
+For example, an autocrine signaling assumed by Mazemondet et al. (2012)~\cite{Mazemondet2012} cannot be expressed by SBO.
+Some assumptions also include more than one detail which is reflected by multiple SBO categories per assumption.
+In this case, the assumption entity is duplicated and every assumption entity will receive its own category.
+The categorization of 106 collected assumptions shows that the three most used categories of assumptions deal with
+\begin{inparaenum}
+\item[] kinetic constants (13 times),
+\item[] transport (9 times), and
+\item[] equivalence (8 times).
+\end{inparaenum}
+The result of the categorization can be found in~\nameref{S1_TableAssumptions}.
+
+In many cases, \Rs{} were not given explicitly in a formal way or even as textual descriptions.
+We could only identify \Rs{} in the publications of \lee{}~\cite{Lee2003}, Wang et al. (2013)~\cite{Wang2013}, Chen et al. (2014)~\cite{Chen2014}, and Haack et al. (2020)~\cite{Haack2020}.
+The lack of \Rs{} was especially obvious when calibration or validation experiments were being carried out without explicitly explaining the objective function.
+
+In the surveyed publications, it was common to include a reaction scheme of the simulation model, which we referred to in the \QM{} entities.
+When recording all species, we disregarded di- or multimeric compounds established by monomers already mentioned.
+We also ignored different states of the species (e.g., phosphorylation states).
+In all provenance graphs but the one by Mirams et al. (2010)~\cite{Mirams2010}, at least one \QM{} was used by a \BSM{} activity to produce a first \SM{}.
+Mirams et al. (2010) have directly worked with the simulation model \texttt{SM2} from \lee{}~\cite{Lee2003}.
+
+The \SMs{} were either part of the manuscript or, more often, part of the supporting material.
+In 13 out of 19 cases, it was a system of ordinary differential equations.
+There were two simulation studies using PDEs and four using a rule-based approach (see Table~\ref{tab:wntmodels}).
+Although the \wnt{} signaling pathway has also been used to illustrate features of rule-based modeling~\cite{Boutillier2018, Gross2019}, only few simulation models have been developed based on a rule-based approach.
+The reason for this might partly be because support for thorough experimentation with rule-based models including calibration and validation has only become available during the last decade~\cite{Warnke2017, Thomas2015, Sorokin2019}.
+
+We have categorized all 145 \SEs{} that we found regarding which experiment type they serve (see UML class diagram shown in Fig~\ref{fig:uml}).
+The result of the categorization are shown in Fig~\ref{fig:SEcategories} and the details in~\nameref{S1_TableExperiments}.
+Most \SEs{} were parameter scans, followed by time course analyses and perturbations.
+None of the 19 simulation studies have used steady-state analysis alone without applying another type of experiment at the same time, which we then recorded because it was more specific.
+The detection of steady states is typically part of an optimization, parameter scan, perturbation, and sensitivity analysis, because steady-state values are often the starting and end point of each simulation and are used for calculations.
+
+\begin{figure}[!h]%figure
+\centerline{\includegraphics[width=\textwidth]{SimulationExperimentCategories}}
+\caption{{\bf Categories of the simulation experiments conducted within the analyzed 19 \wnt{} signaling studies.}
+All of these simulation experiments have been categorized.
+Most simulation experiments were parameter scans.}
+\label{fig:SEcategories}
+\end{figure}
+
+
+Sometimes, simulation or wet-lab experiments have been conducted, however, the corresponding \SD{} or \WD{} is not shown, but briefly described, and are, thus, without references in the provenance graphs.
+Authors often refer to this by stating \enquote{data not shown}.
+For example, \lee{}~\cite{Lee2003} state that unpublished measurements showed that the \enquote{turnover of GSK3\textbeta{}, Dsh, and TCF is relatively slow}.
+Usually, both \SD{} and \WD{} are shown in figures in the studies or published in tables or figures as part of the supplemental material.
+In recent years, more and more journals, such as PLOS Computational Biology, have been recommending (but not requiring) to adhere to checklists of the \href{https://fairsharing.org/}{FAIRsharing}~\cite{Sansone2019} portal when reporting data, with FAIR standing for: findable, accessible, interoperable and reusable~\cite{Wilkinson2016}.
+
+In the case of \SD{}, the focus lies on FAIR simulation models and experiments as it should be possible to easily regenerate the data.
+This could be achieved, for example, by publishing a COMBINE archive~\cite{Bergmann2014}, which is a \enquote{single file that aggregates all data files and information necessary to reproduce a simulation study in computational biology}~\cite{Scharm2016b}.
+However, the publications we have analyzed date back up to 17 years, so most data has not been published in a FAIR way.
+
+When looking at \WD{}, six out of 19 publications recorded own wet-lab data \cite{Lee2003, Sick2006, Kim2007, Kogan2012, Haack2015, Staehlke2020}.
+All other simulation studies either used wet-lab data from other publications or did not explicitly refer to wet-lab data at all \cite{Kruger2004, Cho2006, Rodriguez2007, vanLeeuwen2007, vanLeeuwen2009, Mirams2010, Padala2017}.
+The latter could only be done because the authors relied on other \SMs{} and the respective parameter and initial values.
+Interestingly, the wet-lab data obtained either by the 19 \wnt{} signaling studies or by other studies which where used in the 19 studies stemmed from different organisms and cell lines.
+Besides human and murine cell lines (each 11 studies), xenopus, rat, hamster, and kangaroo rat were used as a model organisms.
+The experiments included, among others, (tumor) cell lines from the kidney (BHK, HEK293, PtK2), bone (MG-63), cervix (HeLa), brain (neural progenitor cells), and of fibroblasts (L cells, NIH/3T3).
+All different cell lines directly used in the studies are presented by the colored rectangles in Fig~\ref{fig:WntProvNeato}.
+The cell lines and organisms that were included in the simulation studies are shown in Table~\ref{tab:CellLines}.
+
+
+\begin{table}[!ht]
+\begin{adjustwidth}{-0.8in}{0in}
+%\centering
+\caption{{\bf Cell lines and organisms used building the simulation model.}}
+\begin{tabular}{lcccccccccccccccc}
+%\toprule
+Reference & \rotatebox[origin=l]{90}{Egg extract} & \rotatebox[origin=l]{90}{Embryo} & \rotatebox[origin=l]{90}{Fibroblasts L cells} & \rotatebox[origin=l]{90}{Fibroblasts NIH/3T3 cells} & \rotatebox[origin=l]{90}{Mammary gland (C57MG) cells} & \rotatebox[origin=l]{90}{Osteoblast-like cells (MG-63)} & \rotatebox[origin=l]{90}{Presomitic mesoderm (PSM) cells} & \rotatebox[origin=l]{90}{Skin} & \rotatebox[origin=l]{90}{Cervical cancer epithelial (HeLa S3) cells} & \rotatebox[origin=l]{90}{Colon carcinoma RKO cells} & \rotatebox[origin=l]{90}{Embryonic kidney epithelial (HEK 293) cells} & \rotatebox[origin=l]{90}{Neural progenitor (ReNcell VM) cells} & \rotatebox[origin=l]{90}{Baby hamster kidney (BHK) cells} & \rotatebox[origin=l]{90}{Epithelial kidney cells (PtK2)} & \rotatebox[origin=l]{90}{Pheochromocytoma cells} & \rotatebox[origin=l]{90}{Not applicable} \\
+%\midrule
+\cite{Lee2003}   & \colorbox{color1}{x} 	& & & & & & & & & & & & & & &  \\
+\cite{Kruger2004} 	& \colorbox{color1}{x} 	& & & & & & & & & & & & & & &  \\
+\cite{Cho2006}   & \colorbox{color1}{x} 	& & & & & & & & & & & & & & &  \\
+\cite{Sick2006}  & & & & & & & & \colorbox{color2}{x} & & & & & & & &  \\
+\cite{Kim2007}   & \colorbox{color1}{o} 	& & & & & & & & & & \colorbox{color3}{x} & & & & &  \\
+\cite{Rodriguez2007} 	& & \colorbox{color2}{x} 	& & & & & & & & & & & & & & x \\
+\cite{vanLeeuwen2007} 	& \colorbox{color1}{x} 	& & & & & & & & & & & & & & &  \\
+\cite{Wawra2007} & \colorbox{color1}{x} 	& & & & \colorbox{color2}{x} 	& & & & & & \colorbox{color3}{x} & & & & &  \\
+\cite{Goldbeter2008} 	& \colorbox{color1}{x} 	& & & & & & \colorbox{color2}{x} 	& & & & & & & & &  \\
+\cite{vanLeeuwen2009} 	& \colorbox{color1}{o} 	& & & & & & & & & & & & & & &  \\
+\cite{Mirams2010} 	& \colorbox{color1}{x} 	& & & & & & & & & & & & & & &  \\
+\cite{Kogan2012} & \colorbox{color1}{x} 	& & \colorbox{color2}{x} 	& & & & & & & & & & & & &  \\
+\cite{Mazemondet2012} 	& \colorbox{color1}{x} 	& & & & & & & & & & & \colorbox{color3}{x} 	& & & &  \\
+\cite{Wang2013}  & \colorbox{color1}{o} 	& & & & & & \colorbox{color2}{x} 	& & & & & & & & &  \\
+\cite{Chen2014}  & \colorbox{color1}{x} 	& & & & & & & & & \colorbox{color3}{x} & \colorbox{color3}{x} & & & & &  \\
+\cite{Haack2015} & \colorbox{color1}{x} 	& & \colorbox{color2}{x} & \colorbox{color2}{x} & & & & & & & \colorbox{color3}{x} 	& \colorbox{color3}{x} & \colorbox{color4}{x} 	& \colorbox{color5}{x} 	& &  \\
+\cite{Padala2017} 	& \colorbox{color1}{o} 	& & & & & & & & & & \colorbox{color3}{x} & & & & \colorbox{color6}{x} 	&  \\
+\cite{Haack2020} & \colorbox{color1}{o} 	& & \colorbox{color2}{x} 	& \colorbox{color2}{x} 	& & & & & \colorbox{color3}{x} 	& & \colorbox{color3}{o} 	& \colorbox{color3}{x} 	& \colorbox{color4}{o} 	& \colorbox{color5}{o} 	& & x \\
+\cite{Staehlke2020} 	& &		&		& & & \colorbox{color2}{x} & &		&		& & & & & & &  \\
+%\botrule
+\end{tabular}
+\begin{flushleft}
+The top row shows the origin of the cells used by the 19 studies.
+\textit{Not applicable} means that the parameters values were obtained from theoretical calculations/considerations from a textbooks or without concrete reference to a wet-lab study.
+The colors denote the organisms of the cell line/organ used, with \colorbox{color1}{\makebox(5,5){}} Xenopus, \colorbox{color2}{\makebox(5,5){}} mouse, \colorbox{color3}{\makebox(5,5){}} human, \colorbox{color4}{\makebox(5,5){}} hamster, \colorbox{color5}{\makebox(5,5){}} kangaroo rat, and \colorbox{color6}{\makebox(5,5){}} rat.
+The \enquote{x} denotes \textit{directly used}, the \enquote{o} denotes \textit{indirectly used by using (parts of) a referenced simulation model}.
+\end{flushleft}
+\label{tab:CellLines}
+\end{adjustwidth}
+\end{table}
+
+
+% Explicit calibration and validation of simulation models
+When looking at the CSM{} and VSM{} activities, we detect that only a few simulation models were both calibrated and validated based on wet-lab data, namely those of \lee{}~\cite{Lee2003}, Kogan et al. (2012)~\cite{Kogan2012}, and Haack et al. (2015)~\cite{Haack2015}.
+Some authors just calibrated their simulation models (\cite{Rodriguez2007, Mazemondet2012, Wang2013, Chen2014, Padala2017, Staehlke2020}) and in two studies (\cite{Cho2006, Haack2020}) they were only validated (having assumed plausible ranges for parameter values).
+The simulations models developed in \cite{Kruger2004, Kim2007, vanLeeuwen2007, Wawra2007, Goldbeter2008, vanLeeuwen2009, Mirams2010} have neither been calibrated nor validated explicitly, because they have used parameter values from other studies.
+Sick et al. (2006)~\cite{Sick2006} have used arbitrary parameter values in their simulation models.
+
+% Model refinements
+Some studies develop a story line where a simulation model has been successively refined, extended, or composed (\cite{Lee2003, Rodriguez2007, vanLeeuwen2007, Goldbeter2008, Mirams2010, Mazemondet2012, Wang2013, Chen2014, Haack2015, Haack2020}).
+These studies are characterized by a \SM{} being used by a \BSM{} activity, both nodes of the same study.
+
+% Dead-ends and separate networks within studies
+Some simulation studies resulted in the development of multiple simulation models that are neither extensions nor compositions but rather form a revision or alternative to other simulation models developed in the same study: \cite{Rodriguez2007, vanLeeuwen2009, Mirams2010, Mazemondet2012, Wang2013, Chen2014}.
+This can be seen in the provenance graph of a single study when the last simulation model is not connected by a directed path to other simulation models of that study or when the simulation models are part of disjoint branches of the provenance graph.
+For example, in~\cite{Mazemondet2012}, the core model of the \wnt{}/\bcat{} signaling pathway has been calibrated with wet-lab data from \lee{}~\cite{Lee2003}, but this calibrated simulation model was not used any longer and instead, a new calibration with wet-lab data from another study took place.
+Two simulation studies (\cite{Wawra2007, Mirams2010}) show disconnected graphs.
+This shows that these researchers considered, built, and analyzed multiple simulation models independently of each other.
+
+
+%\subsubsection*{Insights into the provenance information of a family of \wnt{} simulation models}
+\subsubsection*{Beyond individuals: A family of \wnt{} simulation models}
+
+% Connectivity of studies (e.g., which model refers to the most other models?)
+
+Whereas before we have looked at the properties of individual simulation studies, we are now going to investigate the interrelations between the 19 \wnt{}/\bcat{} signaling simulation models.
+We will identify features that transform a set of simulation models into a family.
+
+% 2.1 Connectivity of studies (e.g., which model refers to the most other models?)
+
+Fig~\ref{fig:WntProvNeato} shows an overview of all simulation studies considered in our research by zooming out of the individual provenance graphs.
+All but two simulation models are (indirectly) connected to the model proposed by \lee{}~\cite{Lee2003}, which was the first validated simulation model of the canonical \wnt{} signaling pathway.
+This shows that models are usually not built independently from one another, but are often extensions or revisions of formerly published models or use the parts of the reactions or parameter values.
+The two exceptions not linked to \lee{}~\cite{Lee2003} are the simulation models by Sick et al. (2006)~\cite{Sick2006} and by Rodríguez-González et al. (2007)~\cite{Rodriguez2007}. 
+Sick et al. (2006) use a reaction-diffusion system (Gierer-Meinhardt equations~\cite{Gierer1972}) to model the interplay between \wnt{} and its antagonist Dkk with just two equations.
+Rodríguez-González et al. (2007) consider \wnt{} and Axin---two key players of the \wnt{}/\bcat{} signaling pathway---but only in the context of the Notch signaling pathway and thus the model only contains a fragment of the canonical \wnt{} pathway.
+
+We have also included the cell lines/tissue used for wet-lab experiments within each study.
+As already seen in Table~\ref{tab:CellLines}, we observe that different simulation studies use data or models obtained using other cell lines.
+This may be valid as the \wnt{}/\bcat{} signaling pathway is evolutionarily conserved~\cite{Steinhart2018}, which means that data can be shared, even though care must always be taken when using, for instance, parameter values determined with one cell line in a study that uses another cell line.
+
+\begin{figure}[!h]
+\begin{adjustwidth}{-2.25in}{0in}
+\centering
+\includegraphics[width=1.4\textwidth]{WntProvCellLines}
+\caption{{\bf Provenance graph of all \wnt{}/\bcat{} simulation studies considered here (black outlines) as well as additionally used studies (gray outlines).}
+The colors indicate the cell lines used in wet-lab experiments of a study.
+Gray boxes represent pure \wnt{}/\bcat{} simulation studies without acquiring wet-lab data.
+White boxes display publications used by some of the \wnt{}/\bcat{} simulation studies that are either text books or simulation studies without published wet-lab data.
+The following cell lines/tissues were used:
+\colorbox{IndianRed}{\makebox(5,5){}} Xenopus egg extract, 
+\colorbox{LightSalmon}{\makebox(5,5){}} mouse embryo,
+\colorbox{color1}{\makebox(5,5){}} Fibroblasts L cells,
+\colorbox{color2}{\makebox(5,5){}} Fibroblasts NIH/3T3 cells,
+\colorbox{color3}{\makebox(5,5){}} mammary gland (C57MG) cells,
+\colorbox{YellowGreen}{\makebox(5,5){}} osteoblast-like cells (MG-63),
+\colorbox{PaleGreen}{\makebox(5,5){}} presomitic mesoderm (PSM) cells,
+\colorbox{MintCream}{\makebox(5,5){}} mouse skin,
+\colorbox{color4}{\makebox(5,5){}} cervical cancer epithelial (HeLa S3) cells,
+\colorbox{color5}{\makebox(5,5){}} colon carcinoma RKO cells,
+\colorbox{color6}{\makebox(5,5){}} embryonic kidney epithelial (HEK 293) cells,
+\colorbox{SteelBlue}{\makebox(5,5){}} neural progenitor (ReNcell VM) cells,
+\colorbox{Lavender}{\makebox(5,5){}} baby hamster kidney (BHK) cells,
+\colorbox{MediumPurple}{\makebox(5,5){}} epithelial kidney cells (PtK2),
+\colorbox{Orchid}{\makebox(5,5){}} pheochromocytoma cells.
+The references to the additionally used studies is found in~\nameref{S1_AdditionalReferencesWntStudies}.
+}
+\label{fig:WntProvNeato}
+\end{adjustwidth}
+\end{figure}
+
+When looking at the same graph using a circular layout, we observe four clusters of two or more studies, as shown in \nameref{S1_FigClusters}.
+We have also colored the studies according to additional pathways they include and observe that the clusters separate the studies depending on these additional cellular mechanisms.
+The central cluster includes the \wnt{} model by \lee{}~\cite{Lee2003} as well as the studies~\cite{Cho2006, vanLeeuwen2007, Wawra2007, Mirams2010}.
+A second cluster forms around the simulation studies \cite{Mazemondet2012, Kogan2012, Haack2015, Haack2020, Staehlke2020} and either includes the same wet-lab data from~\cite{Bafico2001, Hannoush2008} or the Cell cycle~\cite{Mazemondet2012} or ROS~\cite{Haack2015, Staehlke2020}.
+A third cluster includes the pathways of Notch~\cite{Rodriguez2007, Wang2013} or Notch + MAPK/ERK \cite{Goldbeter2008}. Even though the algorithms locate \cite{Kruger2004} in the same cluster, it is content-wise rather part of the central cluster.
+A forth cluster forms around studies including MAPK/ERK~\cite{Kim2007} or MAPK/ERK + PI3K/Akt~\cite{Padala2017}.
+All other models are not part of a cluster and are either completely disconnected from the other studies \cite{Sick2006} or include E-cadherin and the cell cycle~\cite{vanLeeuwen2009} or just E-cadherin~\cite{Chen2014}.
+
+
+When comparing Fig~\ref{fig:WntProvNeato} and \nameref{S1_FigClusters}, we find that the wet-lab data of just three studies, namely from \cite{Bafico2001, Hannoush2008, Dequeant2006} have been reused by simulation studies.
+On the one hand, this is surprising as wet-lab data could be reused for parameter estimation or model validation.
+On the other hand, when authors use parts or entire simulation models published by others, they do not necessarily recite the references that were used for obtaining the parameter and initial values that come with the model.
+Thus, a direct connection from the new simulation model to the wet-lab data used by another simulation study is not made.
+
+
+
+\section*{Conclusion}
+
+% Summary of what has been done
+Provenance of simulation models provides information about how a simulation model has been generated and about the steps and various sources that contributed to its generation.
+Here, we have developed a specialization of PROV-DM focusing on entities and activities.
+It builds on an earlier PROV-DM specialization in which \SM{}, \SE{}, \SD{}, and \WD{} have been identified as crucial entities of simulation studies~\cite{Ruscheinski2018}.
+Additionally, we have taken knowledge of modeling and simulation life cycles~\cite{Balci2012} into account and identified the \RQ{}, \As{}, \Rs{}, the \QM{} to be important ingredients of the provenance of simulation models.
+We are also distinguishing between \BSM{}, \CSM{}, \VSM{}, and \ASM{} activities and connect the entities and activities by using the relations \textit{wasGeneratedBy} and \textit{used}.
+In our definitions of the entities and activities, we have aimed at the minimal level of detail, or granularity, of the provenance graph to understand the course of a simulation study.
+We have also kept the necessary metadata of the entities and activities minimal to convey both the main idea of the simulation study and the content of each entity and activity.
+For storing, visualizing, and querying the provenance information, we have created the web-based tool \webprov{} that allows for each entity and activity to store (customized) metadata and references.
+
+% Insights into the Wnt family
+In order to examine our specialization of PROV-DM, the extensive analysis of 19 simulation studies of the canonical \wnt{} signaling pathway provided a suitable case study.
+We were able to explicitly show that most studies are connected to one or more other \wnt{} simulation studies, using (parts of) their simulation models, but also various data from wet-lab studies.
+Our result marks the outstanding role of the \wnt{} simulation model by \lee{}~\cite{Lee2003} as the origin for most other models in our survey.
+Thus, a family of \wnt{} signaling models could be revealed.
+
+% Final thougths and outlook
+In conclusion, provenance information provides added value to the existing list of documentation requirements and could complement and enrich the effort of \enquote{harmonizing semantic annotations for computational models in biology}~\cite{Neal2019}.
+Together with the exploitation of community standards and ontologies, provenance information opens up further possibilities of reusing and analyzing simulation models, for example, to help with model selection, model merging, or model difference detection.
+Of course, to be fully accepted, our specialization of PROV-DM should be subject to a standardization initiative.
+We think that \webprov{}, or a similar tool, would be a valuable extension of model repositories such as BioModels, as one could see where a simulation model comes from, whether there are other models connected to it, and in which way they are connected.
+This would help to quickly interpret the increasing number of published simulation models and find a suitable one for your research.
+
+
+% ###########################################################################################################
+% ###########################################################################################################
+
+
+\section*{Supporting information}
+
+% Include only the SI item label in the paragraph heading. Use the \nameref{label} command to cite SI items in the text.
+
+\paragraph*{S1 Appendix.}\label{S1_AdditionalReferencesWntStudies}
+{\bf Additional references for entities used by \wnt{} simulation studies.} We show the references to additional studies that contain entities used by some of the 19 \wnt{} simulation studies.
+
+\paragraph*{S1 Dataset.}\label{S1_Provenanceinforamtion}
+{\bf Complete provenance information of 19 \wnt{} simulation studies.} This file contains the provenance information of the 19 analyzed simulation studies of the \wnt{} signaling pathway. It was exported from \webprov{} and may be imported into another instance of the tool.
+
+\paragraph*{S1 Figure.}\label{S1_FigClusters}
+{\bf Provenance graph of all 19 \wnt{}/\bcat{} simulation studies and their depending studies using a circular layout.} Studies which include additional pathways have been colored.
+
+
+%\paragraph*{S2 Appendix.}\label{S2_Queries}
+%{\bf Queries and Results of \webprov{}.} We present examples of both text and cypher queries as well as the corresponding results using our family of \wnt{} signaling models.
+%Pia: These examples could relate to the case studies. E.g., to find out the types of experiments etc. you had to run some kind of queries.
+
+\paragraph*{S1 Table.}\label{S1_TableAssumptions}
+{\bf Categorized assumptions.} We present the results of the categorization of all assumptions found in the 19 simulation studies using SBO. We have have also added information about the key words that accompanied the assumptions.
+
+\paragraph*{S2 Table.}\label{S1_TableExperiments}
+{\bf Categorized simulation experiments.} We present the results of the categorization of the simulation experiments found in the 19 simulation studies using our categories.
+
+
+
+
+
+%Examples of typical queries are presented in Table~\ref{tab:queries}.
+
+%\begin{table*}[!tpb]
+%\processtable{Examples for WebProv text and cypher queries.\label{tab:queries}}
+%{\begin{tabularx}{\textwidth}{@{}lXX}
+%\toprule
+%Question & Text query & Cypher query \\
+%\midrule
+%Which node has the is \enquote{A366615769}? & & \texttt{MATCH (n:ProvenanceNode) WHERE n.id = "A366615769" RETURN n} \\
+%%@Kai: I think asking for the id is not a typical (user) question
+%Which studies use cell type HEK? &  & \\
+%Which studies use organism Xenopus? & & \\
+%Which studies refer to the Lee et al. (2003) study? & & \\
+%Which studies do not refer to the Lee et al. (2003) study? & & \\
+%Which models have not used wet-lab data? & & \\
+%Which node has the most connections? & & \\
+%Which study has the most connections? & & \\
+%What is the longest connection? & & \\
+%Which models have been validated based on wet-lab data? & & \\
+%Which models is this model related to? & & \\
+%Which models are this model's parents? & & \\
+%Which models are this model's sisters? & & \\ %@Kai: siblings to be gender neutral
+%\botrule
+%\end{tabularx}}{\question{TODO: Add queries.}}
+%\end{table*}
+
+
+%\paragraph*{S2 Fig.}
+%\label{S2_Fig}
+%{\bf Lorem ipsum.} Maecenas convallis mauris sit amet sem ultrices gravida. Etiam eget sapien nibh. Sed ac ipsum eget enim egestas ullamcorper nec euismod ligula. Curabitur fringilla pulvinar lectus consectetur pellentesque.
+
+
+\section*{Acknowledgments}
+We thank Nadja Schlungbaum for her excellent technical support.
+
+\section*{Funding}
+%! This information should describe sources of funding that have supported the work. If your manuscript is published, your statement will appear in the Funding section of the article.
+%! Include your statement in the Financial Disclosure section of the initial submission form.
+This work was supported by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) with [SFB 1270/1--299150580] (K.B., F.H.) as well as [320435134] (P.W.) and by the German Federal Foreign Office through the Research Internships in Science and Engineering (RISE) program (J.S.).
+
+The funders had no role in study design, data collection and analysis, decision to publish, or preparation of the manuscript.
+
+%The funders had no role in study design, data collection and analysis, decision to publish, or preparation of the manuscript.
+%Initials of authors who received each award: KB, FH & PW & JS.
+%URLs to sponsors’ websites: \url{https://www.dfg.de/en/}
+
+\nolinenumbers
+
+
+
+\bibliography{bibliography}
+
+
+\end{document}
+
