@@ -271,7 +271,7 @@ Based on a case study of 19 \wnt{}/\bcat{} signaling models, we identify crucial
 The approach is implemented in \href{https://github.com/SFB-ELAINE/WebProv}{\webprov{}}, a web application that allows one to insert and query provenance information.
 
 %4) What are the results obtained? (73 words)
-Our specialization of PROV-DM contains the entities \RQ{}, \A{}, \R{}, \QM{}, \SM{}, \SE{}, \SD{}, and \WD{} as well as activities that include building, calibrating, validating, and analyzing a simulation model.
+Our specialization of PROV-DM contains the entities \RQ{}, \A{}, \R{}, \QM{}, \SM{}, \SE{}, \SD{}, and \WD{} as well as activities referring to building, calibrating, validating, and analyzing a simulation model.
 We show that most \wnt{} simulation models are connected to other \wnt{} models by using (parts of) these models.
 However, the overlap, especially regarding the \WD{} used for calibration or validation of the models is small.
 
@@ -279,11 +279,9 @@ However, the overlap, especially regarding the \WD{} used for calibration or val
 Making these aspects of developing a model explicit and queryable is an important step for assessing and reusing simulation models more effectively.
 Exposing this information helps to integrate a new simulation model within a family of existing ones.
 Our approach may lead to the development of more robust and valid simulation models.
-% TODO combine above?
 
 %6) What are the directions for follow-up research?  (24 words)
 We hope that it becomes part of a standardization effort and that modelers adopt the benefits of provenance when considering or creating simulation models.
-% TODO what is "it" above?
 
 %TODO shorten abstract?!
 
@@ -303,7 +301,6 @@ It provides additional structure as research questions, assumptions, and require
 
 We have applied our concept to a family of 19 \wnt{} signaling models and implemented a web-based tool (\webprov{}) to store the provenance information of these studies.
 The resulting provenance graph visualizes the story line of simulation studies and demonstrates the creation and calibration of simulation models, the successive attempts of validation and extension, and shows, beyond an individual simulation study, how the \wnt{} models are related.
-% TODO what do you mean by successive attempts?
 Thereby, the steps and sources that contributed to a simulation model are made explicit.
 
 Our approach complements other approaches aimed at facilitating the reuse and assessment of simulation products in systems biology such as model repositories as well as annotation and documentation guidelines.
@@ -341,10 +338,10 @@ When looking at an entire simulation study and at the generation process of the 
 This is of particular interest when several simulation models for a system under consideration exist, offering different perspectives on the system, answering different questions, or reflecting the data and information available at the time of generation.
 Model repositories such as BioModels~\cite{BioModels2020, BioModels2018}, JWS Online~\cite{Snoep2004}, or the CellML Model Repository~\cite{Lloyd2008} provide different means to retrieve and use simulation models.
 % BioModels\footnote{\url{https://www.ebi.ac.uk/biomodels/}}, JWS Online\footnote{\url{https://jjj.biochem.sun.ac.za/}}, the CellML Model Repository\footnote{\url{https://models.cellml.org/}}
-For example, querying the BioModels database for biochemical and cellular simulation models that contain proteins such as \wnt{}, Janus kinase (Jak), or mitogen-activated protein kinase (MAPK), which are associated with corresponding signaling pathways, returns 22 simulation models for \wnt{}, for 12 simulation models for Jak and 139 simulation models for MAPK (as of January 2021).
+For example, querying the BioModels database for biochemical and cellular simulation models that contain proteins such as \wnt{}, Janus kinase (Jak), or mitogen-activated protein kinase (MAPK), which are associated with corresponding signaling pathways, returns 22 simulation models for \wnt{}, 12 simulation models for Jak and 139 simulation models for MAPK (as of January 2021).
 This already shows that MAPK is an intensively studied signaling pathway.
 However, there is no way to easily compare these simulation models or to examine their relationships to each other.
-Tools such as BiVeS~\cite{Scharm2016a} are helpful to compare different versions of one particular simulation model, but comparing different models---even of the same system---is a difficult task because the syntax of these models (e.g., the names of the species), as well as reactions, might be completely different.
+Tools such as BiVeS~\cite{Scharm2016a} are helpful to compare different versions of one particular simulation model, but comparing different models---even of the same system---is a difficult task because the syntax of these models (e.g., the names of the species), as well as their reactions, might be completely different.
 Instead of analyzing the similarities and differences in the specifications of simulation models to infer possible relationships between these simulation models, we will focus on context information, such as how a simulation model has been generated.
 
 % How do models grow larger over time and what happens then?
@@ -358,11 +355,9 @@ Provenance provides \enquote{information about entities, activities, and people 
 Thus, it can be applied to many fields of science, art, and technology, including biochemical and cellular simulation models.
 By exploiting standardized provenance data models, such as PROV-DM, this information is presented in a structured, queryable, and graphical form~\cite{Ruscheinski2018, Ruscheinski2017}.
 In addition to providing crucial information about the generation of an individual simulation model and, thus, facilitating its reuse, provenance can be applied to reveal and exploit relationships between different simulation models.
-% TODO the above structure should be changed?
 
 % What is our goal of this publication? And what is the Wnt signaling pathway?
 In this publication, we will identify and structure relevant information needed for the provenance of simulation studies and elucidate how a family of simulation models can be established through relating the models to each other.
-% "elucidate"?
 As a case study, we will concentrate on 19 simulation studies of the \wnt{}/\bcat{} signaling pathway.
 Among the different \wnt{} signaling pathways, the canonical \wnt{} or \wnt{}/\bcat{} signaling pathway is the most intensively studied one, \textit{in vitro}~\cite{MacDonald2009} as well as \textit{in silico}~\cite{Lloyd-Lewis2013}.
 This pathway is considered to be one of the key pathways in development and regeneration, including cell fate, cell proliferation, cell migration and adult homeostasis~\cite{Steinhart2018, Giles2003}.
@@ -432,7 +427,7 @@ Furthermore, the backend allows one to load in a set of nodes and relationships 
 
 The tool can also be installed locally for testing and replicability purposes.
 Details about its installation, as well as the code, can be found on \href{https://github.com/SFB-ELAINE/WebProv}{GitHub}.
-An informative video showing the usage of \webprov{} is is also on \href{https://youtu.be/UzwHtptkYOU}{YouTube}.
+An informative video showing the usage of \webprov{} is also on \href{https://youtu.be/UzwHtptkYOU}{YouTube}.
 
 
 \subsubsection*{Provenance nodes}
@@ -440,7 +435,7 @@ An informative video showing the usage of \webprov{} is is also on \href{https:/
 % How is the information of the provenance graph saved in the Neo4j database?
 The main concept of \webprov{} is the Neo4j \provnode{} and the dependency graph created from related \provnodes{} using Neo4j relationships.
 A \provnode{} represents an entity or activity and, therefore, must have a classification (e.g., \SM{} or \BSM{}) which defines the types of relationships that can be formed with other nodes depending on our PROV ontology.
-For example, the \SM{}s can only form relationships with \BSM{}s or \CSM{}s (see the \nameref{sec:ResultsAndDiscussion} section and Table~\ref{tab:entitiesandactivities} for all details).
+For example, the \SM{} entity can only be created by the \BSM{} activity or a \CSM{}s (see the \nameref{sec:ResultsAndDiscussion} section and Table~\ref{tab:entitiesandactivities} for all details).
 These classifications can be easily changed or extended if necessary.
 Additionally, \texttt{Study} nodes store information about a particular study (a study reference as well as the name of the signaling pathway it is concerned with) and group a set of \provnodes{} together.
 % move "a study reference as well as the name of the signaling pathway it is concerned with"?
