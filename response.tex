@@ -123,7 +123,7 @@ I know that earlier on the authors explain what an arrow means but that was some
 Fig 3: In general, notation used in UML diagrams is not familiar to most modelers but in this case the diagram looks simple enough that its seems fairly self-explanatory. No action required. \ldots
 \end{mdframed}
 
-We have adapted and extended the caption of Fig 2 and added the abbreviations (BSM, QM, \dots) to the legend of the figure (instead of the caption).
+We have adapted and extended the Fig 2 caption and added the abbreviations (BSM, QM, \dots) to the legend of the figure (instead of the caption).
 We hope that this makes the content of the figure clearer to the reader.
 
 
@@ -143,10 +143,10 @@ What I would recommend is move everything if possible to the client (including t
 \end{mdframed}
 
 We were initially using GitHub Pages to deploy the first version of the software. We decided to switch to Netlify though since it offers better web hosting services.
-In addition to deploying the frontend to Netlify, the backend and database are now deployed on commercial servers which should make it easier for readers of the publication to get an impression of the tool and the provenance information of the Wnt models.
+In addition to deploying the frontend to Netlify, the backend and database are now deployed on cloud servers which should make it easier for readers of the publication to get an impression of the tool and the provenance information of the Wnt models.
 It can be accessed now at \url{https://webprov.netlify.com}.
 Due to funding restriction, we plan to shutdown this service by the end of the year.
-It should still be relatively feasible to install the app locally by following the README (see next paragraph).
+It should still be relatively easy to install the app locally by following the README (see next paragraph).
 
 
 \begin{mdframed}
@@ -172,7 +172,7 @@ We have changed the wording.
 
 For most URLs, we have used hyperlinks.
 Thus, clicking on \href{https://youtu.be/UzwHtptkYOU}{YouTube} in the former footnote 2 should have led you to the website \url{https://youtu.be/UzwHtptkYOU}.
-We will make this video publicly available as it is if and only if the manuscript has been accepted for publication in PLOS Computation Biology.
+We will make this video publicly available if the manuscript has been accepted for publication in PLOS Computation Biology.
 
 Furthermore, we have also removed all footnotes and moved the information into the main text as required by PLOS Computational Biology.
 
@@ -205,7 +205,7 @@ For the subset of models that are available in the Biomodels database, for examp
 \end{mdframed}
 
 As we have stated in our conclusion, we think that accessible provenance information would be a valuable extension of the BioModels (or any other simulation model) repository.
-Right now, comparing the entries of BioModels to our approach, the database contains provenance (meta-)information of type Simulation Model and may, additionally, contain information of type Simulation Experiment and Simulation Data.
+Right now, comparing the entries of BioModels to our approach, the database contains provenance (meta-)information of type Simulation Model and may additionally contain information of type Simulation Experiment and Simulation Data.
 The latter two usually comprise an experiment specification file, for instance a SED-ML file, as well as a figure showing the simulated data.
 In our case, the following BioModels entries contain information about the simulation experiments: the entry for Lee et al. (2003)~\cite{Lee2003} contains both a SED-ML (and COPASI) file to reproduce parts of Fig 6 of that publication (corresponding to our SD6) and the entry for Padala et al. (2017)~\cite{Padala2017}contains the COPASI file to reproduce Fig 2A-C of that publication (corresponding to our SD3).
 The overview of a model entry might also include information about Research Questions and Assumptions.
@@ -241,7 +241,7 @@ Cho et al. (2006), on the other hand, is connected to Lee et al. (2003).
 This link has also been given in the main text.)
 
 Second, the model by Padala et al. (2017) contains the following \textit{isDerivedFrom} information: `BIOMD0000000623' (Orton et al. (2009)), `BIOMD0000000033' (Brown et al. (2004)), and `BIOMD0000000149' (Kim et al. (2007)).
-All of these connections are also contained in our provenance graph.
+All of these connections are also included in our provenance graph.
 
 We will provide the BioModels team with further \textit{isDerivedFrom}-information that could be added to the annotations of the Wnt models in the repository.
 This information is extracted from our provenance graph by querying for a \BSM{} activity (of simulation study \textit{i}) that \textit{used} a \SM{} entity (of another simulation study \textit{j}).
