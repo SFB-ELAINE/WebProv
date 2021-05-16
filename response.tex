@@ -142,12 +142,11 @@ The tool looks useful so why make it difficult to get hold of?
 What I would recommend is move everything if possible to the client (including the database which doesn’t seem large) and host it as a github web page project so that when a user clicks on the url the application will show up, no installation necessary (which I think is one of the main attractions of web software) – see https://pages.github.com/. I strongly recommend something like this otherwise your work will not have the impact it should. \ldots
 \end{mdframed}
 
-\textbf{TODO: Please add some sentences, Jacob. Thanks!}
-Why GitHub Pages are not working anymore.
-We are currently deploying WebProv on commercial servers which should make it easier for the readers of the publication to get an impression of the tool and the provenance information of the Wnt models.
-It can be accessed here...
+We were initially using GitHub Pages to deploy the first version of the software. We decided to switch to Netlify though since it offers better web hosting services.
+In addition to deploying the frontend to Netlify, the backend and database are now deployed on commercial servers which should make it easier for readers of the publication to get an impression of the tool and the provenance information of the Wnt models.
+It can be accessed now at \url{https://webprov.netlify.com}.
 Due to funding restriction, we plan to shutdown this service by the end of the year.
-It should still be relatively feasible to locally install the use the app by following the ReadMe (see next paragraph).
+It should still be relatively feasible to install the app locally by following the README (see next paragraph).
 
 
 \begin{mdframed}
@@ -155,10 +154,10 @@ It should still be relatively feasible to locally install the use the app by fol
 \end{mdframed}
 
 
-The documentation (usage and deployment) is available in the \href{https://github.com/SFB-ELAINE/WebProv#readme}{Readme on GitHub}.
-We have adopted it to make is more comprehensible.
-The \texttt{docs/} folder and \texttt{docs/index.html} file are removed.
-It was used for the initial version of the application that could be deployed using GitHub Pages.
+The documentation (usage and deployment) is located in the \href{https://github.com/SFB-ELAINE/WebProv#readme}{README on GitHub}.
+We have modified it to make is more comprehensible.
+The \texttt{docs/} folder and \texttt{docs/index.html} file have also been removed.
+This folder was previously used for GitHub Pages which deploys static webpages from the \texttt{docs/} folder.
 
 \begin{mdframed}
 \ldots\,Minor:
@@ -198,7 +197,6 @@ We are striving to publish all material related to our research and the publicat
 
 We have proofread the manuscript and corrected all mistakes.
 We hope all language problems have been eliminated.
-%TODO Let Jacob re-read everything before submitting it.
 
 \begin{mdframed}
 \ldots\, As the authors state, the knowledge they have extracted from the literature and encoded in the example provenance graph used in this work makes a useful contribution to the community of potential users of these Wnt signally models.
