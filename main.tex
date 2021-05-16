@@ -435,10 +435,9 @@ An informative video showing the usage of \webprov{} is also on \href{https://yo
 % How is the information of the provenance graph saved in the Neo4j database?
 The main concept of \webprov{} is the Neo4j \provnode{} and the dependency graph created from related \provnodes{} using Neo4j relationships.
 A \provnode{} represents an entity or activity and, therefore, must have a classification (e.g., \SM{} or \BSM{}) which defines the types of relationships that can be formed with other nodes depending on our PROV ontology.
-For example, the \SM{} entity can only be created by the \BSM{} activity or a \CSM{}s (see the \nameref{sec:ResultsAndDiscussion} section and Table~\ref{tab:entitiesandactivities} for all details).
+For example, the \SM{} entity can only be created by the \BSM{} activity or a \CSM{} (see the \nameref{sec:ResultsAndDiscussion} section and Table~\ref{tab:entitiesandactivities} for all details).
 These classifications can be easily changed or extended if necessary.
-Additionally, \texttt{Study} nodes store information about a particular study (a study reference as well as the name of the signaling pathway it is concerned with) and group a set of \provnodes{} together.
-% move "a study reference as well as the name of the signaling pathway it is concerned with"?
+Additionally, \texttt{Study} nodes store information about a particular study (a reference to a study and the name of the signaling pathway it is concerned with) and group a set of \provnodes{} together.
 Finally, \texttt{InformationField} nodes allow us to attach zero or more key--value pairs to a \provnode{} to store further information.
 In our case, we describe which information should be entered depending on the entity type in the \nameref{sec:ResultsAndDiscussion} section.
 
