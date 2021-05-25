@@ -11,7 +11,7 @@ Heroku & Netlify Deployment
 
 The goal of this project is the create a web platform (WebProv) to automatically visualize a provenance model. The data required to create these visualizations are stored in a graph database. The web platform also features an editor to allow users to manually create provenance models that can be stored within the database.
 
-[Link to Demo](https://infallible-lamarr-e47435.netlify.com/)
+[Link to Demo](https://webprov.netlify.app)
 
 <!---
 [Link to video tutorial](https://youtube.com/)
@@ -32,18 +32,18 @@ More information is available when clickling on the "+" in the lower right corne
 
 ## Environment Setup
 
-### Node
+### 1. Node
 
 The first step to setting up your environment involves installing `Node.js` (if not already installed). The recommended way to do this is by using the `Node Version Manager` tool:
 
 1. Install [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm#install--update-script)
 1. Install `Node.js` and `npm` using nvm: `nvm install node`
 
-### Docker
+### 2. Docker
 
 Next, install `Docker` so that you can start the `Neo4j` development database. The installation instructions can be found [here](https://docs.docker.com/get-docker).
 
-#### Environment File
+### 3. Environment File
 
 In `packages/backend`, create a `.env` file if you don't already have one:
 
@@ -53,9 +53,9 @@ GRAPHENEDB_BOLT_USER=neo4j
 GRAPHENEDB_BOLT_PASSWORD=<PASSWORD>
 ```
 
-> Replace `<PASSWORD>` with the password that you want to use for development and save it for later.
+Replace `<PASSWORD>` with the password that you want to use for development and save it for later.
 
-### NPM Dependencies
+### 4. NPM Dependencies
 
 This repository uses [lerna](https://lerna.js.org/) as it is a monorepo. All packages are located within the `packages` folder. The main benefit of lerna is that it can symlink repos together when one package depends on another within the same repository. Because there is symlinking involved, you must use lerna to install dependencies. Because we have a `postinstall` script defined in the `package.json` folder, the only command that you have to run is to install and symlink everything is:
 
@@ -84,38 +84,6 @@ make dev
 Now you should be able to see the app running at [`http://localhost:8080`](http://localhost:8080).
 
 > Make sure that you have the backend server running before opening the app.
-
-## Installing Dependencies
-
-If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, use the `lerna add` command. For example:
-
-```
-npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
-```
-
-## Local Deployment
-
-Deployment of the frontend and backend on a server should be fairly straightforward if everything else has smoothly.
-
-### Backend
-
-In the `packages/backend` folder, run the following command.
-
-```
-npm run prod
-```
-
-### Frontend
-
-The frontend is also pretty simple to deploy. First, you might need to change the value of `VUE_APP_BACKEND_URL` in `packages/frontend/.env.production` to point the the backend server. If you are running the backend and frontend on the same machine, the environment variable is already set to the correct value (`http://localhost:3000`).
-
-Next, you will need to run the `build` command in `packages/frontend`.
-
-```
-npm run build
-```
-
-Finally, you will need to deploy the HTML, JS and CSS files to some kind of webserver. To run a test server locally, running `npx servor dist` in `packages/frontend` should work.
 
 ## Structure
 
@@ -151,9 +119,7 @@ Finally, the frontend is a [`Vue`](https://vuejs.org) application split across n
 
 ## Deployment
 
-The frontend and backend are automatically deployed when `tags` are pushed to the repo. The following sections describe how to push a new `tag` how this deployment process was set up.
-
-## Steps
+The frontend and backend are automatically deployed when `tags` are pushed to the repo using [GitHub Actions](https://github.com/features/actions). The following sections describe how to push a new `tag` since the CI handles the rest! If you want to learn more about the deployment process, you can check out the CI files in `.github/workflows/`.
 
 ### 1. Set the new version
 
@@ -183,6 +149,12 @@ That's it!
 ## Contributing
 
 See the branching instruction and rules [here](https://guides.github.com/introduction/flow/). Basically, when working on a feature or bug, create a branch off master. When you want to merge your changes, just create a PR.
+
+If you want to install a package, avoid using `npm` as `npm` will remove symlinks during installation (if this happens, just bootstrap the project again). Instead, use the `lerna add` command. For example:
+
+```
+npx lerna add the-module-to-install --scope=the-package-to-add-the-module-to [--dev]
+```
 
 ## Dependencies/Acknowledgements
 
