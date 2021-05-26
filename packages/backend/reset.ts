@@ -16,7 +16,11 @@ import {
   ExportInterfaceType,
 } from 'common';
 import * as c from 'common';
-import { updateOrCreate, updateOrCreateConnection } from './src/cypher';
+import {
+  clearNode,
+  updateOrCreate,
+  updateOrCreateConnection,
+} from './src/cypher';
 
 export const initializeData = async (data: ExportInterface) => {
   // We don't want to do this unless we are debugging
@@ -111,7 +115,14 @@ const main = async () => {
     return;
   }
 
-  initializeData(result.right);
+  await clearNode(ProvenanceNodeSchema.name);
+  await clearNode(InformationFieldSchema.name);
+  await clearNode(StudySchema.name);
+  await clearNode(DependencyRelationshipSchema.name);
+  await clearNode(InformationRelationshipSchema.name);
+  console.log('DONE RESET');
+  await initializeData(result.right);
+  console.log('DONE INIT');
 };
 
 main();

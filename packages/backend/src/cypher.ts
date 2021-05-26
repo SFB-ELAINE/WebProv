@@ -193,6 +193,15 @@ export const clearDatabase = async () => {
   session.close();
 };
 
+export const clearNode = async (name: string) => {
+  const session = driver.session();
+  await session.run(`
+  MATCH (n:${name})
+  DETACH DELETE n
+  `)
+  session.close();
+};
+
 /**
  * Deletes all relationships from a source node (identified by the given id) of the given type. This also deletes the 
  * connected nodes as well.
