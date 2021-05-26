@@ -1,6 +1,11 @@
 <template>
   <div>
-    <input style="display: none" ref="uploader" type="file" @change="importNodes">
+    <input
+      style="display: none"
+      ref="uploader"
+      type="file"
+      @change="importNodes"
+    />
 
     <!-- This is the main svg animation -->
     <d3
@@ -9,7 +14,7 @@
       :width="width"
       :links="links"
       :nodes="nodes"
-      force 
+      force
       zoomable
       arrows
       draggable
@@ -20,12 +25,12 @@
       :hull-dblclick="hullDblclick"
       :color-changes="colorChanges"
     ></d3>
-    
+
     <!-- This is the dashed line you see when creating new links -->
     <svg
       :height="height"
       :width="width"
-      style="position: absolute; top: 0; left: 0; pointer-events: none;"
+      style="position: absolute; top: 0; left: 0; pointer-events: none"
     >
       <line
         :x1="lineStart ? lineStart.x : 0"
@@ -38,14 +43,13 @@
     </svg>
 
     <div class="overlay">
-      
-      <div style="flex: 1; display: flex" class="space-x-0 lg:space-x-4 flex-col lg:flex-row">
-        <query-card
-          class="search overlay-child" 
-          @open="showNodes"
-        ></query-card>
+      <div
+        style="flex: 1; display: flex"
+        class="space-x-0 lg:space-x-4 flex-col lg:flex-row"
+      >
+        <query-card class="search overlay-child" @open="showNodes"></query-card>
         <search-card
-          class="search overlay-child" 
+          class="search overlay-child"
           :items="searchItems"
           @open="expandStudy"
           @dependency="showProvenanceGraph"
@@ -61,7 +65,7 @@
       >
         Add Study
       </b-button>
-      
+
       <b-button
         v-if="showEditTools"
         class="clear-button overlay-child"
@@ -81,7 +85,6 @@
       </b-button>
 
       <div class="cards overlay-child">
-
         <prov-legend-card v-bind="legendProps"></prov-legend-card>
         <div class="spacer"></div>
 
@@ -93,9 +96,9 @@
           @update="saveSelectedStudy"
         ></study-card>
         <div v-if="selectedStudy" class="spacer"></div>
-        
+
         <select-card
-          title="Relationship" 
+          title="Relationship"
           v-if="currentRelationship"
           :value="currentRelationship"
           @input="changeRelationship"
@@ -104,7 +107,7 @@
           @delete="deleteRelationship"
         ></select-card>
         <div class="spacer"></div>
-        
+
         <node-form-card
           v-if="selectedNode"
           :node="selectedNode"
@@ -115,7 +118,7 @@
           :nodes="provenanceNodes"
           :getLabel="getLabelWrapper"
           :nodeToRelate="nodeToRelate"
-          @relate="(node) => nodeToRelate = node"
+          @relate="(node) => (nodeToRelate = node)"
           @close="deselectNode"
           @delete="deleteNode"
           @update:information:delete="deleteInformationNode"
@@ -123,18 +126,14 @@
           @update:information="editInformationNode"
           @update:node="editNode"
         ></node-form-card>
-      
       </div>
     </div>
 
-    <information-modal
-      v-model="showHelp"
-    ></information-modal>
+    <information-modal v-model="showHelp"></information-modal>
 
     <div class="version">v{{ version }}</div>
 
     <fab :actions="fabActions"></fab>
-
   </div>
 </template>
 
@@ -202,7 +201,13 @@ import {
   makeLookupBy,
 } from 'common';
 import { version } from '../package.json';
-import { computed, ref, onMounted, createComponent } from '@vue/composition-api';
+import {
+  computed,
+  ref,
+  onMounted,
+  createComponent,
+  Ref,
+} from '@vue/composition-api';
 import Fab, { FabAction } from '@/components/Fab.vue';
 import { useRules, useDefinitions } from '@/hooks';
 
@@ -255,14 +260,28 @@ export default createComponent({
     windowWidth: { type: Number, required: true },
   },
   setup(props, context) {
-    const { getDefaultRelationshipType, isValidRelationship, getApplicableRules, createRelationship } = useRules();
-    const { getDefinition, createModelVersionLookup, getClassification, definitions } = useDefinitions();
+    const {
+      getDefaultRelationshipType,
+      isValidRelationship,
+      getApplicableRules,
+      createRelationship,
+    } = useRules();
+    const {
+      getDefinition,
+      createModelVersionLookup,
+      getClassification,
+      definitions,
+    } = useDefinitions();
 
     // The package version number
     const provenanceNodes = ref<ProvenanceNode[]>([]);
     const informationNodes = ref<InformationField[]>([]);
-    const dependencies = ref<Array<RelationshipInformation<DependencyRelationship>>>([]);
-    const informationRelations = ref<Array<RelationshipInformation<InformationRelationship>>>([]);
+    const dependencies = ref<
+      Array<RelationshipInformation<DependencyRelationship>>
+    >([]);
+    const informationRelations = ref<
+      Array<RelationshipInformation<InformationRelationship>>
+    >([]);
 
     // If we are setting the "Related To" property, the user first clicks within the
     // node editor card. When they click, an event is emitted and the node is stored here
@@ -322,10 +341,13 @@ export default createComponent({
       target: HTMLInputElement & EventTarget;
     }
 
-    const getLabelWrapper = (node: ProvenanceNode) => getLabel(
-      node,
-      getDefinition(node), studyLookup.value, modelVersionLookup.value,
-    );
+    const getLabelWrapper = (node: ProvenanceNode) =>
+      getLabel(
+        node,
+        getDefinition(node),
+        studyLookup.value,
+        modelVersionLookup.value,
+      );
 
     const importNodes = async (e: HTMLInputEvent) => {
       const files = e.target.files;
@@ -346,18 +368,25 @@ export default createComponent({
 
       const importResult = await importData(contents);
       if (importResult.type === 'error') {
-        notifier.danger('An error occured during import.\n' + importResult.message);
+        notifier.danger(
+          'An error occured during import.\n' + importResult.message,
+        );
         return;
       }
 
       const data = importResult.data;
       const uploadResult = await backend.upload(data);
       if (uploadResult.result === 'error') {
-        notifier.danger('An error occured during the upload to the database.\n' + uploadResult.message);
+        notifier.danger(
+          'An error occured during the upload to the database.\n' +
+            uploadResult.message,
+        );
         return;
       }
 
-      notifier.info('Successfully uploaded data to the database. Please refresh the page.');
+      notifier.info(
+        'Successfully uploaded data to the database. Please refresh the page.',
+      );
     };
 
     const exportNodes = () => {
@@ -375,20 +404,27 @@ export default createComponent({
         );
       });
 
-      const informationRelationshipsForExport = informationRelations.value.filter((informationRelation) => {
-        return nodesToShow.value.hasOwnProperty(informationRelation.source);
-      });
+      const informationRelationshipsForExport =
+        informationRelations.value.filter((informationRelation) => {
+          return nodesToShow.value.hasOwnProperty(informationRelation.source);
+        });
 
       const informationFieldsForExportIds = new Set(
-        informationRelationshipsForExport.map((informatinoRelationship) => informatinoRelationship.target),
+        informationRelationshipsForExport.map(
+          (informatinoRelationship) => informatinoRelationship.target,
+        ),
       );
 
-      const informationFieldsForExport = informationNodes.value.filter((informationField) => {
-        return informationFieldsForExportIds.has(informationField.id);
-      });
+      const informationFieldsForExport = informationNodes.value.filter(
+        (informationField) => {
+          return informationFieldsForExportIds.has(informationField.id);
+        },
+      );
 
       const studyIdsForExport = new Set(
-        provenanceNodesForExport.map((provenanceNode) => provenanceNode.studyId).filter(isDefined),
+        provenanceNodesForExport
+          .map((provenanceNode) => provenanceNode.studyId)
+          .filter(isDefined),
       );
 
       const studiesForExport = studies.value.filter((study) => {
@@ -455,9 +491,12 @@ export default createComponent({
       return makeRequest(() => backend.updateOrCreateStudy(study));
     }, 500);
 
-    const debouncedUpdateOrCreateInformationNode = debounce((field: InformationField) => {
-      return makeRequest(() => backend.updateOrCreateInformationNode(field));
-    }, 500);
+    const debouncedUpdateOrCreateInformationNode = debounce(
+      (field: InformationField) => {
+        return makeRequest(() => backend.updateOrCreateInformationNode(field));
+      },
+      500,
+    );
 
     // Used to change the color of individual nodes without having to re-render the whole graph
     const colorChanges = ref<D3NodeColorCombo[]>([]);
@@ -481,8 +520,12 @@ export default createComponent({
       }
 
       const relationships = getInformationRelationship(selectedNode.value.id);
-      logger.debug(`There are ${relationships.length} information fields for the selected node`);
-      return relationships.map((relationship) => getInformationNode(relationship.target)).filter(isDefined);
+      logger.debug(
+        `There are ${relationships.length} information fields for the selected node`,
+      );
+      return relationships
+        .map((relationship) => getInformationNode(relationship.target))
+        .filter(isDefined);
     });
 
     const selectedNodeDefinition = computed((): NodeDefinition | undefined => {
@@ -528,14 +571,16 @@ export default createComponent({
 
           if (!relationshipColors[connection.properties.type]) {
             // tslint:disable-next-line
-            console.warn(`Unknown connection type: "${connection.properties.type}"`);
+            console.warn(
+              `Unknown connection type: "${connection.properties.type}"`,
+            );
           }
 
           const d3Connection: HighLevelRelationship = {
             relationship: connection.properties,
-            color: relationshipColors[connection.properties.type] ?
-              relationshipColors[connection.properties.type].color :
-              'gray',
+            color: relationshipColors[connection.properties.type]
+              ? relationshipColors[connection.properties.type].color
+              : 'gray',
             source,
             target,
           };
@@ -546,7 +591,7 @@ export default createComponent({
       });
 
       return Object.values(lookup);
-    });
+    }) as Ref<HighLevelNode[]>;
 
     const highLevelNodeLookup = computed(() => {
       return makeLookup(highLevelNodes.value);
@@ -593,7 +638,9 @@ export default createComponent({
       // If there is a circular dependency we just create a ID -> "<?>" lookup
       // We could handle this better
       if (result.circular) {
-        notifier.danger('Circular dependency detected. Please find and remove this dependency.');
+        notifier.danger(
+          'Circular dependency detected. Please find and remove this dependency.',
+        );
 
         const lookup: Lookup<string> = {};
         highLevelNodes.value.forEach((node) => {
@@ -652,7 +699,9 @@ export default createComponent({
       const seen = new Set<string>();
       const showNode = (id: string) => {
         // Detects circular dependency
-        if (seen.has(id)) { return; }
+        if (seen.has(id)) {
+          return;
+        }
         seen.add(id);
 
         if (highLevelNodeLookup.value[id] === undefined) {
@@ -734,9 +783,14 @@ export default createComponent({
     const searchItems = computed(() => {
       return highLevelNodes.value.map((n): SearchItem => {
         const fields = getInformationNodesFromProvenance(n.node);
-        const values = fields.filter(isDefined).map((field) => field.value).filter((value) => value !== '');
+        const values = fields
+          .filter(isDefined)
+          .map((field) => field.value)
+          .filter((value) => value !== '');
 
-        const study = n.node.studyId ? studyLookup.value[n.node.studyId] : undefined;
+        const study = n.node.studyId
+          ? studyLookup.value[n.node.studyId]
+          : undefined;
         return {
           id: n.id,
           title: getLabelWrapper(n.node),
@@ -781,14 +835,19 @@ export default createComponent({
               x: ul.x + n.width,
               y: ul.y + n.height,
             }; // lower right corner
-            return n !== node && point.x > ul.x && point.y > ul.y && lr.x > point.x && lr.y > point.y;
+            return (
+              n !== node &&
+              point.x > ul.x &&
+              point.y > ul.y &&
+              lr.x > point.x &&
+              lr.y > point.y
+            );
           });
       };
 
       const getRelationship = (a: ProvenanceNode, b: ProvenanceNode) => {
         return getDefaultRelationshipType(a, b);
       };
-
 
       let targetNode: SingleNode | null = null;
       const disposer = addEventListeners({
@@ -808,13 +867,15 @@ export default createComponent({
             return;
           }
 
-          const top = targetNode = nodesInRange[nodesInRange.length - 1];
+          const top = (targetNode = nodesInRange[nodesInRange.length - 1]);
           const a = node.provenanceNode;
           const b = top.provenanceNode;
 
           const relationship = getRelationship(a, b);
           const valid = isValidRelationship(a, b, relationship);
-          const color = valid ? VALID_ENDPOINT_OUTLINE : INVALID_ENDPOINT_OUTLINE;
+          const color = valid
+            ? VALID_ENDPOINT_OUTLINE
+            : INVALID_ENDPOINT_OUTLINE;
           colorChanges.value.push({ node: targetNode, color });
         },
         mouseup: async (ev: MouseEvent) => {
@@ -846,7 +907,9 @@ export default createComponent({
             return;
           }
 
-          const result = await makeRequest(() => backend.updateOrCreateDependency(connection.connection));
+          const result = await makeRequest(() =>
+            backend.updateOrCreateDependency(connection.connection),
+          );
           if (result.result !== 'success') {
             return;
           }
@@ -861,14 +924,18 @@ export default createComponent({
       const sourceId = n.id;
 
       const source = highLevelNodeLookup.value[sourceId];
-      const moreLeftToShow = source.incoming.some((connection) => {
-        return !nodesToShow.value[connection.source.id];
-      }) || source.outgoing.some((connection) => {
-        return !nodesToShow.value[connection.target.id];
-      });
+      const moreLeftToShow =
+        source.incoming.some((connection) => {
+          return !nodesToShow.value[connection.source.id];
+        }) ||
+        source.outgoing.some((connection) => {
+          return !nodesToShow.value[connection.target.id];
+        });
 
       const text = getLabelWrapper(n);
-      const { x, y } = nodeLookup.value[sourceId] ? nodeLookup.value[sourceId] : pointToPlaceNode.value;
+      const { x, y } = nodeLookup.value[sourceId]
+        ? nodeLookup.value[sourceId]
+        : pointToPlaceNode.value;
       const node: SingleNode = {
         isGroup: false,
         id: sourceId,
@@ -954,7 +1021,9 @@ export default createComponent({
       const collapsedNodes: { [studyId: string]: GroupNode } = {};
 
       // We don't care about any nodes that don't need to be shown.
-      const filtered = provenanceNodes.value.filter((n) => nodesToShow.value[n.id]);
+      const filtered = provenanceNodes.value.filter(
+        (n) => nodesToShow.value[n.id],
+      );
 
       let studyIds = filtered.map((n) => n.studyId).filter(isDefined);
       studyIds = Array.from(new Set(studyIds)); // get all unique study IDs
@@ -965,7 +1034,9 @@ export default createComponent({
       // Studies IDs could change if nodes are added/removed though which is OK
       studyIds.forEach((studyId) => {
         if (!labelLookup.hasOwnProperty(studyId)) {
-          labelLookup[studyId] = studyLookup.value[studyId].label ? studyLookup.value[studyId].label! : `S${groupCount++}`;
+          labelLookup[studyId] = studyLookup.value[studyId].label
+            ? studyLookup.value[studyId].label!
+            : `S${groupCount++}`;
         }
       });
 
@@ -979,7 +1050,9 @@ export default createComponent({
         // nodes to not have this attribute. Therefore, we generate a unique ID based off the studyId. This also allows
         // us to easily lookup the location of the collapsed node when re-rendering.
         const id = '' + studyId;
-        const point = nodeLookup.value[id] ? nodeLookup.value[id] : pointToPlaceNode.value;
+        const point = nodeLookup.value[id]
+          ? nodeLookup.value[id]
+          : pointToPlaceNode.value;
         const node: GroupNode = {
           x: point.x,
           y: point.y,
@@ -1051,7 +1124,9 @@ export default createComponent({
 
               const a = c.source.node;
               const b = c.target.node;
-              possibleRelationships.value = flat(getApplicableRules(a, b).map((rule) => rule.type));
+              possibleRelationships.value = flat(
+                getApplicableRules(a, b).map((rule) => rule.type),
+              );
             },
           };
 
@@ -1125,21 +1200,25 @@ export default createComponent({
       const copy = { ...originalConnection };
       copy.type = relationship;
 
-      const result = await makeRequest(() => backend.updateOrCreateDependency({
-        source: connection.source.id,
-        target: connection.target.id,
-        properties: copy,
-      }), () => {
-        // This feels a bit messy
-        // Set the relationship
-        // Set the relationship of the actual data
-        // Then render the graph again
-        currentRelationship.value = relationship;
-        originalConnection.type = relationship;
+      const result = await makeRequest(
+        () =>
+          backend.updateOrCreateDependency({
+            source: connection.source.id,
+            target: connection.target.id,
+            properties: copy,
+          }),
+        () => {
+          // This feels a bit messy
+          // Set the relationship
+          // Set the relationship of the actual data
+          // Then render the graph again
+          currentRelationship.value = relationship;
+          originalConnection.type = relationship;
 
-        renderGraph();
-        cancelRelationshipSelection();
-      });
+          renderGraph();
+          cancelRelationshipSelection();
+        },
+      );
     }
 
     async function deleteRelationship() {
@@ -1148,7 +1227,9 @@ export default createComponent({
       }
 
       const connection = selectedConnection.value;
-      const result = await makeRequest(() => backend.deleteDependency(connection.relationship.id));
+      const result = await makeRequest(() =>
+        backend.deleteDependency(connection.relationship.id),
+      );
       if (result.result !== 'success') {
         return;
       }
@@ -1194,7 +1275,9 @@ export default createComponent({
         return nodeIds.has(node.source);
       });
 
-      const informationNodeIds = new Set(informationRelations.value.map(({ target }) => target));
+      const informationNodeIds = new Set(
+        informationRelations.value.map(({ target }) => target),
+      );
       informationNodes.value = informationNodes.value.filter((node) => {
         return informationNodeIds.has(node.id);
       });
@@ -1210,7 +1293,9 @@ export default createComponent({
       const toRemove = new Set<string>();
 
       [...incoming, ...outgoing].forEach((c) => {
-        if (isValidRelationship(c.source.node, c.target.node, c.relationship.type)) {
+        if (
+          isValidRelationship(c.source.node, c.target.node, c.relationship.type)
+        ) {
           return;
         }
 
@@ -1234,13 +1319,19 @@ export default createComponent({
     }
 
     async function deleteInformationNode(node: InformationField) {
-      const result = await makeRequest(() => backend.deleteInformationNode(node.id));
+      const result = await makeRequest(() =>
+        backend.deleteInformationNode(node.id),
+      );
       if (result.result !== 'success') {
         return;
       }
 
-      informationNodes.value = informationNodes.value.filter((n) => n.id !== node.id);
-      informationRelations.value = informationRelations.value.filter((n) => n.target !== node.id);
+      informationNodes.value = informationNodes.value.filter(
+        (n) => n.id !== node.id,
+      );
+      informationRelations.value = informationRelations.value.filter(
+        (n) => n.target !== node.id,
+      );
       debouncedRenderGraph();
     }
 
@@ -1257,8 +1348,13 @@ export default createComponent({
         },
       };
 
-      logger.info('Creating new information node and relationship: ' + node.id, node);
-      const result = await makeRequest(() => backend.addInformationEntry(relationship, node));
+      logger.info(
+        'Creating new information node and relationship: ' + node.id,
+        node,
+      );
+      const result = await makeRequest(() =>
+        backend.addInformationEntry(relationship, node),
+      );
       if (result.result !== 'success') {
         return;
       }
@@ -1269,14 +1365,20 @@ export default createComponent({
     }
 
     async function editInformationNode<K extends keyof InformationField>(
-      node: InformationField, key: K, newValue: InformationField[K],
+      node: InformationField,
+      key: K,
+      newValue: InformationField[K],
     ) {
       node[key] = newValue;
       debouncedUpdateOrCreateInformationNode(node);
       // debouncedRenderGraph();
     }
 
-    function editNode<K extends keyof ProvenanceNode>(node: ProvenanceNode, key: K, newValue: ProvenanceNode[K]) {
+    function editNode<K extends keyof ProvenanceNode>(
+      node: ProvenanceNode,
+      key: K,
+      newValue: ProvenanceNode[K],
+    ) {
       // console.log(`Setting Node(${node.id})[${key}] = "${newValue}"`)
       // Make sure to use Vue.set or things might not update properly
       setVue(node, key, newValue);
@@ -1452,7 +1554,7 @@ export default createComponent({
 }
 
 .flex-col {
-  flex-direction: column;  
+  flex-direction: column;
 }
 
 .space-x-0 > * + * {

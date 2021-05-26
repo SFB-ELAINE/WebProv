@@ -1,21 +1,42 @@
 <template>
   <svg
     id="d3-svg"
-    ref="svg" 
+    ref="svg"
     class="svg"
     @mousedown="startDrag"
     :height="height"
     :width="width"
-  ><slot></slot></svg>
+  >
+    <slot></slot>
+  </svg>
 </template>
 
 <script lang="ts">
 import * as d3 from 'd3';
-import { ID3, D3Link, D3Node, D3Hull, D3NodeCallbackKeys, D3NodeColorCombo } from '@/d3';
+import {
+  ID3,
+  D3Link,
+  D3Node,
+  D3Hull,
+  D3NodeCallbackKeys,
+  D3NodeColorCombo,
+} from '@/d3';
 import forceLink from '@/link';
 import forceManyBody from '@/manyBody';
-import { intersection, getRandomColor, addEventListener, update } from '@/utils';
-import { computed, watch, onMounted, ref, createComponent } from '@vue/composition-api';
+import {
+  intersection,
+  getRandomColor,
+  addEventListener,
+  update,
+} from '@/utils';
+import {
+  computed,
+  watch,
+  onMounted,
+  ref,
+  createComponent,
+  Ref,
+} from '@vue/composition-api';
 import svgPanZoom from 'svg-pan-zoom';
 import { makeLookup, Lookup } from 'common';
 
@@ -39,7 +60,7 @@ export default createComponent({
     draggable: { type: Boolean, default: false },
     zoomable: { type: Boolean, default: false },
     hulls: { type: Boolean, default: false },
-    pan: { type: Object as () => { x: number, y: number } | undefined },
+    pan: { type: Object as () => { x: number; y: number } | undefined },
     zoom: { type: Number, default: 1 },
     height: { type: Number, default: 100 },
     width: { type: Number, default: 100 },
@@ -47,11 +68,26 @@ export default createComponent({
     hullOffset: { type: Number, default: 40 },
     nodes: { type: Array as () => D3Node[], default: () => [] },
     links: { type: Array as () => D3Link[], default: () => [] },
-    hullClick: { type: Function as any as  () => HullListener | undefined, required: false },
-    hullDblclick: { type: Function as any as () => HullListener | undefined, required: false },
-    nodeDblclick: { type: Function as any as () => NodeListener | undefined, required: false },
-    actionClick: { type: Function as any as () => NodeListener | undefined, required: false },
-    colorChanges: { type: Array as () => D3NodeColorCombo[], default: () => [] },
+    hullClick: {
+      type: Function as any as () => HullListener | undefined,
+      required: false,
+    },
+    hullDblclick: {
+      type: Function as any as () => HullListener | undefined,
+      required: false,
+    },
+    nodeDblclick: {
+      type: Function as any as () => NodeListener | undefined,
+      required: false,
+    },
+    actionClick: {
+      type: Function as any as () => NodeListener | undefined,
+      required: false,
+    },
+    colorChanges: {
+      type: Array as () => D3NodeColorCombo[],
+      default: () => [],
+    },
   },
   setup(props, context) {
     const svgRef = ref<SVGElement>(null);
@@ -77,11 +113,8 @@ export default createComponent({
     ];
 
     const allNodes = computed(() => {
-      return [
-        ...addedNodes.value,
-        ...props.nodes,
-      ];
-    });
+      return [...addedNodes.value, ...props.nodes];
+    }) as Ref<D3Node[]>;
 
     const allLinks = computed((): MyLink[] => {
       const links = [...props.links, ...addedLinks.value];
@@ -90,7 +123,7 @@ export default createComponent({
         ...link,
         color: link.color ? link.color : props.defaultStrokeColor,
       }));
-    });
+    }) as Ref<MyLink[]>;
 
     const nodeLookup = computed(() => {
       return makeLookup(allNodes.value);
@@ -121,7 +154,9 @@ export default createComponent({
     }
 
     function convexHulls() {
-      const hulls: { [group: string]: { points: Array<[number, number]>, nodes: D3Node[] } } = {};
+      const hulls: {
+        [group: string]: { points: Array<[number, number]>; nodes: D3Node[] };
+      } = {};
       const offset = props.hullOffset;
       // create point sets
       allNodes.value.forEach((n) => {
@@ -166,8 +201,7 @@ export default createComponent({
     }
 
     function applyNode(s: d3.Selection<any, D3Node, any, any>) {
-      s
-        .attr('id', (d) => d.id)
+      s.attr('id', (d) => d.id)
         .attr('width', (d) => d.width)
         .attr('height', (d) => d.height)
         .attr('fill', (d) => 'white')
@@ -175,14 +209,13 @@ export default createComponent({
         .attr('rx', (d) => d.rx)
         // If there is a force, then the position will be set by the force
         // If this check didn't happen, we would set the position twice which causes issues
-        .attr('x', (d) => props.force ? 0 : d.x)
-        .attr('y', (d) => props.force ? 0 : d.y)
+        .attr('x', (d) => (props.force ? 0 : d.x))
+        .attr('y', (d) => (props.force ? 0 : d.y))
         .style('stroke', (d) => d.stroke);
     }
 
     function applyText(s: d3.Selection<any, D3Node, any, any>) {
-      s
-        .filter((d) => d.text !== undefined)
+      s.filter((d) => d.text !== undefined)
         .attr('id', (d) => `text-${d.id}`)
         .attr('x', (d) => d.text!.length * 4 + 5)
         .attr('y', (d) => d.height / 2 + 5) // the extra 5 is just random
@@ -201,19 +234,23 @@ export default createComponent({
       const svg = d3.select(svgRef.value);
       svg.selectAll('*').remove();
 
-      const checkAndCall = <V>(f?: (v: V) => void) => (v: V) => {
-        if (f) {
-          f(v);
-        }
-      };
+      const checkAndCall =
+        <V>(f?: (v: V) => void) =>
+        (v: V) => {
+          if (f) {
+            f(v);
+          }
+        };
 
       let hull: d3.Selection<any, any, any, any> | null = null;
       if (props.hulls) {
-        hull = svg.append('g')
+        hull = svg
+          .append('g')
           .attr('class', 'hulls')
           .selectAll('path')
           .data(convexHulls())
-          .enter().append('path')
+          .enter()
+          .append('path')
           .attr('class', 'hull')
           .attr('d', (d) => curve(d.path))
           .style('fill', fill)
@@ -225,8 +262,14 @@ export default createComponent({
 
       let simulation: null | d3.Simulation<D3Node, undefined> = null;
       if (props.force) {
-        simulation = d3.forceSimulation(allNodes.value)
-          .force('link', forceLink<D3Node, D3Link>(allLinks.value).id((d) => '' + d.id).strength(0.3))
+        simulation = d3
+          .forceSimulation(allNodes.value)
+          .force(
+            'link',
+            forceLink<D3Node, D3Link>(allLinks.value)
+              .id((d) => '' + d.id)
+              .strength(0.3),
+          )
           .velocityDecay(0.5)
           .force('charge', forceManyBody().strength(-1000))
           // .force('group', hullForce())
@@ -236,9 +279,12 @@ export default createComponent({
       const data = allLinks.value.map(({ color }) => color);
 
       if (props.arrows) {
-        svg.append('svg:defs').selectAll('marker')
-          .data(data)  // Different link/path types can be defined here
-          .enter().append('svg:marker')  // This section adds in the arrows
+        svg
+          .append('svg:defs')
+          .selectAll('marker')
+          .data(data) // Different link/path types can be defined here
+          .enter()
+          .append('svg:marker') // This section adds in the arrows
           .attr('id', (d) => `${id}-${d}`)
           .attr('viewBox', '0 -5 10 10')
           .attr('refX', 10)
@@ -251,7 +297,8 @@ export default createComponent({
           .attr('d', 'M0,-5L10,0L0,5');
       }
 
-      const bigLinks = svg.append('g')
+      const bigLinks = svg
+        .append('g')
         .attr('stroke-opacity', 0)
         .selectAll('line')
         .data(allLinks.value)
@@ -269,7 +316,8 @@ export default createComponent({
           }
         });
 
-      const link = svg.append('g')
+      const link = svg
+        .append('g')
         .attr('stroke-opacity', 0.6)
         .selectAll('line')
         .data(allLinks.value)
@@ -279,20 +327,21 @@ export default createComponent({
         .attr('stroke', (d) => d.color);
 
       if (!simulation) {
-
         // This function only works for hotizontal arrows
         // It can be generialized for vertical arrows though if neccessary
-        const calcPosition = (xy: 'x' | 'y', st: 'source' | 'target') => (d: D3Link) => {
-          const source = nodeLookup.value[d.source];
-          const target = nodeLookup.value[d.target];
-          const sourcePosition = source[xy];
-          const targetPosition = target[xy];
-          const greater = targetPosition > sourcePosition;
+        const calcPosition =
+          (xy: 'x' | 'y', st: 'source' | 'target') => (d: D3Link) => {
+            const source = nodeLookup.value[d.source];
+            const target = nodeLookup.value[d.target];
+            const sourcePosition = source[xy];
+            const targetPosition = target[xy];
+            const greater = targetPosition > sourcePosition;
 
-          const node = nodeLookup.value[d[st]];
-          const toAdd = xy === 'y' ? node.height / 2 : !greater ? node.width : 0;
-          return node[xy] + toAdd;
-        };
+            const node = nodeLookup.value[d[st]];
+            const toAdd =
+              xy === 'y' ? node.height / 2 : !greater ? node.width : 0;
+            return node[xy] + toAdd;
+          };
 
         link
           .attr('x1', calcPosition('x', 'source'))
@@ -306,12 +355,13 @@ export default createComponent({
         link.attr('marker-end', (d) => `url(#${id}-${d.color})`);
       }
 
-      const g = selection = svg.append('g')
+      const g = (selection = svg
+        .append('g')
         .attr('stroke', '#fff')
         .selectAll('.node')
         .data(allNodes.value)
         .join('g')
-        .attr('class', 'node');
+        .attr('class', 'node'));
 
       applyNode(g.append('rect'));
 
@@ -330,9 +380,12 @@ export default createComponent({
       if (props.draggable) {
         // I can't get the types to work out for some reason, this definitely works though
         // you can see that I cast as `any` at the end
-        const drag = d3.drag<any, d3.SimulationNodeDatum>()
+        const drag = d3
+          .drag<any, d3.SimulationNodeDatum>()
           .on('start', (d) => {
-            if (simulation && !d3.event.active) { simulation.alphaTarget(0.3).restart(); }
+            if (simulation && !d3.event.active) {
+              simulation.alphaTarget(0.3).restart();
+            }
             d.fx = d.x;
             d.fy = d.y;
           })
@@ -341,7 +394,9 @@ export default createComponent({
             d.fy = d3.event.y;
           })
           .on('end', (d) => {
-            if (simulation && !d3.event.active) { simulation.alphaTarget(0); }
+            if (simulation && !d3.event.active) {
+              simulation.alphaTarget(0);
+            }
             d.fx = null;
             d.fy = null;
           });
@@ -367,9 +422,7 @@ export default createComponent({
       if (simulation) {
         simulation.on('tick', () => {
           if (hull && !hull.empty()) {
-            hull
-              .data(convexHulls())
-              .attr('d', (d) => curve(d.path));
+            hull.data(convexHulls()).attr('d', (d) => curve(d.path));
           }
 
           const middle = (node: D3Node) => {
@@ -383,7 +436,10 @@ export default createComponent({
             const tl = { x: target.x, y: target.y };
             const tr = { x: target.x + target.width, y: target.y };
             const bl = { x: target.x, y: target.y + target.height };
-            const br = { x: target.x + target.width, y: target.y + target.height };
+            const br = {
+              x: target.x + target.width,
+              y: target.y + target.height,
+            };
 
             const middleOfTarget = middle(target);
             const middleOfSource = middle(source);
@@ -396,11 +452,20 @@ export default createComponent({
             // We only ever need to check two points depending on the relative location of the source node compared to
             // target node.
             let points: Array<ReturnType<typeof intersection>>;
-            if (middleOfTarget.x > middleOfSource.x && middleOfTarget.y > middleOfSource.y) {
+            if (
+              middleOfTarget.x > middleOfSource.x &&
+              middleOfTarget.y > middleOfSource.y
+            ) {
               points = [p1, p4];
-            } else if (middleOfTarget.x < middleOfSource.x && middleOfTarget.y > middleOfSource.y) {
+            } else if (
+              middleOfTarget.x < middleOfSource.x &&
+              middleOfTarget.y > middleOfSource.y
+            ) {
               points = [p1, p2];
-            } else if (middleOfTarget.x > middleOfSource.x && middleOfTarget.y < middleOfSource.y) {
+            } else if (
+              middleOfTarget.x > middleOfSource.x &&
+              middleOfTarget.y < middleOfSource.y
+            ) {
               points = [p3, p4];
             } else {
               points = [p2, p3];
@@ -443,11 +508,17 @@ export default createComponent({
               return source.y + source.height / 2;
             })
             .attr('x2', (d) => {
-              const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+              const { point, center } = getIntersection(
+                d.source as any as D3Node,
+                d.target as any as D3Node,
+              );
               return center.x + point.x - center.x;
             })
             .attr('y2', (d) => {
-              const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+              const { point, center } = getIntersection(
+                d.source as any as D3Node,
+                d.target as any as D3Node,
+              );
               return center.y + point.y - center.y;
             });
 
@@ -463,16 +534,21 @@ export default createComponent({
               return source.y + source.height / 2;
             })
             .attr('x2', (d) => {
-              const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+              const { point, center } = getIntersection(
+                d.source as any as D3Node,
+                d.target as any as D3Node,
+              );
               return center.x + point.x - center.x;
             })
             .attr('y2', (d) => {
-              const { point, center } = getIntersection(d.source as any as D3Node, d.target as any as D3Node);
+              const { point, center } = getIntersection(
+                d.source as any as D3Node,
+                d.target as any as D3Node,
+              );
               return center.y + point.y - center.y;
             });
 
-          g
-            .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+          g.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
         });
       }
 
@@ -494,8 +570,7 @@ export default createComponent({
             }
           }
 
-
-          const instance = svgPanZoomInstance = svgPanZoom(svgRef.value!, {
+          const instance = (svgPanZoomInstance = svgPanZoom(svgRef.value!, {
             fit: false,
             center: false,
             dblClickZoomEnabled: false,
@@ -506,7 +581,7 @@ export default createComponent({
               update(props, context, 'pan', instance.getPan());
               update(props, context, 'zoom', newZoom);
             },
-          });
+          }));
 
           svgPanZoomInstance.pan(pan);
           svgPanZoomInstance.zoom(zoom);
@@ -520,20 +595,22 @@ export default createComponent({
     function setStrokeColor(node: D3Node, color: string) {
       node.stroke = color;
       if (selection) {
-        selection.select(`#${node.id}`)
-          .style('stroke', (d) => d.stroke);
+        selection.select(`#${node.id}`).style('stroke', (d) => d.stroke);
       }
     }
 
-    watch(() => props.colorChanges, () => {
-      props.colorChanges.forEach((colorAndNode) => {
-        setStrokeColor(colorAndNode.node, colorAndNode.color);
-      });
+    watch(
+      () => props.colorChanges,
+      () => {
+        props.colorChanges.forEach((colorAndNode) => {
+          setStrokeColor(colorAndNode.node, colorAndNode.color);
+        });
 
-      if (props.colorChanges.length) {
-        props.colorChanges.splice(0, props.colorChanges.length);
-      }
-    });
+        if (props.colorChanges.length) {
+          props.colorChanges.splice(0, props.colorChanges.length);
+        }
+      },
+    );
 
     onMounted(doRender);
     watch(allNodes, doRender);
