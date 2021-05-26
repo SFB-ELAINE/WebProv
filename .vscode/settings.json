@@ -3,5 +3,6 @@
     "Dbclick",
     "Netlify"
   ],
-  "vetur.experimental.templateInterpolationService": true
+  "vetur.experimental.templateInterpolationService": true,
+  "editor.tabSize": 2
 }
