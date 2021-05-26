@@ -1,29 +1,12 @@
-import {
-  DependencyRelationship,
-  InformationField,
-  InformationRelationship,
-  NodeDefinition,
-  ProvenanceNode,
-  RelationshipInformation,
-  RelationshipRule,
-  Study,
-} from 'common';
+import { NodeDefinition, RelationshipRule } from 'common';
 
-import {
-  provenanceNodes as provenanceNodesImport,
-  studies as studiesImport,
-  informationFields as informationFieldsImport,
-  informationRelationships as informationRelationshipsImport,
-  dependencyRelationships as dependencyRelationshipsImport,
+export {
+  provenanceNodes,
+  studies,
+  informationFields,
+  informationRelationships,
+  dependencyRelationships,
 } from './assets/web-provenance-export.json';
-
-export const provenanceNodes = provenanceNodesImport as ProvenanceNode[];
-export const studies = studiesImport as Study[];
-export const informationFields = informationFieldsImport as InformationField[];
-export const informationRelationships =
-  informationRelationshipsImport as RelationshipInformation<InformationRelationship>[];
-export const dependencyRelationships =
-  dependencyRelationshipsImport as RelationshipInformation<DependencyRelationship>[];
 
 // Definitions
 const researchQuestion: NodeDefinition = {

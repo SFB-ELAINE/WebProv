@@ -1,17 +1,17 @@
-import * as t from "io-ts";
-import { Schema, Defined, GetTypes } from "./neon";
+import * as t from 'io-ts';
+import { Schema, Defined, GetTypes } from './neon';
 import {
   DependencyRelationshipSchema,
   InformationFieldSchema,
   InformationRelationshipSchema,
   ProvenanceNodeSchema,
   StudySchema,
-} from "./schemas";
+} from './schemas';
 
 export const uniqueId = () => {
   // HTML IDs must begin with a non numeric character or something like that.
   // Thus, we prepend 'A'
-  return "A" + Math.random().toString().substr(2, 9);
+  return 'A' + Math.random().toString().substr(2, 9);
 };
 
 export const keys = <T extends object>(arg: T) =>
@@ -28,12 +28,12 @@ const toObject = <T>(arg: Array<[string, T]>) => {
   return obj;
 };
 
-// Required<Defined<S['required']>>, t.TypeC<S['optional']>
-
 type IntersectionHelper<S extends Schema> = t.IntersectionC<
   [
-    t.TypeC<GetTypes<S["required"]>>,
-    t.PartialC<GetTypes<Defined<S["optional"]>>>
+    t.TypeC<GetTypes<S['required']>>,
+    t.PartialC<
+      GetTypes<Defined<undefined extends S['optional'] ? any : S['optional']>>
+    >,
   ]
 >;
 
@@ -41,10 +41,10 @@ export const getType = <S extends Schema>(schema: S): IntersectionHelper<S> => {
   const required = schema.required;
   const optional = schema.optional || {};
   const r = toObject(
-    keys(required).map((key) => tuple(key, required[key].type))
+    keys(required).map((key) => tuple(key, required[key].type)),
   );
   const o = toObject(
-    keys(optional).map((key) => tuple(key, optional[key].type))
+    keys(optional).map((key) => tuple(key, optional[key].type)),
   );
 
   // I am making the following casts because I know that what I am returning complies with the signature.
@@ -82,7 +82,7 @@ export const flat = <T>(lists: T[][]): T[] => {
 
 // The following methods are useful for making lookups.
 export const makeLookup = <T extends { id: string | number }>(
-  array: Iterable<T>
+  array: Iterable<T>,
 ) => {
   const lookup: Lookup<T> = {};
   for (const item of array) {
@@ -93,7 +93,7 @@ export const makeLookup = <T extends { id: string | number }>(
 
 export const makeLookupBy = <T, F extends (t: T) => string | number>(
   array: Iterable<T>,
-  f: F
+  f: F,
 ) => {
   const lookup: Lookup<T> = {};
   for (const item of array) {
@@ -104,7 +104,7 @@ export const makeLookupBy = <T, F extends (t: T) => string | number>(
 
 export const makeArrayLookupBy = <T, F extends (t: T) => string | number>(
   array: Iterable<T>,
-  f: F
+  f: F,
 ) => {
   const lookup: Lookup<T[]> = {};
   for (const item of array) {
@@ -135,10 +135,10 @@ export const ExportInterfaceType = t.type({
   provenanceNodes: t.array(getType(ProvenanceNodeSchema)),
   informationFields: t.array(getType(InformationFieldSchema)),
   informationRelationships: t.array(
-    getRelationshipInformationType(InformationRelationshipSchema)
+    getRelationshipInformationType(InformationRelationshipSchema),
   ),
   dependencyRelationships: t.array(
-    getRelationshipInformationType(DependencyRelationshipSchema)
+    getRelationshipInformationType(DependencyRelationshipSchema),
   ),
   studies: t.array(getType(StudySchema)),
 });
