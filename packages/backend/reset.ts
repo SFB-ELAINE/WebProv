@@ -123,6 +123,8 @@ const main = async () => {
   console.log('DONE RESET');
   await initializeData(result.right);
   console.log('DONE INIT');
+
+  process.exit();
 };
 
 main();
