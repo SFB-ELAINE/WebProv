@@ -1,16 +1,4 @@
-export {
-  uniqueId,
-  keys,
-  tuple,
-  getType,
-  relationshipInformationType,
-  isDefined,
-  flat,
-  makeArrayLookupBy,
-  makeLookup,
-  makeLookupBy,
-  Lookup,
-} from './utils';
+export * from "./utils";
 
 export {
   Study,
@@ -30,7 +18,7 @@ export {
   InformationFieldSchema,
   DependencyRelationship,
   RelationshipTypeUnion,
-} from './schemas';
+} from "./schemas";
 
 export {
   BackendSuccess,
@@ -40,32 +28,6 @@ export {
   ProvenanceAPI,
   BackendItem,
   BackendRelationships,
-} from './backend';
+} from "./backend";
 
-export {
-  Primitive,
-  PrimitiveArray,
-  Schema,
-  SchemaField,
-  RelationshipInformation,
-  schema,
-  relationship,
-  TypeOf,
-  RelationshipSchema,
-  schemas,
-  relationships,
-  boolean, 
-  string, 
-  number, 
-  union, 
-  literal, 
-  array, 
-  type,
-  IoTypeOf,
-  PathReporter,
-  right,
-  left,
-  either,
-  isLeft,
-  isRight,
-} from './neon';
+export * from "./neon";

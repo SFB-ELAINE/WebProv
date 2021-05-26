@@ -1,43 +1,33 @@
-export { 
-  boolean, 
-  string, 
-  number, 
-  union, 
+export {
+  boolean,
+  string,
+  number,
+  union,
   intersection,
-  literal, 
-  array, 
+  literal,
+  array,
   type,
   TypeOf as IoTypeOf,
-} from 'io-ts';
+  Any,
+  Type,
+} from "io-ts";
 
-export {
-  PathReporter,
-} from 'io-ts/lib/PathReporter';
+export { PathReporter } from "io-ts/lib/PathReporter";
 
-export {
-  right,
-  left,
-  either,
-  isLeft,
-  isRight,
-} from 'fp-ts/lib/Either';
+export { right, left, either, isLeft, isRight } from "fp-ts/lib/Either";
 
-import * as t from 'io-ts';
+import * as t from "io-ts";
 
 // neon is just a random name
 // It's based on neo4j
 
-export type Primitive =
-  t.BooleanC |
-  t.StringC |
-  t.NumberC |
-  t.UnionC<any>;
+export type Primitive = t.BooleanC | t.StringC | t.NumberC | t.UnionC<any>;
 
 export type PrimitiveArray =
-  t.ArrayC<t.UnionC<any>> |
-  t.ArrayC<t.BooleanC> |
-  t.ArrayC<t.NumberC> |
-  t.ArrayC<t.StringC>;
+  | t.ArrayC<t.UnionC<any>>
+  | t.ArrayC<t.BooleanC>
+  | t.ArrayC<t.NumberC>
+  | t.ArrayC<t.StringC>;
 
 export interface SchemaField {
   primary?: boolean;
@@ -61,7 +51,8 @@ export interface Schema {
   optional?: Fields;
 }
 
-export interface RelationshipSchema<A extends Schema, B extends Schema> extends Schema {
+export interface RelationshipSchema<A extends Schema, B extends Schema>
+  extends Schema {
   source: A;
   target: B;
 }
@@ -82,13 +73,17 @@ export const schema = <S extends Schema>(s: S): S => {
 };
 
 export const relationship = <
-  A extends Schema, B extends Schema, R extends RelationshipSchema<A, B>
->(r: R) => {
+  A extends Schema,
+  B extends Schema,
+  R extends RelationshipSchema<A, B>
+>(
+  r: R
+) => {
   relationships.push(r);
   return r;
 };
 
-export type GetTypes<F extends Fields> = { [K in keyof F]: F[K]['type'] };
+export type GetTypes<F extends Fields> = { [K in keyof F]: F[K]["type"] };
 
 export type Required<F extends Fields> = t.TypeOf<t.TypeC<GetTypes<F>>>;
 
@@ -117,6 +112,5 @@ export interface RelationshipBasics<T> {
   properties: T;
 }
 
-export type TypeOf<T extends Schema> =
-  Required<Defined<T['required']>> &
-  Optional<Defined<T['optional']>>;
+export type TypeOf<T extends Schema> = Required<Defined<T["required"]>> &
+  Optional<Defined<T["optional"]>>;

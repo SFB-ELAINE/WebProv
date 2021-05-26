@@ -1,111 +1,142 @@
-import { NodeDefinition, RelationshipRule } from 'common';
+import {
+  DependencyRelationship,
+  InformationField,
+  InformationRelationship,
+  NodeDefinition,
+  ProvenanceNode,
+  RelationshipInformation,
+  RelationshipRule,
+  Study,
+} from 'common';
 
-export {
-  provenanceNodes,
-  studies,
-  informationFields,
-  informationRelationships,
-  dependencyRelationships,
+import {
+  provenanceNodes as provenanceNodesImport,
+  studies as studiesImport,
+  informationFields as informationFieldsImport,
+  informationRelationships as informationRelationshipsImport,
+  dependencyRelationships as dependencyRelationshipsImport,
 } from './assets/web-provenance-export.json';
+
+export const provenanceNodes = provenanceNodesImport as ProvenanceNode[];
+export const studies = studiesImport as Study[];
+export const informationFields = informationFieldsImport as InformationField[];
+export const informationRelationships =
+  informationRelationshipsImport as RelationshipInformation<InformationRelationship>[];
+export const dependencyRelationships =
+  dependencyRelationshipsImport as RelationshipInformation<DependencyRelationship>[];
 
 // Definitions
 const researchQuestion: NodeDefinition = {
   id: 'Research Question',
   classification: 'entity',
   //labelFormatString: "RQ${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "RQ${version}",
-  informationFields: ["Description"]
-}
+  labelFormatString: 'RQ${version}',
+  informationFields: ['Description'],
+};
 
 const assumption: NodeDefinition = {
   id: 'Assumption',
   classification: 'entity',
   //labelFormatString: "A${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "A${version}",
-  informationFields: ["Description", "Category"]
-}
+  labelFormatString: 'A${version}',
+  informationFields: ['Description', 'Category'],
+};
 
 const requirement: NodeDefinition = {
   id: 'Requirement',
   classification: 'entity',
   //labelFormatString: "R${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "R${version}",
-  informationFields: ["Description", "Main species", "Type,Qualitative,Quantitative"],
+  labelFormatString: 'R${version}',
+  informationFields: [
+    'Description',
+    'Main species',
+    'Type,Qualitative,Quantitative',
+  ],
   showRelatedTo: true,
-}
+};
 
 const qualitativeModel: NodeDefinition = {
   id: 'Qualitative Model',
   classification: 'entity',
   //labelFormatString: "QM${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "QM${version}",
-  informationFields: ["Description", "Reference", "Species", "Compartments"]
-}
+  labelFormatString: 'QM${version}',
+  informationFields: ['Description', 'Reference', 'Species', 'Compartments'],
+};
 
 const simulationModel: NodeDefinition = {
   id: 'Simulation Model',
   classification: 'entity',
   //labelFormatString: "SM${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "SM${version}",
-  informationFields: ["Description", "Reference"]
-}
+  labelFormatString: 'SM${version}',
+  informationFields: ['Description', 'Reference'],
+};
 
 const simulationExperiment: NodeDefinition = {
   id: 'Simulation Experiment',
   classification: 'entity',
   //labelFormatString: "E${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "SE${version}",
-  informationFields: ["Description", "Reference", "Category,Optimization,Sensitivity analysis,Perturbation,Parameter scan,Steady-state analysis,Time course analysis,Other"]
-}
+  labelFormatString: 'SE${version}',
+  informationFields: [
+    'Description',
+    'Reference',
+    'Category,Optimization,Sensitivity analysis,Perturbation,Parameter scan,Steady-state analysis,Time course analysis,Other',
+  ],
+};
 
 const simulationData: NodeDefinition = {
   id: 'Simulation Data',
   classification: 'entity',
   //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "SD${version}",
-  informationFields: ["Description", "Reference"],
+  labelFormatString: 'SD${version}',
+  informationFields: ['Description', 'Reference'],
   showRelatedTo: true,
-}
+};
 
 const wetlabData: NodeDefinition = {
   id: 'Wet-lab Data',
   classification: 'entity',
   //labelFormatString: "D${version}${study ? ' (' + study.source  + ')' : ''}",
-  labelFormatString: "WD${version}",
-  informationFields: ["Description", "Reference", "Type of experiment,In vitro,In vivo", "Organism", "Organ/Tissue/Cell line"]
-}
+  labelFormatString: 'WD${version}',
+  informationFields: [
+    'Description',
+    'Reference',
+    'Type of experiment,In vitro,In vivo',
+    'Organism',
+    'Organ/Tissue/Cell line',
+  ],
+};
 
 const buildingActivity: NodeDefinition = {
   id: 'Building Simulation Model',
   //label: 'BSM',
-  labelFormatString: "BSM${version}",
+  labelFormatString: 'BSM${version}',
   classification: 'activity',
-  informationFields: ["Description"]
-}
+  informationFields: ['Description'],
+};
 
 const calibratingActivity: NodeDefinition = {
   id: 'Calibrating Simulation Model',
   //label: 'CSM',
-  labelFormatString: "CSM${version}",
+  labelFormatString: 'CSM${version}',
   classification: 'activity',
-  informationFields: ["Description"]
-}
+  informationFields: ['Description'],
+};
 
 const validatingActivity: NodeDefinition = {
   id: 'Validating Simulation Model',
   //label: 'VSM',
-  labelFormatString: "VSM${version}",
+  labelFormatString: 'VSM${version}',
   classification: 'activity',
-  informationFields: ["Description"]
-}
+  informationFields: ['Description'],
+};
 
 const analyzingActivity: NodeDefinition = {
   id: 'Analyzing Simulation Model',
   //label: 'ASM',
-  labelFormatString: "ASM${version}",
+  labelFormatString: 'ASM${version}',
   classification: 'activity',
-  informationFields: ["Description"]
-}
+  informationFields: ['Description'],
+};
 
 export const rules: RelationshipRule[] = [
   {
@@ -317,8 +348,8 @@ export const rules: RelationshipRule[] = [
     cardinality: 'one-to-many',
     source: analyzingActivity.id,
     target: wetlabData.id,
-  }
-]
+  },
+];
 
 export const definitions: NodeDefinition[] = [
   researchQuestion,
@@ -333,4 +364,4 @@ export const definitions: NodeDefinition[] = [
   calibratingActivity,
   validatingActivity,
   analyzingActivity,
-]
+];
