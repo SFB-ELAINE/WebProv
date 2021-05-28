@@ -1411,6 +1411,31 @@ export default createComponent({
       makeRequest(backend.getInformationNodes, (result) => {
         informationNodes.value = result.items;
       });
+
+      // TODO add link after publication
+      const message = `
+        Thank you for using WebProv, a web-based provenance tool used in the publication
+        <i>Relating simulation studies by provenance—Developing a family of Wnt signaling
+        models</i>.
+
+        <br>
+        <br>
+
+        You can browse the provenance information from the Wnt simulation study by Lee
+        et al. (2003). You may also add your own provenance data and download the dataset.
+
+        <br>
+        <br>
+
+        <strong>Please be aware that the database will be reset every day at 6 a.m. UTC.</strong>
+      `;
+
+      context.root.$notification.open({
+        message,
+        position: 'is-top-right',
+        // type: 'is-success is-light',
+        duration: 60000,
+      });
     });
 
     return {
