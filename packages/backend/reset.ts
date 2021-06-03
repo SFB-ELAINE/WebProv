@@ -1,12 +1,6 @@
 import fetch from 'node-fetch';
 import fs from 'fs';
 import {
-  DependencyRelationship,
-  InformationField,
-  InformationRelationship,
-  ProvenanceNode,
-  RelationshipInformation,
-  Study,
   ProvenanceNodeSchema,
   StudySchema,
   DependencyRelationshipSchema,
@@ -68,42 +62,44 @@ export const initializeData = async (data: ExportInterface) => {
 };
 
 const main = async () => {
-  const links = [
-    'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/2003Lee_isolated.json',
-    'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/WD_2001Lee.json',
-    'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/WD_2003Dajani.json',
-    'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/WD_2000Salic.json',
-  ];
+  // const links = [
+  //   'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/2003Lee_isolated.json',
+  //   'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/WD_2001Lee.json',
+  //   'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/WD_2003Dajani.json',
+  //   'https://github.com/SFB-ELAINE/SI_Provenance_Wnt_Family/blob/main/WebProvExport/WD_2000Salic.json',
+  // ];
 
-  const raw = links.map((link) => {
-    const [_, end] = link.split('com');
-    const [before, after] = end.split('blob/');
-    return 'https://raw.githubusercontent.com' + before + after;
-  });
+  // const raw = links.map((link) => {
+  //   const [_, end] = link.split('com');
+  //   const [before, after] = end.split('blob/');
+  //   return 'https://raw.githubusercontent.com' + before + after;
+  // });
 
-  const data: {
-    provenanceNodes: unknown[];
-    informationFields: unknown[];
-    informationRelationships: unknown[];
-    dependencyRelationships: unknown[];
-    studies: unknown[];
-  } = {
-    provenanceNodes: [],
-    informationFields: [],
-    informationRelationships: [],
-    dependencyRelationships: [],
-    studies: [],
-  };
+  // const data: {
+  //   provenanceNodes: unknown[];
+  //   informationFields: unknown[];
+  //   informationRelationships: unknown[];
+  //   dependencyRelationships: unknown[];
+  //   studies: unknown[];
+  // } = {
+  //   provenanceNodes: [],
+  //   informationFields: [],
+  //   informationRelationships: [],
+  //   dependencyRelationships: [],
+  //   studies: [],
+  // };
 
-  for (const url of raw) {
-    const res = await fetch(url);
-    const json = await res.json();
-    data.provenanceNodes.push(...json.provenanceNodes);
-    data.informationFields.push(...json.informationFields);
-    data.informationRelationships.push(...json.informationRelationships);
-    data.dependencyRelationships.push(...json.dependencyRelationships);
-    data.studies.push(...json.studies);
-  }
+  // for (const url of raw) {
+  //   const res = await fetch(url);
+  //   const json = await res.json();
+  //   data.provenanceNodes.push(...json.provenanceNodes);
+  //   data.informationFields.push(...json.informationFields);
+  //   data.informationRelationships.push(...json.informationRelationships);
+  //   data.dependencyRelationships.push(...json.dependencyRelationships);
+  //   data.studies.push(...json.studies);
+  // }
+
+  const data = JSON.parse(fs.readFileSync(__dirname + '/data.json').toString());
 
   const result = ExportInterfaceType.decode(data);
   if (c.isLeft(result)) {
