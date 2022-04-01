@@ -20,7 +20,7 @@ The goal of this project is the create a web platform (WebProv) to automatically
 
 ## Integrating Provenance Information into WebProv
 
-_(This section describes the usage of WebProv as used by Budde et al. (2021).)_
+_(This section describes the usage of WebProv as used by [Budde et al. (2021)](https://doi.org/10.1371/journal.pcbi.1009227).)_
 
 Once all provenance information of a simulation study has been collected (or while doing so), this information can be included in WebProv. A user needs to do create a study, which needs a reference (last name of first author and year of publication) as well as the name of the signaling pathway the study is based on. If more than one signaling pathway is being considered, than all pathways should be in a set (e.g., {pathway1, pathway2}).
 
